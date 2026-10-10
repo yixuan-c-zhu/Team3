@@ -1,0 +1,176 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PieceControlManager : MonoBehaviour
+{
+    public Material blueMaterial;
+    public Material orangeMaterial;
+
+    public CutController cutController;
+    public CameraRig cameraRig;
+    public LevelManager levelManager;
+    public HUD hud;
+
+    public KeyCode colorKey = KeyCode.LeftShift;
+    public KeyCode switchPieceKey = KeyCode.F;
+
+    private readonly List<CuttablePiece> pieces =
+        new List<CuttablePiece>();
+
+    private CuttablePiece controlledPiece;
+
+    void Start()
+    {
+        RegisterPiece(
+            cutController.player,
+            PieceColor.PieceColorType.Blue);
+
+        SetControlledPiece(cutController.player);
+    }
+
+    void Update()
+    {
+        if (cutController.state != CutController.State.Normal)
+        {
+            return;
+        }
+
+        if (Input.GetKeyDown(colorKey))
+        {
+            ChangeControlledPieceColor();
+        }
+
+        if (Input.GetKeyDown(switchPieceKey))
+        {
+            SwitchToNextPiece();
+        }
+    }
+
+    public void RegisterPiece(
+        CuttablePiece piece,
+        PieceColor.PieceColorType startingColor)
+    {
+        if (piece == null || pieces.Contains(piece))
+        {
+            return;
+        }
+
+        pieces.Add(piece);
+
+        PieceColor pieceColor = piece.GetComponent<PieceColor>();
+        if (pieceColor == null)
+        {
+            pieceColor = piece.gameObject.AddComponent<PieceColor>();
+        }
+
+        pieceColor.SetColor(
+            startingColor,
+            blueMaterial,
+            orangeMaterial);
+    }
+
+    public PieceColor.PieceColorType GetControlledColor()
+    {
+        PieceColor pieceColor =
+            controlledPiece.GetComponent<PieceColor>();
+
+        return pieceColor.currentColor;
+    }
+
+    void ChangeControlledPieceColor()
+    {
+        if (controlledPiece == null)
+        {
+            return;
+        }
+
+        PieceColor pieceColor =
+            controlledPiece.GetComponent<PieceColor>();
+
+        pieceColor.ToggleColor(
+            blueMaterial,
+            orangeMaterial);
+    }
+
+    void SwitchToNextPiece()
+    {
+        pieces.RemoveAll(piece => piece == null);
+
+        if (pieces.Count < 2)
+        {
+            return;
+        }
+
+        int currentIndex = pieces.IndexOf(controlledPiece);
+        int nextIndex = (currentIndex + 1) % pieces.Count;
+
+        SetControlledPiece(pieces[nextIndex]);
+    }
+
+    void SetControlledPiece(CuttablePiece newPiece)
+    {
+        if (controlledPiece != null)
+        {
+            PlayerController oldController =
+                controlledPiece.GetComponent<PlayerController>();
+
+            if (oldController != null)
+            {
+                oldController.StopPlayer();
+                oldController.canMove = false;
+            }
+
+            SetInactiveConstraints(controlledPiece);
+        }
+
+        controlledPiece = newPiece;
+
+        PlayerController newController =
+            controlledPiece.GetComponent<PlayerController>();
+
+        if (newController == null)
+        {
+            newController =
+                controlledPiece.gameObject.AddComponent<PlayerController>();
+
+            newController.camScript = cameraRig;
+            newController.speed = cutController.playerScript.speed;
+            newController.jumpForce =
+                cutController.playerScript.jumpForce;
+        }
+
+        newController.camScript = cameraRig;
+        newController.canMove = true;
+
+        Rigidbody rb = controlledPiece.GetComponent<Rigidbody>();
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
+
+        cutController.SetControlledPiece(
+            controlledPiece,
+            newController);
+
+        cameraRig.player = controlledPiece.transform;
+        levelManager.player = controlledPiece;
+
+        if (hud != null)
+        {
+            hud.player = controlledPiece;
+        }
+    }
+
+    void SetInactiveConstraints(CuttablePiece piece)
+    {
+        Rigidbody rb = piece.GetComponent<Rigidbody>();
+
+        RigidbodyConstraints constraints =
+            RigidbodyConstraints.FreezeRotation;
+
+        if (!cutController.canPushLeftover)
+        {
+            constraints |= RigidbodyConstraints.FreezePositionX;
+            constraints |= RigidbodyConstraints.FreezePositionZ;
+        }
+
+        rb.constraints = constraints;
+    }
+}

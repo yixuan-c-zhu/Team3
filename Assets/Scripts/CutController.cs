@@ -36,6 +36,8 @@ public class CutController : MonoBehaviour
     private Renderer playerRend;
     private Collider playerCol;
 
+    public PieceControlManager pieceControlManager;
+
     void Awake()
     {
         playerRend = player.GetComponent<Renderer>();
@@ -315,5 +317,29 @@ public class CutController : MonoBehaviour
         rb.constraints = freeze;
 
         obj.AddComponent<Fadeable>();
+
+        PlayerController leftoverController = obj.AddComponent<PlayerController>();
+
+        leftoverController.camScript = camScript;
+        leftoverController.speed = playerScript.speed;
+        leftoverController.jumpForce = playerScript.jumpForce;
+        leftoverController.canMove = false;
+
+        PieceColor.PieceColorType inheritedColor = pieceControlManager.GetControlledColor();
+
+        pieceControlManager.RegisterPiece(piece,inheritedColor);
+
     }
+
+    public void SetControlledPiece(
+    CuttablePiece newPlayer,
+    PlayerController newPlayerScript)
+{
+    player = newPlayer;
+    playerScript = newPlayerScript;
+
+    playerRend = player.GetComponent<Renderer>();
+    playerCol = player.GetComponent<Collider>();
+}
+
 }
