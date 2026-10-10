@@ -439,6 +439,7 @@ MonoBehaviour:
   switchMsg: {fileID: 574042591}
   switchKey: 102
   state: 0
+  pieceControlManager: {fileID: 778814936}
 --- !u!114 &425685393
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -469,7 +470,8 @@ Transform:
   m_LocalPosition: {x: 9.08407, y: 0, z: -0.98943}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 778814935}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &507094156
@@ -1065,6 +1067,58 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &778814934
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 778814935}
+  - component: {fileID: 778814936}
+  m_Layer: 0
+  m_Name: PieceControlManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &778814935
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 778814934}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 425685394}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &778814936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 778814934}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 206a985476a04436db2104f5ddb6ea5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PieceControlManager
+  blueMaterial: {fileID: 2100000, guid: a88599ae7dd3d45e18ea89b99c43ce4d, type: 2}
+  orangeMaterial: {fileID: 2100000, guid: 9d2457dbad1ce44c298786fd83abb2c3, type: 2}
+  cutController: {fileID: 425685392}
+  cameraRig: {fileID: 961739754}
+  levelManager: {fileID: 425685393}
+  hud: {fileID: 1943445777}
+  colorKey: 304
+  switchPieceKey: 102
 --- !u!1 &961739749
 GameObject:
   m_ObjectHideFlags: 0

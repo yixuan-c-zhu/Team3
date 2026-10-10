@@ -354,4 +354,13 @@ public class CutController : MonoBehaviour
         }
     }
 
+    public void SetControlledPiece(CuttablePiece newPlayer, PlayerController newPlayerScript)
+    {
+        player = newPlayer;
+        playerScript = newPlayerScript;
+
+        playerRend = player.GetComponent<Renderer>();
+        playerCol = player.GetComponent<Collider>();
+    }
+
 }
