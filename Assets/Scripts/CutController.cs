@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -25,6 +26,9 @@ public class CutController : MonoBehaviour
     public TMP_Text tooSmallMsg;
     public TMP_Text chooseMsg;
     public TMP_Text niceCutMsg;
+    public TMP_Text switchMsg;
+
+    public KeyCode switchKey = KeyCode.F;
 
     public enum State { Normal, Drawing, Choosing }
     public State state = State.Normal;
@@ -35,6 +39,7 @@ public class CutController : MonoBehaviour
     private ConvexShape[] pieces = new ConvexShape[2];
     private Renderer playerRend;
     private Collider playerCol;
+    private CuttablePiece lastLeftover;
 
     void Awake()
     {
@@ -54,6 +59,10 @@ public class CutController : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.C))
                 {
                     StartCut();
+                }
+                else if (Input.GetKeyDown(switchKey))
+                {
+                    SwitchPiece();
                 }
                 break;
 
@@ -315,5 +324,34 @@ public class CutController : MonoBehaviour
         rb.constraints = freeze;
 
         obj.AddComponent<Fadeable>();
+
+        lastLeftover = piece;
     }
+
+    void SwitchPiece()
+    {
+        if (lastLeftover == null) return;
+        CuttablePiece other = lastLeftover;
+
+        Rigidbody playerRb = player.GetComponent<Rigidbody>();
+        Rigidbody otherRb = other.GetComponent<Rigidbody>();
+        Vector3 playerVel = playerRb.linearVelocity;
+        Vector3 otherVel = otherRb.linearVelocity;
+
+        ConvexShape playerShape = player.GetWorldShape();
+        ConvexShape otherShape = other.GetWorldShape();
+        player.SetWorldShape(otherShape);
+        other.SetWorldShape(playerShape);
+
+        playerRb.linearVelocity = otherVel;
+        playerRb.angularVelocity = Vector3.zero;
+        otherRb.linearVelocity = playerVel;
+        otherRb.angularVelocity = Vector3.zero;
+
+        if (switchMsg != null)
+        {
+            levelManager.ShowMessage(switchMsg.text);
+        }
+    }
+
 }
