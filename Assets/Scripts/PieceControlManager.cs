@@ -12,7 +12,6 @@ public class PieceControlManager : MonoBehaviour
     public HUD hud;
 
     public KeyCode colorKey = KeyCode.LeftShift;
-    public KeyCode switchPieceKey = KeyCode.F;
 
     private readonly List<CuttablePiece> pieces =
         new List<CuttablePiece>();
@@ -38,11 +37,6 @@ public class PieceControlManager : MonoBehaviour
         if (Input.GetKeyDown(colorKey))
         {
             ChangeControlledPieceColor();
-        }
-
-        if (Input.GetKeyDown(switchPieceKey))
-        {
-            SwitchToNextPiece();
         }
     }
 
@@ -90,21 +84,6 @@ public class PieceControlManager : MonoBehaviour
         pieceColor.ToggleColor(
             blueMaterial,
             orangeMaterial);
-    }
-
-    void SwitchToNextPiece()
-    {
-        pieces.RemoveAll(piece => piece == null);
-
-        if (pieces.Count < 2)
-        {
-            return;
-        }
-
-        int currentIndex = pieces.IndexOf(controlledPiece);
-        int nextIndex = (currentIndex + 1) % pieces.Count;
-
-        SetControlledPiece(pieces[nextIndex]);
     }
 
     void SetControlledPiece(CuttablePiece newPiece)
