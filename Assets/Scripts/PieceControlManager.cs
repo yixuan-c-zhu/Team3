@@ -6,6 +6,10 @@ public class PieceControlManager : MonoBehaviour
     public Material blueMaterial;
     public Material orangeMaterial;
 
+    public Material blueSelectMaterial;
+    public Material orangeSelectMaterial;
+
+
     public CutController cutController;
     public CameraRig cameraRig;
     public LevelManager levelManager;
@@ -76,6 +80,16 @@ public class PieceControlManager : MonoBehaviour
 
         return pieceColor.currentColor;
     }
+
+    public Material GetSelectMaterial(PieceColor.PieceColorType color)
+    {
+        if (color == PieceColor.PieceColorType.Blue)
+        {
+            return blueSelectMaterial;
+        }
+        return orangeSelectMaterial;
+    }
+
 
     void ChangeControlledPieceColor()
     {

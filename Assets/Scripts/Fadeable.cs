@@ -8,6 +8,7 @@ public class Fadeable : MonoBehaviour
     private Renderer rend;
     private Color startColor;
     private bool isFaded;
+    private float fadeAlpha = 1f;
 
     void Awake()
     {
@@ -35,12 +36,31 @@ public class Fadeable : MonoBehaviour
         if (fade != isFaded)
         {
             isFaded = fade;
-            Color color = startColor;
-            if (isFaded)
-            {
-                color.a = startColor.a * alpha;
-            }
-            rend.material.color = color;
+            fadeAlpha = alpha;
+            ApplyColor();
         }
+    }
+
+    public void RefreshBaseColor()
+    {
+        if (rend == null)
+        {
+            rend = GetComponent<Renderer>();
+        }
+        startColor = rend.sharedMaterial.color;
+        if (isFaded)
+        {
+            ApplyColor();
+        }
+    }
+
+    void ApplyColor()
+    {
+        Color color = startColor;
+        if (isFaded)
+        {
+            color.a = startColor.a * fadeAlpha;
+        }
+        rend.material.color = color;
     }
 }
