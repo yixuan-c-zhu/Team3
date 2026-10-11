@@ -38,15 +38,20 @@ public class PieceColor : MonoBehaviour
             pieceRenderer.sharedMaterial = orangeMaterial;
         }
 
+        Fadeable fadeable = GetComponent<Fadeable>();
+        if (fadeable != null)
+        {
+            fadeable.RefreshBaseColor();
+        }
+
         ColorObstacle[] obstacles =
-        FindObjectsByType<ColorObstacle>(
-        FindObjectsSortMode.None);
+            FindObjectsByType<ColorObstacle>(
+                FindObjectsSortMode.None);
 
         foreach (ColorObstacle obstacle in obstacles)
         {
-        obstacle.UpdateCollision(this);
+            obstacle.UpdateCollision(this);
         }
-
     }
 
     public void ToggleColor(

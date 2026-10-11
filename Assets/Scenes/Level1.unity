@@ -438,8 +438,8 @@ MonoBehaviour:
   niceCutMsg: {fileID: 1401767421}
   switchMsg: {fileID: 574042591}
   switchKey: 102
+  colorManager: {fileID: 0}
   state: 0
-  pieceControlManager: {fileID: 778814936}
 --- !u!114 &425685393
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1113,6 +1113,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PieceControlManager
   blueMaterial: {fileID: 2100000, guid: a88599ae7dd3d45e18ea89b99c43ce4d, type: 2}
   orangeMaterial: {fileID: 2100000, guid: 9d2457dbad1ce44c298786fd83abb2c3, type: 2}
+  blueSelectMaterial: {fileID: 2100000, guid: 07418141b84a2df47878547bf1ae0165, type: 2}
+  orangeSelectMaterial: {fileID: 2100000, guid: 1c470fa8dfc0a514c8e4e28a65fb5b05, type: 2}
   cutController: {fileID: 425685392}
   cameraRig: {fileID: 961739754}
   levelManager: {fileID: 425685393}

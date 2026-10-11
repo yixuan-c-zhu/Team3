@@ -29,6 +29,8 @@ public class CutController : MonoBehaviour
     public TMP_Text switchMsg;
 
     public KeyCode switchKey = KeyCode.F;
+    public PieceControlManager colorManager;
+
 
     public enum State { Normal, Drawing, Choosing }
     public State state = State.Normal;
@@ -41,10 +43,21 @@ public class CutController : MonoBehaviour
     private Collider playerCol;
     private CuttablePiece lastLeftover;
 
+    private Vector3 cutNormal;
+    private float cutDist;
+    private int hoveredIndex = -1;
+    private Material previewSolidMat;
+    private Material[] previewClearMats = new Material[2];
+
+
     void Awake()
     {
         playerRend = player.GetComponent<Renderer>();
         playerCol = player.GetComponent<Collider>();
+        if (colorManager == null)
+        {
+            colorManager = FindFirstObjectByType<PieceControlManager>();
+        }
         if (lineRenderer != null)
         {
             lineRenderer.enabled = false;
@@ -76,6 +89,7 @@ public class CutController : MonoBehaviour
                 break;
 
             case State.Choosing:
+                UpdateHover();
                 if (Input.GetKeyDown(KeyCode.Alpha1))
                 {
                     PickPiece(0);
@@ -218,7 +232,7 @@ public class CutController : MonoBehaviour
         GameObject obj1 = new GameObject("Piece 1 (preview)");
         Mesh mesh1 = front.MakeMesh();
         obj1.AddComponent<MeshFilter>().sharedMesh = mesh1;
-        obj1.AddComponent<MeshRenderer>().sharedMaterial = piece1Mat;
+        obj1.AddComponent<MeshRenderer>().sharedMaterial = GetPreviewMaterial(piece1Mat);
         MeshCollider col1 = obj1.AddComponent<MeshCollider>();
         col1.convex = true;
         col1.isTrigger = true;
@@ -228,12 +242,20 @@ public class CutController : MonoBehaviour
         GameObject obj2 = new GameObject("Piece 2 (preview)");
         Mesh mesh2 = back.MakeMesh();
         obj2.AddComponent<MeshFilter>().sharedMesh = mesh2;
-        obj2.AddComponent<MeshRenderer>().sharedMaterial = piece2Mat;
+        obj2.AddComponent<MeshRenderer>().sharedMaterial = GetPreviewMaterial(piece2Mat);
         MeshCollider col2 = obj2.AddComponent<MeshCollider>();
         col2.convex = true;
         col2.isTrigger = true;
         col2.sharedMesh = mesh2;
         previewObjs[1] = obj2;
+
+        cutNormal = normal;
+        cutDist = planeDist;
+        previewClearMats[0] = obj1.GetComponent<MeshRenderer>().sharedMaterial;
+        previewClearMats[1] = obj2.GetComponent<MeshRenderer>().sharedMaterial;
+        previewSolidMat = GetSolidMaterial();
+        hoveredIndex = -1;
+        UpdateHover();
 
         playerRend.enabled = false;
         playerCol.enabled = false;
@@ -243,19 +265,73 @@ public class CutController : MonoBehaviour
         levelManager.ShowMessage(chooseMsg.text);
     }
 
-    void ClickPiece()
+    Material GetPreviewMaterial(Material fallback)
     {
+        PieceColor pieceColor = player.GetComponent<PieceColor>();
+        if (pieceColor == null || colorManager == null)
+        {
+            return fallback;
+        }
+
+        Material selectMat = colorManager.GetSelectMaterial(pieceColor.currentColor);
+        if (selectMat == null)
+        {
+            return fallback;
+        }
+        return selectMat;
+    }
+
+    Material GetSolidMaterial()
+    {
+        PieceColor pieceColor = player.GetComponent<PieceColor>();
+        if (pieceColor != null && colorManager != null)
+        {
+            Material mat = pieceColor.currentColor == PieceColor.PieceColorType.Blue
+                ? colorManager.blueMaterial
+                : colorManager.orangeMaterial;
+            if (mat != null)
+            {
+                return mat;
+            }
+        }
+        return playerRend.sharedMaterial;
+    }
+
+
+    void UpdateHover()
+    {
+        if (previewObjs[0] == null || previewObjs[1] == null)
+        {
+            return;
+        }
+
         Ray ray = camScript.cam.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        if (!Physics.Raycast(ray, out hit, 1000f, ~0, QueryTriggerInteraction.Collide)) return;
+        float side = Vector3.Dot(cutNormal, ray.GetPoint(1f)) - cutDist;
+        int index = side >= 0f ? 0 : 1;
+
+        if (index == hoveredIndex)
+        {
+            return;
+        }
+        hoveredIndex = index;
 
         for (int i = 0; i < 2; i++)
         {
-            if (previewObjs[i] != null && hit.collider.gameObject == previewObjs[i])
+            Material mat = previewClearMats[i];
+            if (i == hoveredIndex && previewSolidMat != null)
             {
-                PickPiece(i);
-                return;
+                mat = previewSolidMat;
             }
+            previewObjs[i].GetComponent<MeshRenderer>().sharedMaterial = mat;
+        }
+    }
+
+    void ClickPiece()
+    {
+        UpdateHover();
+        if (hoveredIndex == 0 || hoveredIndex == 1)
+        {
+            PickPiece(hoveredIndex);
         }
     }
 
@@ -308,6 +384,16 @@ public class CutController : MonoBehaviour
         obj.GetComponent<MeshRenderer>().sharedMaterial = leftoverMat;
         obj.GetComponent<MeshCollider>().sharedMaterial = playerCol.sharedMaterial;
 
+        PieceColor sourceColor = player.GetComponent<PieceColor>();
+        if (sourceColor != null && colorManager != null)
+        {
+            PieceColor leftoverColor = obj.AddComponent<PieceColor>();
+            leftoverColor.SetColor(
+                sourceColor.currentColor,
+                colorManager.blueMaterial,
+                colorManager.orangeMaterial);
+        }
+
         Rigidbody rb = obj.GetComponent<Rigidbody>();
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
@@ -347,6 +433,21 @@ public class CutController : MonoBehaviour
         playerRb.angularVelocity = Vector3.zero;
         otherRb.linearVelocity = playerVel;
         otherRb.angularVelocity = Vector3.zero;
+
+        PieceColor playerColor = player.GetComponent<PieceColor>();
+        PieceColor otherColor = other.GetComponent<PieceColor>();
+        if (playerColor != null && otherColor != null && colorManager != null)
+        {
+            PieceColor.PieceColorType playerType = playerColor.currentColor;
+            playerColor.SetColor(
+                otherColor.currentColor,
+                colorManager.blueMaterial,
+                colorManager.orangeMaterial);
+            otherColor.SetColor(
+                playerType,
+                colorManager.blueMaterial,
+                colorManager.orangeMaterial);
+        }
 
         if (switchMsg != null)
         {
