@@ -1,15 +1,20 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PieceCarry : MonoBehaviour
 {
+    public static List<PieceCarry> allPieces = new List<PieceCarry>();
+
     public float moveThreshold = 0.05f;
 
     const RigidbodyConstraints moveLock = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
+    const int maxStackDepth = 16;
 
     private Rigidbody rb;
     private Rigidbody carrier;
-    private float carrierSpeed;
+    private Rigidbody support;
+    private float carrierSpeed = -1f;
     private bool onGround;
     private bool unlocked;
 
@@ -19,8 +24,20 @@ public class PieceCarry : MonoBehaviour
         rb.sleepThreshold = 0f;
     }
 
+    void OnEnable()
+    {
+        allPieces.Add(this);
+    }
+
+    void OnDisable()
+    {
+        allPieces.Remove(this);
+    }
+
     void FixedUpdate()
     {
+        support = carrier;
+
         if (IsControlled())
         {
             unlocked = false;
@@ -40,7 +57,7 @@ public class PieceCarry : MonoBehaviour
         }
 
         carrier = null;
-        carrierSpeed = 0f;
+        carrierSpeed = -1f;
         onGround = false;
     }
 
@@ -63,6 +80,30 @@ public class PieceCarry : MonoBehaviour
                     }
                 }
                 return;
+            }
+        }
+    }
+
+    public static void LaunchRiders(Rigidbody body, float upSpeed)
+    {
+        LaunchRiders(body, upSpeed, 0);
+    }
+
+    static void LaunchRiders(Rigidbody body, float upSpeed, int depth)
+    {
+        if (body == null || depth >= maxStackDepth)
+        {
+            return;
+        }
+
+        foreach (PieceCarry piece in allPieces)
+        {
+            if (piece.support == body && piece.rb != body && piece.rb.worldCenterOfMass.y > body.worldCenterOfMass.y)
+            {
+                Vector3 velocity = piece.rb.linearVelocity;
+                velocity.y = upSpeed;
+                piece.rb.linearVelocity = velocity;
+                LaunchRiders(piece.rb, upSpeed, depth + 1);
             }
         }
     }

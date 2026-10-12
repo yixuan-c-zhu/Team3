@@ -42,7 +42,7 @@ public class ExitZone : MonoBehaviour
         Rigidbody rb = other.attachedRigidbody;
         if (rb != null && rb.GetComponent<PlayerController>() != null)
         {
-            levelManager.NextLevel();
+            levelManager.CompleteLevel();
         }
     }
 }

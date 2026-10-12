@@ -55,6 +55,7 @@ public class PlayerController : MonoBehaviour
         if (jumpPressed && isGrounded)
         {
             velocity.y = jumpForce;
+            PieceCarry.LaunchRiders(rb, jumpForce);
         }
         jumpPressed = false;
         isGrounded = false;

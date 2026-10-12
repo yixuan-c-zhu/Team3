@@ -55,6 +55,29 @@ public class LevelManager : MonoBehaviour
         }
     }
 
+    public int CutsUsed()
+    {
+        return maxCuts - cutsLeft;
+    }
+
+    public void CompleteLevel()
+    {
+        if (isLoading)
+        {
+            return;
+        }
+
+        LevelClearScreen clearScreen = FindFirstObjectByType<LevelClearScreen>();
+        if (clearScreen != null)
+        {
+            clearScreen.Show();
+        }
+        else
+        {
+            NextLevel();
+        }
+    }
+
     public void NextLevel()
     {
         if (!isLoading)
