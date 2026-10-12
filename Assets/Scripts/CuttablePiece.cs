@@ -20,6 +20,11 @@ public class CuttablePiece : MonoBehaviour
         meshCol = GetComponent<MeshCollider>();
         rb = GetComponent<Rigidbody>();
 
+        if (GetComponent<PieceCarry>() == null)
+        {
+            gameObject.AddComponent<PieceCarry>();
+        }
+
         if (shape == null)
         {
             SetShape(ConvexShape.MakeBox(boxSize));
