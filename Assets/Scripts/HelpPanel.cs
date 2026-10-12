@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -8,6 +9,11 @@ public class HelpPanel : MonoBehaviour
     public Button closeButton;
     public GameObject panel;
 
+    public TMP_Text body;
+    public Button nextHintButton;
+    [TextArea(2, 5)]
+    public string[] hints;
+
     public CutController cutController;
     public PieceControlManager colorManager;
     public CameraRig camScript;
@@ -16,6 +22,7 @@ public class HelpPanel : MonoBehaviour
 
     private float savedTimeScale = 1f;
     private PlayerController pausedPlayer;
+    private int shownHints = 1;
 
     void Awake()
     {
@@ -38,6 +45,48 @@ public class HelpPanel : MonoBehaviour
         {
             closeButton.onClick.AddListener(Close);
         }
+        if (nextHintButton != null)
+        {
+            nextHintButton.onClick.AddListener(ShowNextHint);
+        }
+        RefreshHints();
+    }
+
+    public void ShowNextHint()
+    {
+        if (hints != null && shownHints < hints.Length)
+        {
+            shownHints++;
+            RefreshHints();
+        }
+        if (EventSystem.current != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
+    }
+
+    void RefreshHints()
+    {
+        bool hasHints = hints != null && hints.Length > 0;
+        if (nextHintButton != null)
+        {
+            nextHintButton.gameObject.SetActive(hasHints && shownHints < hints.Length);
+        }
+        if (!hasHints || body == null)
+        {
+            return;
+        }
+
+        string text = "";
+        for (int i = 0; i < shownHints && i < hints.Length; i++)
+        {
+            if (i > 0)
+            {
+                text += "\n\n";
+            }
+            text += "<color=#FFD54A>" + (i + 1) + ".</color> " + hints[i];
+        }
+        body.text = text;
     }
 
     void Update()
