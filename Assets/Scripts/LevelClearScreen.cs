@@ -79,8 +79,8 @@ public class LevelClearScreen : MonoBehaviour
             PlayerPrefs.Save();
         }
 
-        int nextIndex = SceneManager.GetActiveScene().buildIndex + 1;
-        nextButton.gameObject.SetActive(nextIndex < SceneManager.sceneCountInBuildSettings);
+        string nextScene = LevelCatalog.NextScene(SceneManager.GetActiveScene().name);
+        nextButton.gameObject.SetActive(nextScene != LevelCatalog.MenuScene && LevelCatalog.CanLoad(nextScene));
         menuButton.gameObject.SetActive(Application.CanStreamedLevelBeLoaded(mainMenuScene));
 
         transform.SetAsLastSibling();
@@ -113,7 +113,7 @@ public class LevelClearScreen : MonoBehaviour
 
     void LoadNextLevel()
     {
-        LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        LevelCatalog.Load(LevelCatalog.NextScene(SceneManager.GetActiveScene().name));
     }
 
     void Retry()
@@ -123,8 +123,7 @@ public class LevelClearScreen : MonoBehaviour
 
     void LoadMainMenu()
     {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(mainMenuScene);
+        LevelCatalog.Load(mainMenuScene);
     }
 
     void LoadScene(int index)

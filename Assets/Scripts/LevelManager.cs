@@ -20,6 +20,11 @@ public class LevelManager : MonoBehaviour
         cutsLeft = maxCuts;
     }
 
+    void Start()
+    {
+        GameplayMenuButton.Create();
+    }
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.R))
@@ -67,6 +72,8 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
+        LevelCatalog.MarkComplete(SceneManager.GetActiveScene().name);
+
         LevelClearScreen clearScreen = FindFirstObjectByType<LevelClearScreen>();
         if (clearScreen != null)
         {
@@ -84,12 +91,7 @@ public class LevelManager : MonoBehaviour
         {
             isLoading = true;
             Time.timeScale = 1f;
-            int nextIndex = SceneManager.GetActiveScene().buildIndex + 1;
-            if (nextIndex >= SceneManager.sceneCountInBuildSettings)
-            {
-                nextIndex = 0;
-            }
-            SceneManager.LoadScene(nextIndex);
+            LevelCatalog.Load(LevelCatalog.NextScene(SceneManager.GetActiveScene().name));
         }
     }
 
