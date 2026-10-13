@@ -1,102 +1,69 @@
 .menu-root {
     flex-grow: 1;
-    background-color: rgb(245, 243, 235);
-    color: rgb(30, 47, 54);
-    font-size: 16px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(229, 234, 229);
+    color: rgb(36, 53, 55);
     -unity-font-style: normal;
 }
-.menu-scroll { flex-grow: 1; }
-.menu-scroll > .unity-scroll-view__content-viewport { flex-grow: 1; }
-.shell { width: 100%; max-width: 1440px; padding: 22px 58px; align-self: center; }
-Label { white-space: normal; margin: 0; padding: 0; }
-Button { margin: 0; padding: 0; border-width: 0; border-radius: 0; -unity-font-style: normal; color: rgb(30, 47, 54); }
-.header { height: 52px; flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 24px; border-bottom-width: 1px; border-bottom-color: rgb(210, 215, 204); padding-bottom: 20px; }
-.brand { flex-direction: row; align-items: center; }
-.brand-mark { width: 26px; height: 26px; margin-right: 13px; }
-.mark-blue { position: absolute; width: 17px; height: 17px; left: 0; bottom: 0; background-color: rgb(83, 108, 230); rotate: -12deg; }
-.mark-orange { position: absolute; width: 13px; height: 13px; right: 0; top: 0; background-color: rgb(237, 153, 102); rotate: -12deg; }
-.brand-name { font-size: 19px; -unity-font-style: bold; letter-spacing: 2px; }
-.brand-caption { font-size: 11px; letter-spacing: 2px; color: rgb(103, 117, 115); }
-.hero { flex-direction: row; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; }
-.eyebrow { font-size: 11px; -unity-font-style: bold; letter-spacing: 2px; color: rgb(98, 121, 113); }
-.hero-title { margin-top: 10px; font-size: 47px; -unity-font-style: bold; letter-spacing: -1.5px; }
-.hero-note { width: 42%; padding-bottom: 9px; padding-left: 30px; }
-.hero-subtitle { font-size: 19px; margin-bottom: 9px; }
-.hero-description { font-size: 14px; color: rgb(106, 119, 116); }
-.chapter-cards { flex-direction: row; }
-.chapter-card { flex-grow: 1; flex-basis: 0; margin-right: 20px; padding: 21px 25px 0; border-width: 1px; border-color: rgb(210, 217, 203); border-radius: 9px; overflow: hidden; align-items: stretch; -unity-text-align: upper-left; transition-property: translate, border-color; transition-duration: 0.16s; }
-#chapter-2 { margin-right: 0; }
-.chapter-card:hover { translate: 0 -5px; border-color: rgb(93, 118, 105); }
-.chapter-card:focus { border-width: 2px; border-color: rgb(59, 85, 80); padding: 20px 24px 0; }
-.chapter-card.tutorial { background-color: rgb(232, 237, 223); }
-.chapter-card.jump { background-color: rgb(218, 234, 224); }
-.chapter-card.button { background-color: rgb(239, 225, 205); }
-.card-top { flex-direction: row; justify-content: space-between; align-items: center; }
-.card-kicker { font-size: 11px; letter-spacing: 2px; -unity-font-style: bold; }
-.card-count { font-size: 10px; letter-spacing: 1px; color: rgb(100, 119, 111); }
-.card-art { height: 220px; margin: 0 -13px; }
-.card-body { min-height: 115px; }
-.card-tag { font-size: 10px; letter-spacing: 1.7px; color: rgb(88, 113, 99); margin-bottom: 9px; }
-.card-title { font-size: 31px; -unity-font-style: bold; letter-spacing: -0.8px; margin-bottom: 8px; }
-.card-description { font-size: 13px; color: rgb(86, 105, 102); }
-.card-bottom { flex-direction: row; justify-content: space-between; align-items: center; height: 57px; border-top-width: 1px; border-top-color: rgba(74, 98, 87, 0.22); }
-.card-action { font-size: 13px; -unity-font-style: bold; }
-.card-arrow { font-size: 26px; }
-.overview-bottom { height: 37px; flex-direction: row; justify-content: space-between; align-items: flex-end; }
-.section-note { font-size: 9px; letter-spacing: 1.8px; color: rgb(115, 127, 115); }
-.availability-note { font-size: 12px; color: rgb(105, 119, 114); }
-.footer { margin-top: 26px; padding-top: 20px; border-top-width: 1px; border-top-color: rgb(210, 215, 204); flex-direction: row; justify-content: space-between; }
-.footer-motto { font-size: 10px; letter-spacing: 1.7px; color: rgb(103, 117, 109); }
-.footer-keys { font-size: 11px; color: rgb(114, 125, 119); }
-.detail-breadcrumb { height: 44px; flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.back-button { background-color: transparent; font-size: 15px; padding: 9px 12px; margin-left: -12px; border-radius: 4px; }
-.back-button:hover, .back-button:focus { background-color: rgb(222, 229, 216); }
-.detail-layout { flex-direction: row; min-height: 548px; }
-.lesson-sidebar { width: 32%; padding-right: 32px; padding-top: 12px; }
-.completion-note { margin-top: 10px; font-size: 13px; color: rgb(104, 122, 111); }
-.lesson-list { margin-top: 25px; }
-.lesson-row { flex-direction: row; align-items: center; padding: 18px 13px; margin-bottom: 10px; background-color: transparent; border-width: 1px; border-color: rgb(218, 221, 209); border-radius: 5px; -unity-text-align: middle-left; min-height: 80px; }
-.lesson-row:hover { background-color: rgb(233, 236, 225); border-color: rgb(143, 161, 142); }
-.lesson-row.selected { background-color: rgb(228, 235, 218); border-color: rgb(133, 159, 126); }
-.lesson-row:focus { border-color: rgb(48, 76, 59); border-width: 2px; padding: 17px 12px; }
-.row-number { font-size: 21px; color: rgb(116, 139, 107); width: 39px; }
-.row-copy { flex-grow: 1; flex-basis: 0; }
-.row-title { font-size: 15px; -unity-font-style: bold; }
-.row-state { font-size: 8px; letter-spacing: 1.2px; margin-top: 7px; color: rgb(108, 131, 105); }
-.row-arrow { font-size: 21px; margin-left: 8px; }
-.sidebar-hint { margin-top: 34px; }
-.sidebar-description { margin-top: 11px; font-size: 13px; color: rgb(107, 122, 115); }
-.lesson-stage { flex-grow: 1; flex-basis: 0; border-width: 1px; border-color: rgb(211, 218, 204); border-radius: 9px; overflow: hidden; background-color: rgb(251, 250, 244); }
-.detail-artwork { height: 260px; background-color: rgb(232, 237, 223); padding: 22px 27px 15px; }
-.jump .detail-artwork { background-color: rgb(218, 234, 224); }
-.button .detail-artwork { background-color: rgb(239, 225, 205); }
-.lesson-number { position: absolute; top: 24px; left: 28px; font-size: 11px; letter-spacing: 2px; -unity-font-style: bold; }
-.preview-host { flex-grow: 1; }
-.detail-art { flex-grow: 1; margin-top: -5px; margin-bottom: -4px; }
-.art-caption { font-size: 9px; letter-spacing: 2px; -unity-text-align: middle-right; color: rgb(108, 132, 119); }
-.lesson-content { padding: 27px 32px 22px; }
-.detail-title { font-size: 32px; -unity-font-style: bold; letter-spacing: -0.6px; margin-top: 9px; margin-bottom: 10px; }
-.detail-description { font-size: 16px; color: rgb(98, 115, 110); max-width: 670px; min-height: 42px; }
-.play-row { flex-direction: row; align-items: center; margin-top: 24px; }
-.play-button { min-width: 194px; height: 48px; padding: 0 24px; background-color: rgb(34, 59, 50); color: rgb(250, 250, 241); border-radius: 5px; font-size: 15px; -unity-font-style: bold; border-width: 2px; border-color: rgb(34, 59, 50); }
-.play-button:hover { background-color: rgb(57, 84, 66); border-color: rgb(57, 84, 66); }
-.play-button:focus { border-color: rgb(119, 168, 106); }
-.play-button:disabled { opacity: 0.45; }
-.cut-note { margin-left: 22px; font-size: 12px; color: rgb(115, 130, 116); }
-.error-message { color: rgb(168, 67, 42); font-size: 12px; margin-top: 8px; }
-.compact .shell { padding-left: 28px; padding-right: 28px; }
-.compact .hero { flex-direction: column; align-items: flex-start; }
-.compact .hero-title { font-size: 39px; }
-.compact .hero-note { width: 100%; padding: 15px 0 0; }
-.compact .chapter-cards { flex-direction: column; }
-.compact .chapter-card { flex-basis: auto; margin: 0 0 18px; }
-.compact .card-art { height: 200px; }
-.compact .card-body { min-height: 100px; }
-.compact .brand-caption, .compact .section-note, .compact .footer-keys { display: none; }
-.compact .detail-layout { flex-direction: column; }
-.compact .lesson-sidebar { width: 100%; padding-right: 0; }
-.compact .lesson-list { margin-top: 16px; margin-bottom: 16px; }
-.compact .sidebar-hint { display: none; }
-.compact .lesson-stage { flex-basis: auto; }
-.compact .lesson-content { padding: 22px; }
-.compact .detail-breadcrumb > .eyebrow { font-size: 9px; letter-spacing: 0; }
+.menu-panel {
+    width: 680px;
+    max-width: 92%;
+    height: 300px;
+    padding: 42px 42px 32px;
+    background-color: rgb(250, 250, 245);
+    border-width: 1px;
+    border-color: rgb(193, 205, 194);
+    border-bottom-width: 4px;
+    border-radius: 16px;
+}
+.panel-header { height: 48px; margin-bottom: 32px; justify-content: center; }
+.panel-title {
+    margin: 0;
+    padding: 0;
+    font-size: 32px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+Button {
+    margin: 0;
+    padding: 0;
+    color: rgb(36, 53, 55);
+    -unity-font-style: normal;
+    -unity-text-align: middle-center;
+}
+.button-row { flex-direction: row; height: 88px; margin-left: -7px; margin-right: -7px; }
+.menu-button {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+    margin: 0 7px;
+    background-color: rgb(233, 239, 228);
+    border-width: 1px;
+    border-color: rgb(192, 207, 184);
+    border-radius: 9px;
+    font-size: 22px;
+    transition-property: background-color, border-color;
+    transition-duration: 0.12s;
+}
+.menu-button:hover { background-color: rgb(215, 228, 207); border-color: rgb(121, 150, 111); }
+.menu-button:focus { border-width: 2px; border-color: rgb(93, 126, 83); }
+.menu-button:active { background-color: rgb(193, 212, 181); }
+.menu-button:disabled { opacity: 0.4; }
+.number-button { font-size: 28px; }
+.back-button {
+    position: absolute;
+    left: -4px;
+    top: 2px;
+    width: 44px;
+    height: 44px;
+    background-color: transparent;
+    border-width: 0;
+    border-radius: 7px;
+    font-size: 27px;
+}
+.back-button:hover, .back-button:focus { background-color: rgb(233, 239, 228); }
+.error-message { margin-top: 14px; font-size: 13px; color: rgb(164, 67, 48); -unity-text-align: middle-center; }
+.compact .menu-panel { padding-left: 22px; padding-right: 22px; }
+.compact .menu-button { font-size: 18px; margin-left: 4px; margin-right: 4px; }
+.compact .number-button { font-size: 26px; }
