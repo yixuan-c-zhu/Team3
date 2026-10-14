@@ -5,6 +5,8 @@ public class Fadeable : MonoBehaviour
 {
     public static List<Fadeable> allFadeables = new List<Fadeable>();
 
+    public bool hideIn2D = false;
+
     private Renderer rend;
     private Color startColor;
     private bool isFaded;
@@ -56,6 +58,12 @@ public class Fadeable : MonoBehaviour
 
     void ApplyColor()
     {
+        if (hideIn2D)
+        {
+            rend.enabled = !isFaded;
+            return;
+        }
+
         Color color = startColor;
         if (isFaded)
         {

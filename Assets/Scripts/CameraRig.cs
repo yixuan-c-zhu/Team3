@@ -27,6 +27,11 @@ public class CameraRig : MonoBehaviour
     private float rotX;
     private Vector3 lookPos;
     private Vector3 lastMousePos;
+    private float normalFov;
+    private float aimBlend;
+    private Vector3 aimPosition;
+    private Quaternion aimRotation;
+    private float aimFov;
 
     public bool IsTurning()
     {
@@ -69,6 +74,7 @@ public class CameraRig : MonoBehaviour
         {
             cam = GetComponent<Camera>();
         }
+        normalFov = cam.fieldOfView;
         rotX = angle3D;
         if (player != null)
         {
@@ -147,6 +153,21 @@ public class CameraRig : MonoBehaviour
         }
     }
 
+    public void SetAim(float blend, Vector3 position, Quaternion rotation, float fov)
+    {
+        aimBlend = blend;
+        aimPosition = position;
+        aimRotation = rotation;
+        aimFov = fov;
+    }
+
+    public void TurnTo(float angle)
+    {
+        if (is2D) return;
+        targetRotY = angle;
+        rotY = angle;
+    }
+
     void MoveCamera()
     {
         Vector3 center = lookPos + Vector3.up * offsetY;
@@ -158,9 +179,20 @@ public class CameraRig : MonoBehaviour
         float distance = distance3D;
         if (is2D) distance = distance2D;
 
+        Vector3 camPos = center - camRot * Vector3.forward * distance;
         cam.orthographic = is2D;
         cam.orthographicSize = size2D;
-        cam.transform.SetPositionAndRotation(center - camRot * Vector3.forward * distance, camRot);
+        cam.fieldOfView = normalFov;
+
+        if (aimBlend > 0f)
+        {
+            camPos = Vector3.Lerp(camPos, aimPosition, aimBlend);
+            camRot = Quaternion.Slerp(camRot, aimRotation, aimBlend);
+            cam.orthographic = false;
+            cam.fieldOfView = Mathf.Lerp(normalFov, aimFov, aimBlend);
+        }
+
+        cam.transform.SetPositionAndRotation(camPos, camRot);
     }
 
     static Vector3 RoundDir(Vector3 dir)

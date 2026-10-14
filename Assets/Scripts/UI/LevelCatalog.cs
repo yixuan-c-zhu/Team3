@@ -39,7 +39,9 @@ public static class LevelCatalog
         new Chapter("LEVEL 01", "Double Jump", "Two pieces. A little more airtime.", "TIMING + COLOR", "jump",
             new Lesson("DoubleJump", "Double Jump", "Split, stack, and take flight. Switch pieces in mid-air and use color to cross the glass platforms.", "STACKING + COLOR + TIMING", 4)),
         new Chapter("LEVEL 02", "Pushing Button", "Leave your mark. Open a new path.", "WEIGHT + COLOR", "button",
-            new Lesson("PushingButton", "Pushing Button", "Navigate colored barriers and leave a piece on the button. Hold the gate open and find your way to the exit.", "SWITCHING + COLOR + MECHANISMS", 5))
+            new Lesson("PushingButton", "Pushing Button", "Navigate colored barriers and leave a piece on the button. Hold the gate open and find your way to the exit.", "SWITCHING + COLOR + MECHANISMS", 5)),
+        new Chapter("LEVEL 03", "Building Bridge", "Find the angle. Make it real.", "PERSPECTIVE + AIM", "bridge",
+            new Lesson("BuildingBridge", "Building Bridge", "The road ends in 2D. Find the hidden path, leave a slice of yourself on the ledge, and line it up with the gap from the lookout.", "HIDDEN PATHS + CUTTING + AIM", 6))
     };
 
     public static bool IsComplete(string scene) => PlayerPrefs.GetInt(CompletionPrefix + scene, 0) == 1;
