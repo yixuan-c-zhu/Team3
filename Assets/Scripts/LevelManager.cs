@@ -9,6 +9,10 @@ public class LevelManager : MonoBehaviour
     public CuttablePiece player;
     public HUD hud;
 
+    // Set by the scene's CheckpointManager, if it has one.
+    [System.NonSerialized]
+    public CheckpointManager checkpoints;
+
     public int cutsLeft;
     public float lastCutTime;
 
@@ -56,6 +60,10 @@ public class LevelManager : MonoBehaviour
         {
             isLoading = true;
             Time.timeScale = 1f;
+            if (checkpoints != null)
+            {
+                checkpoints.RememberForRestart();
+            }
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
     }
@@ -72,7 +80,8 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
-        LevelCatalog.MarkComplete(SceneManager.GetActiveScene().name);
+        int checkpoint = checkpoints != null ? checkpoints.CurrentRoom : 0;
+        LevelCatalog.MarkComplete(SceneManager.GetActiveScene().name, checkpoint);
 
         LevelClearScreen clearScreen = FindFirstObjectByType<LevelClearScreen>();
         if (clearScreen != null)

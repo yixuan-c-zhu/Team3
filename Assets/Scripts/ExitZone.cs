@@ -7,6 +7,10 @@ public class ExitZone : MonoBehaviour
     public TMP_Text exitText;
     public float labelHeight = 1.2f;
 
+    // A CheckpointManager turns this off for every exit except the one the player is heading for.
+    [System.NonSerialized]
+    public bool showLabel = true;
+
     private Vector3 labelPos;
 
     void Reset()
@@ -23,6 +27,11 @@ public class ExitZone : MonoBehaviour
     void LateUpdate()
     {
         if (exitText == null || Camera.main == null) return;
+        if (!showLabel)
+        {
+            exitText.enabled = false;
+            return;
+        }
 
         Vector3 worldPos = labelPos + Vector3.up * Mathf.Sin(Time.unscaledTime * 3f) * 0.2f;
         Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);
@@ -42,7 +51,14 @@ public class ExitZone : MonoBehaviour
         Rigidbody rb = other.attachedRigidbody;
         if (rb != null && rb.GetComponent<PlayerController>() != null)
         {
-            levelManager.CompleteLevel();
+            if (levelManager.checkpoints != null)
+            {
+                levelManager.checkpoints.Reach(this);
+            }
+            else
+            {
+                levelManager.CompleteLevel();
+            }
         }
     }
 }

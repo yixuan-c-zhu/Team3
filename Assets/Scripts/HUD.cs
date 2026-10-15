@@ -117,4 +117,14 @@ public class HUD : MonoBehaviour
         messageText.text = msg;
         timer = messageTime;
     }
+
+    // Hides the "Stuck? Press R" tip and lets it show again later, for a new room.
+    public void ResetRestartTip()
+    {
+        showedRestartTip = false;
+        if (restartTip != null)
+        {
+            restartTip.SetActive(false);
+        }
+    }
 }

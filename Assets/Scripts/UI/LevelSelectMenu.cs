@@ -131,6 +131,6 @@ public class LevelSelectMenu : MonoBehaviour
         }
         loading = true;
         root.SetEnabled(false);
-        LevelCatalog.Load(scene);
+        LevelCatalog.Load(LevelCatalog.Chapters[chapter].Lessons[lesson]);
     }
 }
