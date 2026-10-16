@@ -13,6 +13,7 @@ public class HUD : MonoBehaviour
     public TMP_Text title3D;
     public TMP_Text titleCut;
     public TMP_Text titleChoose;
+
     public TMP_Text viewFront;
     public TMP_Text viewLeft;
     public TMP_Text viewBack;
@@ -21,60 +22,48 @@ public class HUD : MonoBehaviour
     public TMP_Text chooseKeys;
 
     [Header("Color Shift Indicator")]
-    [Tooltip("Text that always displays the player's current color.")]
+    [Tooltip("Text that displays the player's current color.")]
     public TMP_Text colorText;
 
-    [Tooltip("Optional UI Image displayed beside the color text.")]
+    [Tooltip("UI Image displayed beside the color text.")]
     public Image colorSwatch;
 
-    [Tooltip("The blue used by the player material.")]
-    public Color blueColor = new Color(0.10f, 0.55f, 1.00f, 1f);
+    [Tooltip("This should match the player's blue material.")]
+    public Color blueColor =
+        new Color(0.10f, 0.55f, 1.00f, 1f);
 
-    [Tooltip("The orange used by the player material.")]
-    public Color orangeColor = new Color(1.00f, 0.42f, 0.05f, 1f);
+    [Tooltip("This should match the player's orange material.")]
+    public Color orangeColor =
+        new Color(1.00f, 0.42f, 0.05f, 1f);
 
-    [Header("Always-Visible Controls")]
-    [Tooltip("The TextMeshPro object used to display the controls.")]
-    public TMP_Text controlsText;
+    [Header("Hint System")]
+    [Tooltip("The complete panel containing the hint.")]
+    public GameObject hintPanel;
 
-    [TextArea(2, 5)]
-    public string controls2D =
-        "<b>MOVE</b>  A / D     " +
-        "<b>JUMP</b>  Space     " +
-        "<b>2D / 3D</b>  Tab     " +
-        "<b>ROTATE</b>  Q / E\n" +
-        "<b>COLOR SHIFT</b>  1 Blue / 2 Orange     " +
-        "<b>CUT</b>  C     " +
-        "<b>RESTART</b>  R     " +
-        "<b>MENU</b>  Esc";
+    [Tooltip("The TextMeshPro object that displays the hint.")]
+    public TMP_Text hintText;
 
-    [TextArea(2, 5)]
-    public string controls3D =
-        "<b>MOVE</b>  W / A / S / D     " +
-        "<b>JUMP</b>  Space     " +
-        "<b>2D / 3D</b>  Tab     " +
-        "<b>CAMERA</b>  Hold RMB + Drag\n" +
-        "<b>COLOR SHIFT</b>  1 Blue / 2 Orange     " +
-        "<b>CUT</b>  C     " +
-        "<b>RESTART</b>  R     " +
-        "<b>MENU</b>  Esc";
+    [Tooltip("Seconds before an automatic hint appears.")]
+    public float stuckDelay = 12f;
 
+    [Tooltip("Seconds the hint remains visible.")]
+    public float hintDuration = 6f;
+
+    [Tooltip("Movement required to count as making progress.")]
+    public float movementResetDistance = 0.75f;
+
+    [Tooltip("The available hints. Element 0 is hint number 0.")]
     [TextArea(2, 4)]
-    public string controlsCut =
-        "<b>CUT MODE</b>     " +
-        "Hold LMB and drag across the player to aim the cut     " +
-        "<b>CANCEL</b>  C";
-
-    [TextArea(2, 4)]
-    public string controlsChoose =
-        "<b>CHOOSE A PIECE</b>     " +
-        "Left-click the piece you want to control";
+    public string[] hints =
+    {
+        "Hint: Press <b>Tab</b> to switch between the 2D and 3D views.",
+        "Hint: Press <b>Left Shift</b> to switch your color.",
+        "Hint: Try leaving a cut piece on the pressure plate."
+    };
 
     [Header("Restart Tip")]
     public GameObject restartTip;
     public float restartTipDelay = 20f;
-
-    private bool showedRestartTip;
 
     [Header("Scene References")]
     public LevelManager levelManager;
@@ -82,15 +71,23 @@ public class HUD : MonoBehaviour
     public CameraRig camScript;
     public CutController cutScript;
 
+    [Header("Message Settings")]
     public float messageTime = 2.5f;
 
-    private float timer;
+    private bool showedRestartTip;
+    private float messageTimer;
     private string statsFormat;
 
     private CuttablePiece cachedPlayer;
     private Renderer cachedPlayerRenderer;
 
-    void Awake()
+    private CuttablePiece trackedHintPlayer;
+    private Vector3 lastProgressPosition;
+    private float stuckTimer;
+    private float visibleHintTimer;
+    private int nextHintIndex;
+
+    private void Awake()
     {
         if (messageText != null)
         {
@@ -102,26 +99,35 @@ public class HUD : MonoBehaviour
             restartTip.SetActive(false);
         }
 
+        if (hintPanel != null)
+        {
+            hintPanel.SetActive(false);
+        }
+
         if (statsText != null)
         {
             statsFormat = statsText.text;
         }
 
+        ResetHintTracking();
         UpdateColorIndicator();
-        UpdateControls();
     }
 
-    void Update()
+    private void Update()
     {
         UpdateStats();
         UpdateMode();
         UpdateColorIndicator();
-        UpdateControls();
+        UpdateHintSystem();
         UpdateMessageTimer();
         UpdateRestartTip();
     }
 
-    void UpdateStats()
+    // ---------------------------------------------------------
+    // STATS
+    // ---------------------------------------------------------
+
+    private void UpdateStats()
     {
         if (statsText == null ||
             levelManager == null ||
@@ -144,9 +150,15 @@ public class HUD : MonoBehaviour
         );
     }
 
-    void UpdateMode()
+    // ---------------------------------------------------------
+    // MODE INDICATOR
+    // ---------------------------------------------------------
+
+    private void UpdateMode()
     {
-        if (modeText == null || cutScript == null || camScript == null)
+        if (modeText == null ||
+            cutScript == null ||
+            camScript == null)
         {
             return;
         }
@@ -181,142 +193,7 @@ public class HUD : MonoBehaviour
         }
     }
 
-    void UpdateColorIndicator()
-    {
-        if (colorText == null && colorSwatch == null)
-        {
-            return;
-        }
-
-        // The controlled player may change after a cut.
-        if (cachedPlayer != player)
-        {
-            cachedPlayer = player;
-
-            cachedPlayerRenderer =
-                player != null
-                ? player.GetComponentInChildren<Renderer>()
-                : null;
-        }
-
-        Material currentMaterial =
-            cachedPlayerRenderer != null
-            ? cachedPlayerRenderer.sharedMaterial
-            : null;
-
-        if (currentMaterial == null)
-        {
-            if (colorText != null)
-            {
-                colorText.text = "CURRENT COLOR: --";
-            }
-
-            return;
-        }
-
-        Color actualColor = Color.white;
-
-        // URP materials normally use _BaseColor.
-        if (currentMaterial.HasProperty("_BaseColor"))
-        {
-            actualColor = currentMaterial.GetColor("_BaseColor");
-        }
-        // Standard materials normally use _Color.
-        else if (currentMaterial.HasProperty("_Color"))
-        {
-            actualColor = currentMaterial.GetColor("_Color");
-        }
-
-        float blueDistance = ColorDistance(actualColor, blueColor);
-        float orangeDistance = ColorDistance(actualColor, orangeColor);
-
-        bool isBlue = blueDistance <= orangeDistance;
-
-        Color displayColor = isBlue ? blueColor : orangeColor;
-        string colorName = isBlue ? "BLUE" : "ORANGE";
-
-        if (colorText != null)
-        {
-            colorText.text = "CURRENT COLOR: " + colorName;
-            colorText.color = displayColor;
-        }
-
-        if (colorSwatch != null)
-        {
-            colorSwatch.color = displayColor;
-        }
-    }
-
-    void UpdateControls()
-    {
-        if (controlsText == null || cutScript == null)
-        {
-            return;
-        }
-
-        if (cutScript.state == CutController.State.Drawing)
-        {
-            controlsText.text = controlsCut;
-        }
-        else if (cutScript.state == CutController.State.Choosing)
-        {
-            controlsText.text = controlsChoose;
-        }
-        else if (camScript != null && camScript.is2D)
-        {
-            controlsText.text = controls2D;
-        }
-        else
-        {
-            controlsText.text = controls3D;
-        }
-    }
-
-    void UpdateMessageTimer()
-    {
-        if (timer <= 0f ||
-            cutScript == null ||
-            cutScript.state != CutController.State.Normal)
-        {
-            return;
-        }
-
-        timer -= Time.unscaledDeltaTime;
-
-        if (timer <= 0f && messageText != null)
-        {
-            messageText.text = "";
-        }
-    }
-
-    void UpdateRestartTip()
-    {
-        if (showedRestartTip ||
-            levelManager == null ||
-            cutScript == null)
-        {
-            return;
-        }
-
-        bool hasNoCuts = levelManager.cutsLeft == 0;
-        bool isNormalMode =
-            cutScript.state == CutController.State.Normal;
-
-        bool delayFinished =
-            Time.time - levelManager.lastCutTime > restartTipDelay;
-
-        if (hasNoCuts && isNormalMode && delayFinished)
-        {
-            showedRestartTip = true;
-
-            if (restartTip != null)
-            {
-                restartTip.SetActive(true);
-            }
-        }
-    }
-
-    void SetMode(string title, string small)
+    private void SetMode(string title, string smallText)
     {
         if (modeText == null)
         {
@@ -326,11 +203,11 @@ public class HUD : MonoBehaviour
         modeText.text =
             title +
             "\n<size=70%>" +
-            small +
+            smallText +
             "</size>";
     }
 
-    string GetViewName()
+    private string GetViewName()
     {
         if (camScript == null || !camScript.is2D)
         {
@@ -357,7 +234,9 @@ public class HUD : MonoBehaviour
         return GetText(viewRight, "Right");
     }
 
-    string GetText(TMP_Text textObject, string fallback)
+    private string GetText(
+        TMP_Text textObject,
+        string fallback)
     {
         if (textObject != null)
         {
@@ -367,7 +246,90 @@ public class HUD : MonoBehaviour
         return fallback;
     }
 
-    float ColorDistance(Color firstColor, Color secondColor)
+    // ---------------------------------------------------------
+    // COLOR INDICATOR
+    // ---------------------------------------------------------
+
+    private void UpdateColorIndicator()
+    {
+        if (colorText == null && colorSwatch == null)
+        {
+            return;
+        }
+
+        // The controlled player may change after a cut.
+        if (cachedPlayer != player)
+        {
+            cachedPlayer = player;
+
+            cachedPlayerRenderer =
+                player != null
+                    ? player.GetComponentInChildren<Renderer>()
+                    : null;
+        }
+
+        Material currentMaterial =
+            cachedPlayerRenderer != null
+                ? cachedPlayerRenderer.sharedMaterial
+                : null;
+
+        if (currentMaterial == null)
+        {
+            if (colorText != null)
+            {
+                colorText.text = "CURRENT COLOR: --";
+            }
+
+            return;
+        }
+
+        Color actualColor = Color.white;
+
+        // URP materials normally use _BaseColor.
+        if (currentMaterial.HasProperty("_BaseColor"))
+        {
+            actualColor =
+                currentMaterial.GetColor("_BaseColor");
+        }
+        // Standard materials normally use _Color.
+        else if (currentMaterial.HasProperty("_Color"))
+        {
+            actualColor =
+                currentMaterial.GetColor("_Color");
+        }
+
+        float blueDistance =
+            ColorDistance(actualColor, blueColor);
+
+        float orangeDistance =
+            ColorDistance(actualColor, orangeColor);
+
+        bool isBlue =
+            blueDistance <= orangeDistance;
+
+        Color displayColor =
+            isBlue ? blueColor : orangeColor;
+
+        string colorName =
+            isBlue ? "BLUE" : "ORANGE";
+
+        if (colorText != null)
+        {
+            colorText.text =
+                "CURRENT COLOR: " + colorName;
+
+            colorText.color = displayColor;
+        }
+
+        if (colorSwatch != null)
+        {
+            colorSwatch.color = displayColor;
+        }
+    }
+
+    private float ColorDistance(
+        Color firstColor,
+        Color secondColor)
     {
         float redDifference =
             firstColor.r - secondColor.r;
@@ -384,18 +346,239 @@ public class HUD : MonoBehaviour
             blueDifference * blueDifference;
     }
 
-    public void ShowMessage(string msg)
+    // ---------------------------------------------------------
+    // AUTOMATIC HINT SYSTEM
+    // ---------------------------------------------------------
+
+    private void UpdateHintSystem()
+    {
+        if (hintPanel == null ||
+            hintText == null ||
+            player == null)
+        {
+            return;
+        }
+
+        // Reset the tracking when control changes to a new piece.
+        if (trackedHintPlayer != player)
+        {
+            ResetHintTracking();
+        }
+
+        // Do not show hints while cutting or choosing a piece.
+        if (cutScript != null &&
+            cutScript.state != CutController.State.Normal)
+        {
+            HideHint();
+            ResetHintTracking();
+            return;
+        }
+
+        // Let the restart tip take priority when no cuts remain.
+        if (levelManager != null &&
+            levelManager.cutsLeft == 0)
+        {
+            HideHint();
+            ResetHintTracking();
+            return;
+        }
+
+        // Using one of the suggested controls dismisses the hint.
+        if (Input.GetKeyDown(KeyCode.Tab) ||
+            Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            HideHint();
+            ResetHintTracking();
+            return;
+        }
+
+        float distanceMoved = Vector3.Distance(
+            player.transform.position,
+            lastProgressPosition
+        );
+
+        // The player has moved far enough to count as progress.
+        if (distanceMoved >= movementResetDistance)
+        {
+            lastProgressPosition =
+                player.transform.position;
+
+            stuckTimer = 0f;
+            HideHint();
+            return;
+        }
+
+        // Count down while a hint is visible.
+        if (hintPanel.activeSelf)
+        {
+            visibleHintTimer -=
+                Time.unscaledDeltaTime;
+
+            if (visibleHintTimer <= 0f)
+            {
+                HideHint();
+
+                stuckTimer = 0f;
+                lastProgressPosition =
+                    player.transform.position;
+            }
+
+            return;
+        }
+
+        // The player has not made progress.
+        stuckTimer += Time.unscaledDeltaTime;
+
+        if (stuckTimer >= stuckDelay)
+        {
+            ShowNextHint();
+        }
+    }
+
+    private void ShowNextHint()
+    {
+        if (hints == null || hints.Length == 0)
+        {
+            return;
+        }
+
+        ShowHintByIndex(nextHintIndex);
+
+        nextHintIndex++;
+
+        if (nextHintIndex >= hints.Length)
+        {
+            nextHintIndex = 0;
+        }
+    }
+
+    // Call this method to select one particular hint.
+    // Example: ShowHintByIndex(1);
+    public void ShowHintByIndex(int hintIndex)
+    {
+        if (hints == null ||
+            hintIndex < 0 ||
+            hintIndex >= hints.Length)
+        {
+            Debug.LogWarning(
+                "HUD: Invalid hint index: " + hintIndex
+            );
+
+            return;
+        }
+
+        ShowHint(hints[hintIndex]);
+    }
+
+    // You can also call this method with custom text.
+    public void ShowHint(string hint)
+    {
+        if (hintPanel == null || hintText == null)
+        {
+            return;
+        }
+
+        hintText.text = hint;
+        hintPanel.SetActive(true);
+
+        visibleHintTimer = hintDuration;
+        stuckTimer = 0f;
+    }
+
+    public void HideHint()
+    {
+        visibleHintTimer = 0f;
+
+        if (hintPanel != null)
+        {
+            hintPanel.SetActive(false);
+        }
+    }
+
+    private void ResetHintTracking()
+    {
+        trackedHintPlayer = player;
+        stuckTimer = 0f;
+        visibleHintTimer = 0f;
+
+        if (player != null)
+        {
+            lastProgressPosition =
+                player.transform.position;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // NORMAL MESSAGE
+    // ---------------------------------------------------------
+
+    public void ShowMessage(string message)
     {
         if (messageText == null)
         {
             return;
         }
 
-        messageText.text = msg;
-        timer = messageTime;
+        messageText.text = message;
+        messageTimer = messageTime;
     }
 
-    // Hides the restart tip and allows it to appear again later.
+    private void UpdateMessageTimer()
+    {
+        if (messageTimer <= 0f ||
+            cutScript == null ||
+            cutScript.state != CutController.State.Normal)
+        {
+            return;
+        }
+
+        messageTimer -= Time.unscaledDeltaTime;
+
+        if (messageTimer <= 0f &&
+            messageText != null)
+        {
+            messageText.text = "";
+        }
+    }
+
+    // ---------------------------------------------------------
+    // RESTART TIP
+    // ---------------------------------------------------------
+
+    private void UpdateRestartTip()
+    {
+        if (showedRestartTip ||
+            levelManager == null ||
+            cutScript == null)
+        {
+            return;
+        }
+
+        bool hasNoCuts =
+            levelManager.cutsLeft == 0;
+
+        bool isNormalMode =
+            cutScript.state == CutController.State.Normal;
+
+        bool delayFinished =
+            Time.time - levelManager.lastCutTime >
+            restartTipDelay;
+
+        if (hasNoCuts &&
+            isNormalMode &&
+            delayFinished)
+        {
+            showedRestartTip = true;
+            HideHint();
+
+            if (restartTip != null)
+            {
+                restartTip.SetActive(true);
+            }
+        }
+    }
+
+    // Call this when restarting or loading a checkpoint.
     public void ResetRestartTip()
     {
         showedRestartTip = false;
@@ -404,5 +587,8 @@ public class HUD : MonoBehaviour
         {
             restartTip.SetActive(false);
         }
+
+        HideHint();
+        ResetHintTracking();
     }
 }
