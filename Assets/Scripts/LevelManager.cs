@@ -13,6 +13,10 @@ public class LevelManager : MonoBehaviour
     public float lastCutTime;
 
     private bool isLoading;
+    private bool isRespawning;
+
+    private Vector3 checkpointPosition;
+    private Quaternion checkpointRotation;
 
     void Awake()
     {
@@ -23,19 +27,75 @@ public class LevelManager : MonoBehaviour
     void Start()
     {
         GameplayMenuButton.Create();
+
+        // The player's starting location is the default checkpoint.
+        if (player != null)
+        {
+            checkpointPosition = player.transform.position;
+            checkpointRotation = player.transform.rotation;
+        }
     }
 
     void Update()
     {
+        // R still completely restarts the level.
         if (Input.GetKeyDown(KeyCode.R))
         {
             RestartLevel();
         }
 
-        if (player != null && player.transform.position.y < deathY)
+        // Falling now respawns the controlled piece instead
+        // of restarting the complete level.
+        if (player != null &&
+            player.transform.position.y < deathY &&
+            !isRespawning)
         {
-            RestartLevel();
+            RespawnPlayer();
         }
+    }
+
+    public void SetCheckpoint(Transform checkpoint)
+    {
+        if (checkpoint == null)
+        {
+            return;
+        }
+
+        checkpointPosition = checkpoint.position;
+        checkpointRotation = checkpoint.rotation;
+
+        ShowMessage("Checkpoint reached!");
+    }
+
+    public void RespawnPlayer()
+    {
+        if (player == null || isRespawning)
+        {
+            return;
+        }
+
+        isRespawning = true;
+
+        Rigidbody rb = player.GetComponent<Rigidbody>();
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+
+            rb.position = checkpointPosition;
+            rb.rotation = checkpointRotation;
+        }
+        else
+        {
+            player.transform.SetPositionAndRotation(
+                checkpointPosition,
+                checkpointRotation);
+        }
+
+        Physics.SyncTransforms();
+
+        isRespawning = false;
     }
 
     public bool CanCut()
@@ -46,8 +106,18 @@ public class LevelManager : MonoBehaviour
     public void UseCut()
     {
         cutsLeft = cutsLeft - 1;
-        if (cutsLeft < 0) cutsLeft = 0;
+
+        if (cutsLeft < 0)
+        {
+            cutsLeft = 0;
+        }
+
         lastCutTime = Time.time;
+    }
+
+    public int CutsUsed()
+    {
+        return maxCuts - cutsLeft;
     }
 
     public void RestartLevel()
@@ -56,13 +126,10 @@ public class LevelManager : MonoBehaviour
         {
             isLoading = true;
             Time.timeScale = 1f;
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        }
-    }
 
-    public int CutsUsed()
-    {
-        return maxCuts - cutsLeft;
+            SceneManager.LoadScene(
+                SceneManager.GetActiveScene().buildIndex);
+        }
     }
 
     public void CompleteLevel()
@@ -72,9 +139,12 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
-        LevelCatalog.MarkComplete(SceneManager.GetActiveScene().name);
+        LevelCatalog.MarkComplete(
+            SceneManager.GetActiveScene().name);
 
-        LevelClearScreen clearScreen = FindFirstObjectByType<LevelClearScreen>();
+        LevelClearScreen clearScreen =
+            FindFirstObjectByType<LevelClearScreen>();
+
         if (clearScreen != null)
         {
             clearScreen.Show();
@@ -91,7 +161,10 @@ public class LevelManager : MonoBehaviour
         {
             isLoading = true;
             Time.timeScale = 1f;
-            LevelCatalog.Load(LevelCatalog.NextScene(SceneManager.GetActiveScene().name));
+
+            LevelCatalog.Load(
+                LevelCatalog.NextScene(
+                    SceneManager.GetActiveScene().name));
         }
     }
 
