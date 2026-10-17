@@ -26,7 +26,14 @@ public class AimZone : MonoBehaviour
     public Color glowColor = new Color(1f, 0.92f, 0.55f);
     public bool showSpotGuide = true;
 
-    [TextArea] public string aimMessage = "Line up your piece with the orange outline: {0}%\n<size=70%>A / D and W / S or drag to aim. Esc to step back.</size>";
+    public Material blueGlass;
+    public Material orangeGlass;
+    public float warnDistance = 2f;
+
+    [TextArea] public string aimMessage = "Line up your piece with the outline: {0}%\n<size=70%>A / D and W / S or drag to aim. Esc to step back.</size>";
+    [TextArea] public string previewMessage = "<size=70%>Your slice is {0}, so it will turn into {0} glass.</size>";
+    [TextArea] public string glassMessage = "<size=70%>It's {0} glass: {0} falls through it, {1} can stand on it.</size>";
+    [TextArea] public string fallMessage = "You're {0}, so you'll fall through this {0} glass.\n<size=70%>Press {2} to turn {1} and stand on it.</size>";
     [TextArea] public string noPieceMessage = "Nothing to line up yet. Leave a piece of yourself in the right spot first.\n<size=70%>Esc to step back.</size>";
     [TextArea] public string wrongSizeMessage = "This piece is the wrong size to fill the outline.\n<size=70%>Esc to step back.</size>";
     public string lockedMessage = "Lined up!";
@@ -104,12 +111,16 @@ public class AimZone : MonoBehaviour
 
     private Material outlineMat;
     private Color outlineColor;
+    private Color defaultOutlineColor;
     private float outlineWidth;
     private Renderer pieceRenderer;
     private Color pieceColor;
 
     private LineRenderer spotGuide;
     private bool playerWasOnSpot;
+
+    private ColorObstacle placedGlass;
+    private string shownFallMessage;
 
     void Awake()
     {
@@ -144,6 +155,7 @@ public class AimZone : MonoBehaviour
         }
         outlineMat = targetOutline.material;
         outlineColor = outlineMat.color;
+        defaultOutlineColor = outlineColor;
         outlineWidth = targetOutline.widthMultiplier;
     }
 
@@ -180,6 +192,7 @@ public class AimZone : MonoBehaviour
     void Update()
     {
         UpdateSpotGuide();
+        UpdateGlassWarning();
         if (step == Step.None || Time.timeScale == 0f)
         {
             return;
@@ -248,6 +261,14 @@ public class AimZone : MonoBehaviour
             SetUpOrbit(GetExpectedPieceBounds());
         }
 
+        outlineColor = defaultOutlineColor;
+        PieceColor.PieceColorType color;
+        if (GetGlassColor(piece, out color))
+        {
+            outlineColor = GetGlassMaterial(color).color;
+            outlineColor.a = 1f;
+        }
+
         sideAngle = goalSideAngle + startSideOffset;
         upAngle = Mathf.Clamp(goalUpAngle + startUpOffset, minUpAngle, maxUpAngle);
         PlaceOrbitCamera();
@@ -300,7 +321,13 @@ public class AimZone : MonoBehaviour
 
         float match = GetMatch();
         int percent = Mathf.RoundToInt(match * 100f);
-        levelManager.ShowMessage(string.Format(aimMessage, percent));
+        string aimText = string.Format(aimMessage, percent);
+        PieceColor.PieceColorType color;
+        if (GetGlassColor(piece, out color))
+        {
+            aimText = aimText + "\n" + string.Format(previewMessage, GetColorName(color));
+        }
+        levelManager.ShowMessage(aimText);
         ShowGlow(match);
 
         if (blend < 1f)
@@ -498,6 +525,12 @@ public class AimZone : MonoBehaviour
         piece.GetComponent<Collider>().enabled = true;
         piece.gameObject.name = "Placed Piece";
 
+        PieceColor.PieceColorType color;
+        if (GetGlassColor(piece, out color))
+        {
+            MakeGlass(piece.gameObject, color);
+        }
+
         Destroy(piece.GetComponent<PieceCarry>());
         Destroy(piece);
         piece = null;
@@ -506,6 +539,22 @@ public class AimZone : MonoBehaviour
         {
             targetOutline.enabled = false;
         }
+    }
+
+    void MakeGlass(GameObject placed, PieceColor.PieceColorType color)
+    {
+        Destroy(placed.GetComponent<PieceColor>());
+        Fadeable fadeable = placed.GetComponent<Fadeable>();
+        if (fadeable != null)
+        {
+            Destroy(fadeable);
+        }
+        placed.GetComponent<Renderer>().sharedMaterial = GetGlassMaterial(color);
+
+        placedGlass = placed.AddComponent<ColorObstacle>();
+        placedGlass.obstacleColor = color;
+        placedGlass.blueMaterial = blueGlass;
+        placedGlass.orangeMaterial = orangeGlass;
     }
 
     void StartShowing()
@@ -522,7 +571,18 @@ public class AimZone : MonoBehaviour
         moveFromRot = cameraRot;
         moveToPos = aimSpot + awayFromTarget * showPullBack + Vector3.up * showRise;
         moveToRot = Quaternion.LookRotation(targetBounds.center - moveToPos);
-        levelManager.ShowMessage(doneMessage);
+        levelManager.ShowMessage(GetDoneMessage());
+    }
+
+    string GetDoneMessage()
+    {
+        if (placedGlass == null)
+        {
+            return doneMessage;
+        }
+        PieceColor.PieceColorType color = placedGlass.obstacleColor;
+        string glassText = string.Format(glassMessage, GetColorName(color), GetColorName(GetOtherColor(color)));
+        return doneMessage + "\n" + glassText;
     }
 
     void UpdateShowing(float deltaTime)
@@ -561,6 +621,10 @@ public class AimZone : MonoBehaviour
         cutController.enabled = true;
         colorManager.enabled = true;
         camRig.canControl = true;
+        if (done)
+        {
+            levelManager.ShowMessage(GetDoneMessage());
+        }
     }
 
     void LockControls()
@@ -928,6 +992,100 @@ public class AimZone : MonoBehaviour
             return false;
         }
         return hud.messageText.text == message;
+    }
+
+    void UpdateGlassWarning()
+    {
+        if (placedGlass == null || step != Step.None || cutController.state != CutController.State.Normal)
+        {
+            return;
+        }
+
+        string message = GetFallMessage();
+        if (message != null)
+        {
+            if (message != shownFallMessage || IsShowing(message))
+            {
+                levelManager.ShowMessage(message);
+            }
+        }
+        else if (shownFallMessage != null && IsShowing(shownFallMessage))
+        {
+            levelManager.ShowMessage("");
+        }
+        shownFallMessage = message;
+    }
+
+    string GetFallMessage()
+    {
+        PieceColor playerColor = cutController.player.GetComponent<PieceColor>();
+        PieceColor.PieceColorType color = placedGlass.obstacleColor;
+        if (playerColor == null || playerColor.currentColor != color)
+        {
+            return null;
+        }
+
+        Bounds nearPlayer = cutController.player.GetComponent<Collider>().bounds;
+        nearPlayer.Expand(warnDistance * 2f);
+        if (!nearPlayer.Intersects(placedGlass.GetComponent<Collider>().bounds))
+        {
+            return null;
+        }
+        return string.Format(fallMessage, GetColorName(color), GetColorName(GetOtherColor(color)), GetColorKeyName());
+    }
+
+    bool GetGlassColor(CuttablePiece checkPiece, out PieceColor.PieceColorType color)
+    {
+        color = PieceColor.PieceColorType.Blue;
+        if (checkPiece == null || blueGlass == null || orangeGlass == null)
+        {
+            return false;
+        }
+        PieceColor pieceColor = checkPiece.GetComponent<PieceColor>();
+        if (pieceColor == null)
+        {
+            return false;
+        }
+        color = pieceColor.currentColor;
+        return true;
+    }
+
+    Material GetGlassMaterial(PieceColor.PieceColorType color)
+    {
+        if (color == PieceColor.PieceColorType.Blue)
+        {
+            return blueGlass;
+        }
+        return orangeGlass;
+    }
+
+    PieceColor.PieceColorType GetOtherColor(PieceColor.PieceColorType color)
+    {
+        if (color == PieceColor.PieceColorType.Blue)
+        {
+            return PieceColor.PieceColorType.Orange;
+        }
+        return PieceColor.PieceColorType.Blue;
+    }
+
+    string GetColorName(PieceColor.PieceColorType color)
+    {
+        if (color == PieceColor.PieceColorType.Blue)
+        {
+            return "<color=#5B9BFF>blue</color>";
+        }
+        return "<color=#FF9A33>orange</color>";
+    }
+
+    string GetColorKeyName()
+    {
+        KeyCode key = colorManager.colorKey;
+        string keyName = key.ToString();
+        if (key == KeyCode.LeftShift || key == KeyCode.RightShift)
+        {
+            keyName = "Shift";
+        }
+        return "<color=#FFD54A>" + keyName + "</color>";
     }
 
     Bounds GetGuideBox(Bounds footprint)

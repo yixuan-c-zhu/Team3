@@ -463,10 +463,25 @@ MonoBehaviour:
   keySpeed: 35
   mouseSpeed: 0.15
   matchNeeded: 0.8
-  aimMessage: 'Line up your piece with the orange outline: {0}%
+  aimAssist: 1
+  assistStart: 0.6
+  assistTime: 0.8
+  glowColor: {r: 1, g: 0.92, b: 0.55, a: 1}
+  showSpotGuide: 1
+  blueGlass: {fileID: 2100000, guid: 9bea17a55962ddc408cac5496d1ca32e, type: 2}
+  orangeGlass: {fileID: 2100000, guid: b8ffb4e0522b9204a8f0ea9a6cf83e4e, type: 2}
+  warnDistance: 2
+  aimMessage: 'Line up your piece with the outline: {0}%
 
-    <size=70%>A
-    / D and W / S or drag to aim. Esc to step back.</size>'
+    <size=70%>A / D and
+    W / S or drag to aim. Esc to step back.</size>'
+  previewMessage: <size=70%>Your slice is {0}, so it will turn into {0} glass.</size>
+  glassMessage: '<size=70%>It''s {0} glass: {0} falls through it, {1} can stand on
+    it.</size>'
+  fallMessage: 'You''re {0}, so you''ll fall through this {0} glass.
+
+    <size=70%>Press
+    {2} to turn {1} and stand on it.</size>'
   noPieceMessage: 'Nothing to line up yet. Leave a piece of yourself in the right
     spot first.
 
@@ -475,10 +490,37 @@ MonoBehaviour:
 
     <size=70%>Esc
     to step back.</size>'
-  unevenMessage: 'Your cut isn''t straight, so the piece won''t fit.
-
-    <size=70%>Press
-    R to restart and cut it straight. Esc to step back.</size>'
   lockedMessage: Lined up!
   doneMessage: It's real!
   leaveMessage: Step back onto the pad to aim again.
+  spotMessage: 'This ledge can hold a slice of you.
+
+    <size=70%>In 2D, press C
+    and cut along the orange line at your feet.</size>'
+  fitsMessage: 'That slice fits!
+
+    <size=70%>Keep the other piece (click it or
+    press {0}) to leave the slice here.</size>'
+  wrongWayMessage: 'This slice is standing up.
+
+    <size=70%>{0} and cut across
+    your body, along the orange line at your feet.</size>'
+  tiltMessage: 'Your cut is tilted.
+
+    <size=70%>{0}, switch to 2D and cut level,
+    along the orange line.</size>'
+  thickMessage: 'This slice is too thick.
+
+    <size=70%>{0} and cut lower, along
+    the orange line at your feet.</size>'
+  thinMessage: 'This slice is too thin.
+
+    <size=70%>{0} and cut a little higher,
+    along the orange line.</size>'
+  narrowMessage: 'This slice doesn''t reach across your whole body.
+
+    <size=70%>{0}
+    and draw your line all the way across.</size>'
+  recutAction: Press Esc
+  restartAction: Press R to restart
+  stepBackNote: <size=70%>Esc to step back.</size>

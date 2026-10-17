@@ -41,7 +41,11 @@ public static class LevelCatalog
         new Chapter("LEVEL 02", "Pushing Button", "Leave your mark. Open a new path.", "WEIGHT + COLOR", "button",
             new Lesson("PushingButton", "Pushing Button", "Navigate colored barriers and leave a piece on the button. Hold the gate open and find your way to the exit.", "SWITCHING + COLOR + MECHANISMS", 5)),
         new Chapter("LEVEL 03", "Building Bridge", "Find the angle. Make it real.", "PERSPECTIVE + AIM", "bridge",
-            new Lesson("BuildingBridge", "Building Bridge", "The road ends in 2D. Find the hidden path, leave a slice of yourself on the ledge, and line it up with the gap from the lookout.", "HIDDEN PATHS + CUTTING + AIM", 6))
+            new Lesson("BuildingBridge", "Building Bridge", "The road ends in 2D. Find the hidden path, leave a slice of yourself on the ledge, and line it up with the gap from the lookout.", "HIDDEN PATHS + CUTTING + AIM", 6)),
+        new Chapter("LEVEL 04", "Level 4", "Coming soon.", "PERSPECTIVE + COLOR", "level4",
+            new Lesson("Level4Placeholder", "Level 4", "Coming soon.", "PERSPECTIVE + COLOR", 7)),
+        new Chapter("LEVEL 05", "Glass Paradox", "Blue can't get in. Orange can't stand.", "PERSPECTIVE + COLOR", "glass",
+            new Lesson("GlassParadox", "Glass Paradox", "Whatever you line up turns into glass of your slice's color. Pick the color, then find the one floor that holds you.", "AIM + COLOR + SWITCHING", 8))
     };
 
     public static bool IsComplete(string scene) => PlayerPrefs.GetInt(CompletionPrefix + scene, 0) == 1;
