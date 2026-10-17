@@ -1,8 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(BoxCollider))]
 public class AimZone : MonoBehaviour
 {
+    public static List<AimZone> allZones = new List<AimZone>();
+
     public PieceSpot pieceSpot;
     public Transform target;
     public LineRenderer targetOutline;
@@ -17,13 +20,29 @@ public class AimZone : MonoBehaviour
     public float mouseSpeed = 0.15f;
     public float matchNeeded = 0.8f;
 
+    public bool aimAssist = true;
+    public float assistStart = 0.6f;
+    public float assistTime = 0.8f;
+    public Color glowColor = new Color(1f, 0.92f, 0.55f);
+    public bool showSpotGuide = true;
+
     [TextArea] public string aimMessage = "Line up your piece with the orange outline: {0}%\n<size=70%>A / D and W / S or drag to aim. Esc to step back.</size>";
     [TextArea] public string noPieceMessage = "Nothing to line up yet. Leave a piece of yourself in the right spot first.\n<size=70%>Esc to step back.</size>";
     [TextArea] public string wrongSizeMessage = "This piece is the wrong size to fill the outline.\n<size=70%>Esc to step back.</size>";
-    [TextArea] public string unevenMessage = "Your cut isn't straight, so the piece won't fit.\n<size=70%>Press R to restart and cut it straight. Esc to step back.</size>";
     public string lockedMessage = "Lined up!";
     public string doneMessage = "It's real!";
     public string leaveMessage = "Step back onto the pad to aim again.";
+
+    [TextArea] public string spotMessage = "This ledge can hold a slice of you.\n<size=70%>In 2D, press C and cut along the orange line at your feet.</size>";
+    [TextArea] public string fitsMessage = "That slice fits!\n<size=70%>Keep the other piece (click it or press {0}) to leave the slice here.</size>";
+    [TextArea] public string wrongWayMessage = "This slice is standing up.\n<size=70%>{0} and cut across your body, along the orange line at your feet.</size>";
+    [TextArea] public string tiltMessage = "Your cut is tilted.\n<size=70%>{0}, switch to 2D and cut level, along the orange line.</size>";
+    [TextArea] public string thickMessage = "This slice is too thick.\n<size=70%>{0} and cut lower, along the orange line at your feet.</size>";
+    [TextArea] public string thinMessage = "This slice is too thin.\n<size=70%>{0} and cut a little higher, along the orange line.</size>";
+    [TextArea] public string narrowMessage = "This slice doesn't reach across your whole body.\n<size=70%>{0} and draw your line all the way across.</size>";
+    public string recutAction = "Press Esc";
+    public string restartAction = "Press R to restart";
+    public string stepBackNote = "<size=70%>Esc to step back.</size>";
 
     const float blendTime = 0.8f;
     const float lockTime = 0.45f;
@@ -37,8 +56,16 @@ public class AimZone : MonoBehaviour
     const float sideRange = 60f;
     const float minUpAngle = 8f;
     const float maxUpAngle = 65f;
+    const float goalTolerance = 0.1f;
+    const float glowWidthScale = 1.8f;
+    const float flashWidthScale = 3f;
+    const float pieceFlash = 0.85f;
+    const float guideWidth = 0.05f;
+    const float guideMargin = 0.04f;
+    const float guideLift = 0.02f;
 
     enum Step { None, Aiming, LockingOn, Growing, Showing, Leaving }
+    enum Problem { None, WrongWay, Tilted, Thick, Thin, Narrow, WrongSize }
 
     private CameraRig camRig;
     private CutController cutController;
@@ -71,6 +98,19 @@ public class AimZone : MonoBehaviour
     private Vector3 pieceStartPos;
     private float growScale;
 
+    private bool assisting;
+    private float sideVelocity;
+    private float upVelocity;
+
+    private Material outlineMat;
+    private Color outlineColor;
+    private float outlineWidth;
+    private Renderer pieceRenderer;
+    private Color pieceColor;
+
+    private LineRenderer spotGuide;
+    private bool playerWasOnSpot;
+
     void Awake()
     {
         GetComponent<BoxCollider>().isTrigger = true;
@@ -80,9 +120,31 @@ public class AimZone : MonoBehaviour
         levelManager = FindFirstObjectByType<LevelManager>();
     }
 
+    void OnEnable()
+    {
+        allZones.Add(this);
+    }
+
+    void OnDisable()
+    {
+        allZones.Remove(this);
+    }
+
     void Start()
     {
         DrawOutline();
+        if (targetOutline == null)
+        {
+            return;
+        }
+
+        if (showSpotGuide)
+        {
+            MakeSpotGuide();
+        }
+        outlineMat = targetOutline.material;
+        outlineColor = outlineMat.color;
+        outlineWidth = targetOutline.widthMultiplier;
     }
 
     void OnTriggerEnter(Collider other)
@@ -117,6 +179,7 @@ public class AimZone : MonoBehaviour
 
     void Update()
     {
+        UpdateSpotGuide();
         if (step == Step.None || Time.timeScale == 0f)
         {
             return;
@@ -166,6 +229,8 @@ public class AimZone : MonoBehaviour
     {
         step = Step.Aiming;
         blend = 0f;
+        assisting = false;
+        ShowGlow(0f);
         LockControls();
         cutController.playerScript.StopPlayer();
         if (camRig.is2D)
@@ -203,7 +268,15 @@ public class AimZone : MonoBehaviour
             return;
         }
 
-        ReadAimInput(deltaTime);
+        bool steering = ReadAimInput(deltaTime);
+        if (steering)
+        {
+            assisting = false;
+        }
+        if (assisting)
+        {
+            UpdateAssist(deltaTime);
+        }
         PlaceOrbitCamera();
 
         if (piece == null)
@@ -211,14 +284,15 @@ public class AimZone : MonoBehaviour
             levelManager.ShowMessage(noPieceMessage);
             return;
         }
-        if (!HasRightSize(piece))
+        Problem problem = GetProblem(piece.GetComponent<Collider>().bounds.size, piece.volume);
+        if (problem != Problem.None)
         {
-            levelManager.ShowMessage(wrongSizeMessage);
-            return;
-        }
-        if (!IsCutStraight(piece))
-        {
-            levelManager.ShowMessage(unevenMessage);
+            string message = GetProblemMessage(problem, restartAction);
+            if (problem != Problem.WrongSize)
+            {
+                message = message + "\n" + stepBackNote;
+            }
+            levelManager.ShowMessage(message);
             return;
         }
 
@@ -227,14 +301,76 @@ public class AimZone : MonoBehaviour
         float match = GetMatch();
         int percent = Mathf.RoundToInt(match * 100f);
         levelManager.ShowMessage(string.Format(aimMessage, percent));
+        ShowGlow(match);
 
-        if (match >= matchNeeded && blend >= 1f)
+        if (blend < 1f)
+        {
+            return;
+        }
+        if (assisting)
+        {
+            if (ReachedGoal())
+            {
+                StartLockingOn();
+            }
+        }
+        else if (match >= matchNeeded)
         {
             StartLockingOn();
         }
+        else if (aimAssist && !steering && match >= assistStart)
+        {
+            StartAssist();
+        }
     }
 
-    void ReadAimInput(float deltaTime)
+    void StartAssist()
+    {
+        assisting = true;
+        sideVelocity = 0f;
+        upVelocity = 0f;
+    }
+
+    void UpdateAssist(float deltaTime)
+    {
+        float smoothTime = assistTime * 0.3f;
+        sideAngle = Mathf.SmoothDamp(sideAngle, goalSideAngle, ref sideVelocity, smoothTime, Mathf.Infinity, deltaTime);
+        upAngle = Mathf.SmoothDamp(upAngle, goalUpAngle, ref upVelocity, smoothTime, Mathf.Infinity, deltaTime);
+    }
+
+    bool ReachedGoal()
+    {
+        bool sideReached = Mathf.Abs(sideAngle - goalSideAngle) < goalTolerance;
+        bool upReached = Mathf.Abs(upAngle - goalUpAngle) < goalTolerance;
+        return sideReached && upReached;
+    }
+
+    void ShowGlow(float match)
+    {
+        if (outlineMat == null)
+        {
+            return;
+        }
+        float glow = Mathf.Clamp01(match / matchNeeded);
+        glow = glow * glow;
+        outlineMat.color = Color.Lerp(outlineColor, glowColor, glow);
+        targetOutline.widthMultiplier = outlineWidth * Mathf.Lerp(1f, glowWidthScale, glow);
+    }
+
+    void ShowFlash(float flash)
+    {
+        if (outlineMat != null)
+        {
+            outlineMat.color = Color.Lerp(glowColor, Color.white, flash);
+            targetOutline.widthMultiplier = outlineWidth * Mathf.Lerp(glowWidthScale, flashWidthScale, flash);
+        }
+        if (pieceRenderer != null)
+        {
+            pieceRenderer.material.color = Color.Lerp(pieceColor, Color.white, flash * pieceFlash);
+        }
+    }
+
+    bool ReadAimInput(float deltaTime)
     {
         float turn = 0f;
         if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.Q))
@@ -273,6 +409,9 @@ public class AimZone : MonoBehaviour
 
         sideAngle = Mathf.Clamp(sideAngle, goalSideAngle - sideRange, goalSideAngle + sideRange);
         upAngle = Mathf.Clamp(upAngle, minUpAngle, maxUpAngle);
+
+        bool dragging = Input.GetMouseButton(0) || Input.GetMouseButton(1);
+        return turn != 0f || lift != 0f || dragging;
     }
 
     void SetUpOrbit(Bounds pieceBounds)
@@ -295,10 +434,11 @@ public class AimZone : MonoBehaviour
     {
         step = Step.LockingOn;
         timer = 0f;
+        assisting = false;
         FreezePiece();
 
         Bounds pieceBounds = piece.GetWorldShape().GetBounds();
-        growScale = GetScale(pieceBounds);
+        growScale = GetScale(pieceBounds.size);
         aimSpot = GetAimSpot(pieceBounds);
 
         moveFromPos = cameraPos;
@@ -306,11 +446,17 @@ public class AimZone : MonoBehaviour
         moveToPos = aimSpot;
         moveToRot = Quaternion.LookRotation(pieceBounds.center - aimSpot);
         levelManager.ShowMessage(lockedMessage);
+
+        pieceRenderer = piece.GetComponent<Renderer>();
+        pieceColor = pieceRenderer.material.color;
+        ShowFlash(1f);
     }
 
     void UpdateLockingOn(float deltaTime)
     {
         bool finished = MoveCamera(deltaTime, lockTime);
+        float fade = 1f - Mathf.Clamp01(timer / lockTime);
+        ShowFlash(fade * fade);
         if (finished)
         {
             StartGrowing();
@@ -321,6 +467,8 @@ public class AimZone : MonoBehaviour
     {
         step = Step.Growing;
         timer = 0f;
+        ShowFlash(0f);
+        pieceRenderer = null;
         pieceStartPos = piece.transform.position;
         piece.GetComponent<Collider>().enabled = false;
     }
@@ -457,14 +605,113 @@ public class AimZone : MonoBehaviour
         return rightX && rightY && rightZ;
     }
 
-    bool IsCutStraight(CuttablePiece checkPiece)
+    public static string GetCutAdvice(ConvexShape first, ConvexShape second)
     {
-        Bounds bounds = checkPiece.GetComponent<Collider>().bounds;
-        float grownUnevenness = GetUnevenness(checkPiece, bounds.size) * GetScale(bounds);
-        return grownUnevenness <= maxUnevenness;
+        foreach (AimZone zone in allZones)
+        {
+            string advice = zone.CheckCut(first, second);
+            if (advice != null)
+            {
+                return advice;
+            }
+        }
+        return null;
     }
 
-    float GetUnevenness(CuttablePiece checkPiece, Vector3 size)
+    string CheckCut(ConvexShape first, ConvexShape second)
+    {
+        if (done || step != Step.None || pieceSpot == null)
+        {
+            return null;
+        }
+
+        ConvexShape[] shapes = { first, second };
+        int slice = -1;
+        for (int i = 0; i < shapes.Length; i++)
+        {
+            Bounds bounds = shapes[i].GetBounds();
+            if (!pieceSpot.Holds(bounds))
+            {
+                continue;
+            }
+            if (GetProblem(bounds.size, shapes[i].GetVolume()) == Problem.None)
+            {
+                return string.Format(fitsMessage, shapes.Length - i);
+            }
+            if (slice < 0 || shapes[i].GetVolume() < shapes[slice].GetVolume())
+            {
+                slice = i;
+            }
+        }
+
+        if (slice < 0)
+        {
+            return null;
+        }
+        Vector3 sliceSize = shapes[slice].GetBounds().size;
+        Problem problem = GetProblem(sliceSize, shapes[slice].GetVolume());
+        return GetProblemMessage(problem, recutAction);
+    }
+
+    Problem GetProblem(Vector3 size, float volume)
+    {
+        int thinSide = GetThinSide(pieceSize);
+        int sliceThinSide = GetThinSide(size);
+        if (sliceThinSide != thinSide && size[sliceThinSide] + sizeTolerance < size[thinSide])
+        {
+            return Problem.WrongWay;
+        }
+        if (GetUnevenness(volume, size) * GetScale(size) > maxUnevenness)
+        {
+            return Problem.Tilted;
+        }
+        if (size[thinSide] > pieceSize[thinSide] + sizeTolerance)
+        {
+            return Problem.Thick;
+        }
+        if (size[thinSide] < pieceSize[thinSide] - sizeTolerance)
+        {
+            return Problem.Thin;
+        }
+
+        for (int axis = 0; axis < 3; axis++)
+        {
+            if (axis == thinSide)
+            {
+                continue;
+            }
+            if (size[axis] < pieceSize[axis] - sizeTolerance)
+            {
+                return Problem.Narrow;
+            }
+            if (size[axis] > pieceSize[axis] + sizeTolerance)
+            {
+                return Problem.WrongSize;
+            }
+        }
+        return Problem.None;
+    }
+
+    string GetProblemMessage(Problem problem, string action)
+    {
+        switch (problem)
+        {
+            case Problem.WrongWay:
+                return string.Format(wrongWayMessage, action);
+            case Problem.Tilted:
+                return string.Format(tiltMessage, action);
+            case Problem.Thick:
+                return string.Format(thickMessage, action);
+            case Problem.Thin:
+                return string.Format(thinMessage, action);
+            case Problem.Narrow:
+                return string.Format(narrowMessage, action);
+            default:
+                return wrongSizeMessage;
+        }
+    }
+
+    int GetThinSide(Vector3 size)
     {
         int thinSide = 0;
         if (size.y < size[thinSide])
@@ -475,14 +722,19 @@ public class AimZone : MonoBehaviour
         {
             thinSide = 2;
         }
+        return thinSide;
+    }
 
+    float GetUnevenness(float volume, Vector3 size)
+    {
+        int thinSide = GetThinSide(size);
         float thickest = size[thinSide];
         float faceArea = size.x * size.y * size.z / thickest;
-        float averageThickness = checkPiece.volume / faceArea;
+        float averageThickness = volume / faceArea;
         return (thickest - averageThickness) * 2f;
     }
 
-    float GetScale(Bounds pieceBounds)
+    float GetScale(Vector3 size)
     {
         Vector3 targetSize = GetTargetBounds().size;
         int longSide = 0;
@@ -494,12 +746,12 @@ public class AimZone : MonoBehaviour
         {
             longSide = 2;
         }
-        return targetSize[longSide] / pieceBounds.size[longSide];
+        return targetSize[longSide] / size[longSide];
     }
 
     Vector3 GetAimSpot(Bounds pieceBounds)
     {
-        float scale = GetScale(pieceBounds);
+        float scale = GetScale(pieceBounds.size);
         Vector3 pieceAnchor = GetAnchor(pieceBounds);
         Vector3 targetAnchor = GetAnchor(GetTargetBounds());
         Vector3 pieceToTarget = targetAnchor - pieceAnchor;
@@ -596,17 +848,109 @@ public class AimZone : MonoBehaviour
             return;
         }
 
-        Vector3[] corners = GetCorners(GetTargetBounds());
+        SetBoxLines(targetOutline, GetTargetBounds());
+        targetOutline.enabled = false;
+    }
+
+    void SetBoxLines(LineRenderer line, Bounds box)
+    {
+        Vector3[] corners = GetCorners(box);
         Vector3[] path =
         {
             corners[0], corners[1], corners[2], corners[3], corners[0],
             corners[4], corners[5], corners[6], corners[7], corners[4],
             corners[5], corners[1], corners[2], corners[6], corners[7], corners[3]
         };
-        targetOutline.useWorldSpace = true;
-        targetOutline.positionCount = path.Length;
-        targetOutline.SetPositions(path);
-        targetOutline.enabled = false;
+        line.useWorldSpace = true;
+        line.positionCount = path.Length;
+        line.SetPositions(path);
+    }
+
+    void MakeSpotGuide()
+    {
+        spotGuide = Instantiate(targetOutline, targetOutline.transform.parent);
+        spotGuide.name = "SpotGuide";
+        spotGuide.enabled = true;
+        spotGuide.widthMultiplier = 1f;
+        spotGuide.widthCurve = AnimationCurve.Constant(0f, 1f, guideWidth);
+
+        Fadeable fade = spotGuide.gameObject.AddComponent<Fadeable>();
+        fade.hideIn2D = true;
+    }
+
+    void UpdateSpotGuide()
+    {
+        if (pieceSpot == null || cutController.state != CutController.State.Normal)
+        {
+            return;
+        }
+
+        Bounds playerBounds = cutController.player.GetComponent<Collider>().bounds;
+        bool playerOnSpot = pieceSpot.Holds(playerBounds);
+        CuttablePiece spotPiece = pieceSpot.GetPiece();
+        bool canStart = step == Step.None && !done;
+        if (playerOnSpot && canStart && spotPiece == null && levelManager.CanCut())
+        {
+            if (!playerWasOnSpot || IsShowing(spotMessage))
+            {
+                levelManager.ShowMessage(spotMessage);
+            }
+        }
+        playerWasOnSpot = playerOnSpot;
+
+        if (spotGuide == null)
+        {
+            return;
+        }
+        spotGuide.gameObject.SetActive(canStart);
+        if (!canStart)
+        {
+            return;
+        }
+
+        Bounds footprint = GetExpectedPieceBounds();
+        if (playerOnSpot)
+        {
+            footprint = playerBounds;
+        }
+        else if (spotPiece != null)
+        {
+            footprint = spotPiece.GetComponent<Collider>().bounds;
+        }
+        SetBoxLines(spotGuide, GetGuideBox(footprint));
+    }
+
+    bool IsShowing(string message)
+    {
+        HUD hud = levelManager.hud;
+        if (hud == null || hud.messageText == null)
+        {
+            return false;
+        }
+        return hud.messageText.text == message;
+    }
+
+    Bounds GetGuideBox(Bounds footprint)
+    {
+        Bounds expected = GetExpectedPieceBounds();
+        int thinSide = GetThinSide(pieceSize);
+        Vector3 min = expected.min;
+        Vector3 max = expected.max;
+        for (int axis = 0; axis < 3; axis += 2)
+        {
+            if (axis != thinSide)
+            {
+                min[axis] = footprint.min[axis];
+                max[axis] = footprint.max[axis];
+            }
+            min[axis] = min[axis] - guideMargin;
+            max[axis] = max[axis] + guideMargin;
+        }
+        min.y = min.y + guideLift;
+
+        Bounds box = new Bounds();
+        box.SetMinMax(min, max);
+        return box;
     }
 
     void OnDrawGizmosSelected()

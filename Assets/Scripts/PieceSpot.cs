@@ -19,9 +19,17 @@ public class PieceSpot : MonoBehaviour
         return new Vector3(area.center.x, area.min.y, area.center.z);
     }
 
-    public CuttablePiece GetPiece()
+    public bool Holds(Bounds bounds)
     {
         Bounds area = GetComponent<BoxCollider>().bounds;
+        bool insideX = bounds.center.x > area.min.x && bounds.center.x < area.max.x;
+        bool insideZ = bounds.center.z > area.min.z && bounds.center.z < area.max.z;
+        bool onFloor = Mathf.Abs(bounds.min.y - area.min.y) < heightTolerance;
+        return insideX && insideZ && onFloor;
+    }
+
+    public CuttablePiece GetPiece()
+    {
         foreach (PieceCarry carry in PieceCarry.allPieces)
         {
             CuttablePiece piece = carry.GetComponent<CuttablePiece>();
@@ -36,11 +44,7 @@ public class PieceSpot : MonoBehaviour
                 continue;
             }
 
-            Bounds pieceBounds = pieceCollider.bounds;
-            bool insideX = pieceBounds.center.x > area.min.x && pieceBounds.center.x < area.max.x;
-            bool insideZ = pieceBounds.center.z > area.min.z && pieceBounds.center.z < area.max.z;
-            bool onFloor = Mathf.Abs(pieceBounds.min.y - area.min.y) < heightTolerance;
-            if (insideX && insideZ && onFloor)
+            if (Holds(pieceCollider.bounds))
             {
                 return piece;
             }
