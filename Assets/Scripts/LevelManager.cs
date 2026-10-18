@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Team3.Analytics;
 
 public class LevelManager : MonoBehaviour
 {
@@ -8,11 +9,13 @@ public class LevelManager : MonoBehaviour
 
     public CuttablePiece player;
     public HUD hud;
+    [System.NonSerialized] public CheckpointManager checkpoints;
 
     public int cutsLeft;
     public float lastCutTime;
 
     private bool isLoading;
+    private bool isCompleted;
 
     void Awake()
     {
@@ -23,18 +26,20 @@ public class LevelManager : MonoBehaviour
     void Start()
     {
         GameplayMenuButton.Create();
+        if (checkpoints == null)
+            CutAnalytics.EnterRoom(SceneManager.GetActiveScene().name, cutsLeft, maxCuts);
     }
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.R))
         {
-            RestartLevel();
+            RestartLevel("manual");
         }
 
         if (player != null && player.transform.position.y < deathY)
         {
-            RestartLevel();
+            RestartLevel("fall");
         }
     }
 
@@ -48,14 +53,23 @@ public class LevelManager : MonoBehaviour
         cutsLeft = cutsLeft - 1;
         if (cutsLeft < 0) cutsLeft = 0;
         lastCutTime = Time.time;
+        CutAnalytics.UpdateCuts(cutsLeft, maxCuts);
     }
 
     public void RestartLevel()
     {
+        RestartLevel("manual");
+    }
+
+    public void RestartLevel(string reason)
+    {
         if (!isLoading)
         {
             isLoading = true;
+            CutAnalytics.RestartRoom(reason, cutsLeft, maxCuts);
             Time.timeScale = 1f;
+            HelpPanel.CloseAll();
+            if (checkpoints != null) checkpoints.RememberForRestart();
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
     }
@@ -67,12 +81,14 @@ public class LevelManager : MonoBehaviour
 
     public void CompleteLevel()
     {
-        if (isLoading)
+        if (isLoading || isCompleted)
         {
             return;
         }
 
-        LevelCatalog.MarkComplete(SceneManager.GetActiveScene().name);
+        isCompleted = true;
+        CutAnalytics.CompleteRoom(cutsLeft, maxCuts);
+        LevelCatalog.MarkComplete(SceneManager.GetActiveScene().name, checkpoints != null ? checkpoints.CurrentRoom : 0);
 
         LevelClearScreen clearScreen = FindFirstObjectByType<LevelClearScreen>();
         if (clearScreen != null)

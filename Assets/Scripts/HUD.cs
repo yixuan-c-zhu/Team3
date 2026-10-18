@@ -117,4 +117,10 @@ public class HUD : MonoBehaviour
         messageText.text = msg;
         timer = messageTime;
     }
+
+    public void ResetRestartTip()
+    {
+        showedRestartTip = false;
+        if (restartTip != null) restartTip.SetActive(false);
+    }
 }

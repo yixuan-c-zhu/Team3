@@ -118,7 +118,7 @@ public class LevelClearScreen : MonoBehaviour
 
     void Retry()
     {
-        LoadScene(SceneManager.GetActiveScene().buildIndex);
+        levelManager.RestartLevel("retry_button");
     }
 
     void LoadMainMenu()
@@ -126,9 +126,4 @@ public class LevelClearScreen : MonoBehaviour
         LevelCatalog.Load(mainMenuScene);
     }
 
-    void LoadScene(int index)
-    {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(index);
-    }
 }

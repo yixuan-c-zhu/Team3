@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
+using Team3.Analytics;
 using UnityEngine;
 
 public class CutController : MonoBehaviour
@@ -48,6 +49,7 @@ public class CutController : MonoBehaviour
     private int hoveredIndex = -1;
     private Material previewSolidMat;
     private Material[] previewClearMats = new Material[2];
+    private readonly CutAttemptTracker analyticsAttempt = new CutAttemptTracker();
 
 
     void Awake()
@@ -82,6 +84,7 @@ public class CutController : MonoBehaviour
             case State.Drawing:
                 if (Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.Escape))
                 {
+                    CutAnalytics.RecordCut(analyticsAttempt.CancelMode(), CutOutcome.Cancel);
                     EndCut(cancelMsg.text);
                     break;
                 }
@@ -118,6 +121,8 @@ public class CutController : MonoBehaviour
             return;
         }
         state = State.Drawing;
+        analyticsAttempt.BeginMode();
+        CutAnalytics.RecordMechanic(Mechanic.Cut, "key_c");
         playerScript.StopPlayer();
         playerScript.canMove = false;
         Time.timeScale = 0f;
@@ -126,6 +131,7 @@ public class CutController : MonoBehaviour
 
     void EndCut(string msg)
     {
+        analyticsAttempt.EndMode();
         state = State.Normal;
         Time.timeScale = 1f;
         playerScript.canMove = true;
@@ -210,17 +216,20 @@ public class CutController : MonoBehaviour
         }
         normal.Normalize();
         float planeDist = Vector3.Dot(normal, p1);
+        analyticsAttempt.SubmitLine();
 
         ConvexShape front;
         ConvexShape back;
         if (!player.GetWorldShape().Cut(normal, planeDist, out front, out back))
         {
+            CutAnalytics.RecordCut(analyticsAttempt.CompleteLine(), CutOutcome.Miss);
             levelManager.ShowMessage(missMsg.text);
             lineRenderer.enabled = false;
             return;
         }
         if (front.GetVolume() < minSize || back.GetVolume() < minSize)
         {
+            CutAnalytics.RecordCut(analyticsAttempt.CompleteLine(), CutOutcome.TooSmall);
             levelManager.ShowMessage(tooSmallMsg.text);
             lineRenderer.enabled = false;
             return;
@@ -362,11 +371,15 @@ public class CutController : MonoBehaviour
         }
 
         levelManager.UseCut();
+        float totalVolume = keepShape.GetVolume() + leftShape.GetVolume();
+        float keptRatio = totalVolume > 0f ? keepShape.GetVolume() / totalVolume : 0f;
+        CutAnalytics.RecordCut(analyticsAttempt.CompleteLine(), CutOutcome.Success, keptRatio);
         EndCut(niceCutMsg.text);
     }
 
     void CancelCut()
     {
+        CutAnalytics.RecordCut(analyticsAttempt.CancelMode(), CutOutcome.Cancel);
         for (int i = 0; i < 2; i++)
         {
             if (previewObjs[i] != null)
@@ -459,6 +472,12 @@ public class CutController : MonoBehaviour
         {
             levelManager.ShowMessage(switchMsg.text);
         }
+        CutAnalytics.RecordMechanic(Mechanic.SwitchPiece, "key_f");
+    }
+
+    public void ForgetLeftover()
+    {
+        lastLeftover = null;
     }
 
     public void SetControlledPiece(CuttablePiece newPlayer, PlayerController newPlayerScript)

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Team3.Analytics;
 
 public class CameraRig : MonoBehaviour
 {
@@ -32,6 +33,7 @@ public class CameraRig : MonoBehaviour
     private Vector3 aimPosition;
     private Quaternion aimRotation;
     private float aimFov;
+    private float analyticsTurnDirection;
 
     public bool IsTurning()
     {
@@ -90,6 +92,7 @@ public class CameraRig : MonoBehaviour
         {
             CheckInput(deltaTime);
         }
+        else analyticsTurnDirection = 0f;
 
         rotY = Mathf.LerpAngle(rotY, targetRotY, 1f - Mathf.Exp(-turnSpeed * deltaTime));
         if (Mathf.Abs(Mathf.DeltaAngle(rotY, targetRotY)) < 0.05f)
@@ -108,13 +111,13 @@ public class CameraRig : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            SwitchView();
+            SwitchViewFromInput();
         }
 
         if (is2D)
         {
-            if (Input.GetKeyDown(KeyCode.Q)) targetRotY -= 90f;
-            if (Input.GetKeyDown(KeyCode.E)) targetRotY += 90f;
+            if (Input.GetKeyDown(KeyCode.Q)) TurnFromInput(-1f, deltaTime);
+            if (Input.GetKeyDown(KeyCode.E)) TurnFromInput(1f, deltaTime);
         }
         else
         {
@@ -123,9 +126,9 @@ public class CameraRig : MonoBehaviour
             if (Input.GetKey(KeyCode.Q)) turn = turn - 1f;
             if (turn != 0f)
             {
-                targetRotY += turn * rotateSpeed * deltaTime;
-                rotY = targetRotY;
+                TurnFromInput(turn, deltaTime);
             }
+            else analyticsTurnDirection = 0f;
 
             if (Input.GetMouseButtonDown(1))
             {
@@ -147,9 +150,30 @@ public class CameraRig : MonoBehaviour
     public void SwitchView()
     {
         is2D = !is2D;
+        analyticsTurnDirection = 0f;
         if (is2D)
         {
             targetRotY = Mathf.Round(rotY / 90f) * 90f;
+        }
+    }
+
+    void SwitchViewFromInput()
+    {
+        SwitchView();
+        CutAnalytics.RecordMechanic(Mechanic.ViewSwitch, "key_tab");
+    }
+
+    void TurnFromInput(float direction, float deltaTime)
+    {
+        if (direction == 0f) { analyticsTurnDirection = 0f; return; }
+        if (is2D || analyticsTurnDirection != direction)
+            CutAnalytics.RecordMechanic(Mechanic.Camera, direction < 0f ? "key_q" : "key_e");
+        analyticsTurnDirection = direction;
+        if (is2D) targetRotY += direction * 90f;
+        else
+        {
+            targetRotY += direction * rotateSpeed * deltaTime;
+            rotY = targetRotY;
         }
     }
 
