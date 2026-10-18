@@ -46,7 +46,7 @@ public class AimZone : MonoBehaviour
     [TextArea] public string tiltMessage = "Your cut is tilted.\n<size=70%>{0}, switch to 2D and cut level, along the orange line.</size>";
     [TextArea] public string thickMessage = "This slice is too thick.\n<size=70%>{0} and cut lower, along the orange line at your feet.</size>";
     [TextArea] public string thinMessage = "This slice is too thin.\n<size=70%>{0} and cut a little higher, along the orange line.</size>";
-    [TextArea] public string narrowMessage = "This slice doesn't reach across your whole body.\n<size=70%>{0} and draw your line all the way across.</size>";
+    [TextArea] public string narrowMessage = "This slice is too narrow to fill the outline.\n<size=70%>An earlier cut made your body narrower than this spot needs. Press R to restart.</size>";
     public string recutAction = "Press Esc";
     public string restartAction = "Press R to restart";
     public string stepBackNote = "<size=70%>Esc to step back.</size>";
@@ -82,6 +82,7 @@ public class AimZone : MonoBehaviour
     private Step step = Step.None;
     private bool done;
     private bool waitForExit;
+    private bool startedIn2D;
     private float blend;
     private float timer;
 
@@ -246,6 +247,7 @@ public class AimZone : MonoBehaviour
         ShowGlow(0f);
         LockControls();
         cutController.playerScript.StopPlayer();
+        startedIn2D = camRig.is2D;
         if (camRig.is2D)
         {
             camRig.SwitchView();
@@ -611,7 +613,10 @@ public class AimZone : MonoBehaviour
         {
             targetOutline.enabled = false;
         }
-        camRig.TurnTo(cameraRot.eulerAngles.y);
+        if (!startedIn2D)
+        {
+            camRig.TurnTo(cameraRot.eulerAngles.y);
+        }
     }
 
     void GiveBackControl()
@@ -621,6 +626,10 @@ public class AimZone : MonoBehaviour
         cutController.enabled = true;
         colorManager.enabled = true;
         camRig.canControl = true;
+        if (startedIn2D && !camRig.is2D)
+        {
+            camRig.SwitchView();
+        }
         if (done)
         {
             levelManager.ShowMessage(GetDoneMessage());

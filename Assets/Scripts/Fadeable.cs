@@ -6,8 +6,10 @@ public class Fadeable : MonoBehaviour
     public static List<Fadeable> allFadeables = new List<Fadeable>();
 
     public bool hideIn2D = false;
+    public Material fadeMaterial;
 
     private Renderer rend;
+    private Material startMaterial;
     private Color startColor;
     private bool isFaded;
     private float fadeAlpha = 1f;
@@ -16,6 +18,7 @@ public class Fadeable : MonoBehaviour
     {
         rend = GetComponent<Renderer>();
         startColor = rend.material.color;
+        startMaterial = rend.sharedMaterial;
     }
 
     public Bounds GetBounds()
@@ -58,6 +61,12 @@ public class Fadeable : MonoBehaviour
 
     void ApplyColor()
     {
+        if (fadeMaterial != null)
+        {
+            rend.sharedMaterial = isFaded ? fadeMaterial : startMaterial;
+            return;
+        }
+
         if (hideIn2D)
         {
             rend.enabled = !isFaded;

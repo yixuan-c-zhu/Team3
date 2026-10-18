@@ -517,10 +517,10 @@ MonoBehaviour:
 
     <size=70%>{0} and cut a little higher,
     along the orange line.</size>'
-  narrowMessage: 'This slice doesn''t reach across your whole body.
+  narrowMessage: 'This slice is too narrow to fill the outline.
 
-    <size=70%>{0}
-    and draw your line all the way across.</size>'
+    <size=70%>An
+    earlier cut made your body narrower than this spot needs. Press R to restart.</size>'
   recutAction: Press Esc
   restartAction: Press R to restart
   stepBackNote: <size=70%>Esc to step back.</size>
