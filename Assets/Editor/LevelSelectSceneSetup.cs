@@ -40,7 +40,11 @@ public static class LevelSelectSceneSetup
         var buildScenes = new List<EditorBuildSettingsScene> { new EditorBuildSettingsScene(scenePath, true) };
         foreach (var chapter in LevelCatalog.Chapters)
             foreach (var lesson in chapter.Lessons)
-                buildScenes.Add(new EditorBuildSettingsScene("Assets/Scenes/" + lesson.Scene + ".unity", true));
+            {
+                // The tutorial's four lessons share one scene, so add each scene once.
+                string lessonPath = "Assets/Scenes/" + lesson.Scene + ".unity";
+                if (!buildScenes.Exists(item => item.path == lessonPath)) buildScenes.Add(new EditorBuildSettingsScene(lessonPath, true));
+            }
         // Retain other project scenes (e.g. the disabled template) without duplicate entries.
         foreach (var existing in EditorBuildSettings.scenes)
             if (!buildScenes.Exists(item => item.path == existing.path)) buildScenes.Add(existing);

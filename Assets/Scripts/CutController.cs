@@ -461,6 +461,12 @@ public class CutController : MonoBehaviour
         }
     }
 
+    // Called when a checkpoint removes the leftover pieces, so F has nothing left to switch into.
+    public void ForgetLeftover()
+    {
+        lastLeftover = null;
+    }
+
     public void SetControlledPiece(CuttablePiece newPlayer, PlayerController newPlayerScript)
     {
         player = newPlayer;
