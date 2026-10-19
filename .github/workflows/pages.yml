@@ -1,0 +1,73 @@
+# Publishes two WebGL builds to GitHub Pages as one site:
+#   main                             -> https://yixuan-c-zhu.github.io/Team3/
+#   feature/alpha-milestone-hosting  -> https://yixuan-c-zhu.github.io/Team3/alpha/
+# Each branch serves the index.html, Build/ and TemplateData/ at its repo root.
+# Requires Settings > Pages > Source set to "GitHub Actions".
+
+name: Deploy web builds
+
+on:
+  push:
+    branches:
+      - main
+      - feature/alpha-milestone-hosting
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          path: main
+          lfs: true
+          sparse-checkout: |
+            index.html
+            Build
+            TemplateData
+          sparse-checkout-cone-mode: false
+
+      - name: Check out alpha milestone
+        uses: actions/checkout@v7
+        with:
+          ref: feature/alpha-milestone-hosting
+          path: alpha
+          lfs: true
+          sparse-checkout: |
+            index.html
+            Build
+            TemplateData
+          sparse-checkout-cone-mode: false
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site/alpha
+          cp -r main/index.html main/Build main/TemplateData _site/
+          cp -r alpha/index.html alpha/Build alpha/TemplateData _site/alpha/
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
