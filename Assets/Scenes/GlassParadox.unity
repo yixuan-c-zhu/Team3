@@ -6224,19 +6224,15 @@ PrefabInstance:
       objectReference: {fileID: 1041298950}
     - target: {fileID: 267102593074576009, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
       propertyPath: 'hints.Array.data[0]'
-      value: Only orange gets through orange glass. Press <color=#FFD54A>Shift</color>
-        to turn orange, stand on the gold spot and cut a thin slice off your feet.
+      value: 'Turn orange (<color=#FFD54A>Shift</color>) to enter the booth, then cut a <b>thin slice</b> off your feet.'
       objectReference: {fileID: 0}
     - target: {fileID: 267102593074576009, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
       propertyPath: 'hints.Array.data[1]'
-      value: Aim from the pad behind where you started. Your slice turns into glass
-        of its own color, so cross it in the other color.
+      value: 'Aim from the pad behind the start. Cross the glass in the <b>other color</b>.'
       objectReference: {fileID: 0}
     - target: {fileID: 267102593074576009, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
       propertyPath: 'hints.Array.data[2]'
-      value: Only a blue floor holds you inside the orange jelly. Slip a blue slice
-        into the low cage (<color=#FFD54A>F</color> switches pieces), then aim as
-        orange from the lookout.
+      value: 'Get a <b>blue slice</b> into the cage (<color=#FFD54A>F</color> switches pieces), then aim as orange from the lookout.'
       objectReference: {fileID: 0}
     - target: {fileID: 742942134309030197, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
       propertyPath: m_TextStyleHashCode

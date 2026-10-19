@@ -180,30 +180,12 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
-      propertyPath: aimMessage
-      value: 'Line your slice up with the gap: {0}%
-
-        <size=70%>A / D and
-        W / S or drag to aim. Esc to step back.</size>'
-      objectReference: {fileID: 0}
-    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
-      propertyPath: doneMessage
-      value: It's real. Go back down and cross your bridge.
-      objectReference: {fileID: 0}
-    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: pieceSize.x
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: pieceSize.y
       value: 1.4
-      objectReference: {fileID: 0}
-    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
-      propertyPath: wrongSizeMessage
-      value: 'Only a thin, flat slice of you can become a bridge.
-
-        <size=70%>Esc
-        to step back.</size>'
       objectReference: {fileID: 0}
     - target: {fileID: 2606514603420926202, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: m_Name
@@ -268,6 +250,56 @@ PrefabInstance:
     - target: {fileID: 8577549128859600084, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: doneMessage
+      value: 'It''s real! Use it as a step up to the exit.'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: previewMessage
+      value: '<size=70%>Your piece is {0}, so it will turn into {0} glass.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: noPieceMessage
+      value: 'Nothing to line up yet. Leave a piece of yourself on the gold spot first.
+
+        <size=70%>Esc to step back.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: spotMessage
+      value: 'This gold spot can hold a big piece of you.
+
+        <size=70%>In 2D, press C and cut along the orange line.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: fitsMessage
+      value: 'That piece fits!
+
+        <size=70%>Keep the small one (click it or press {0}) to leave this one here.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: wrongWayMessage
+      value: 'This piece is standing up.
+
+        <size=70%>{0} and cut across your body, along the orange line.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: thickMessage
+      value: 'This piece is too tall.
+
+        <size=70%>{0} and cut lower, along the orange line.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: thinMessage
+      value: 'This piece is too short.
+
+        <size=70%>{0} and cut higher, along the orange line.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: narrowMessage
+      value: 'This piece is too narrow to fill the outline.
+
+        <size=70%>An earlier cut made your body narrower than this spot needs. Press R to restart.</size>'
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5962,6 +5994,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 267102593074576009, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
+      propertyPath: 'hints.Array.data[0]'
+      value: 'Wall in the way? Its <b>back half is blue glass</b>. Press <color=#FFD54A>Tab</color> and walk behind it.'
+      objectReference: {fileID: 0}
+    - target: {fileID: 267102593074576009, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
+      propertyPath: 'hints.Array.data[1]'
+      value: 'Cut a <b>thin piece off your feet</b> for the button, then press <color=#FFD54A>F</color> and go through the door.'
+      objectReference: {fileID: 0}
+    - target: {fileID: 267102593074576009, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
+      propertyPath: 'hints.Array.data[2]'
+      value: 'Leave a <b>big piece</b> on the gold spot, then aim from the pad on the far right.'
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6100,53 +6144,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1754943246}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &1795002609
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1795002611}
-  - component: {fileID: 1795002610}
-  m_Layer: 0
-  m_Name: PlacedPieceColorManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1795002610
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1795002609}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 643a6c451878e2140bca6d49d58b4d23, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlacedPieceColorSetup
-  obstacleColor: 0
-  blueMaterial: {fileID: 2100000, guid: 9bea17a55962ddc408cac5496d1ca32e, type: 2}
-  orangeMaterial: {fileID: 2100000, guid: b8ffb4e0522b9204a8f0ea9a6cf83e4e, type: 2}
---- !u!4 &1795002611
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1795002609}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 62.5, y: 3.39484, z: -1.36127}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1848587967
 GameObject:
   m_ObjectHideFlags: 0
@@ -8436,4 +8433,3 @@ SceneRoots:
   - {fileID: 1697762365}
   - {fileID: 1220955952}
   - {fileID: 19583515}
-  - {fileID: 1795002611}
