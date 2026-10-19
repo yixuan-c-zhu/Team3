@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Team3.Analytics;
 
 /// <summary>
 /// Runs one scene as a row of rooms. Every room ends in an ExitZone, and each one except the
@@ -108,6 +109,20 @@ public class CheckpointManager : MonoBehaviour
         return true;
     }
 
+    void Start()
+    {
+        // Start runs after scene loading and every Awake, including LevelManager's cut reset.
+        ApplyRoom();
+        EnterAnalyticsRoom();
+    }
+
+    void EnterAnalyticsRoom()
+    {
+        var lesson = LevelCatalog.Find(SceneManager.GetActiveScene().name, CurrentRoom);
+        string id = lesson != null ? lesson.Id : "room_" + CurrentRoom;
+        CutAnalytics.EnterRoom(id, levelManager.cutsLeft, levelManager.maxCuts, CurrentRoom);
+    }
+
     /// <summary>Called by an ExitZone when the player touches it.</summary>
     public void Reach(ExitZone exit)
     {
@@ -123,6 +138,10 @@ public class CheckpointManager : MonoBehaviour
         {
             return;
         }
+
+        // Capture the old room's time and remaining cuts BEFORE the checkpoint refills them.
+        // Skipped rooms are not assigned fabricated enter/clear events.
+        CutAnalytics.CompleteRoom(levelManager.cutsLeft, levelManager.maxCuts);
 
         string scene = SceneManager.GetActiveScene().name;
         for (int i = CurrentRoom; i < index; i++)
@@ -143,6 +162,7 @@ public class CheckpointManager : MonoBehaviour
         RemoveLeftovers();
         ResetPlayer(rooms[CurrentRoom].spawn.position);
         ApplyRoom();
+        EnterAnalyticsRoom();
         levelManager.ShowMessage(checkpointMessage);
     }
 

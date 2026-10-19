@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Team3.Analytics;
 
 public class PieceControlManager : MonoBehaviour
 {
@@ -98,6 +99,7 @@ public class PieceControlManager : MonoBehaviour
         pieceColor.ToggleColor(
             blueMaterial,
             orangeMaterial);
+        CutAnalytics.RecordMechanic(Mechanic.ColorShift, "key_shift");
     }
 
     void SetControlledPiece(CuttablePiece newPiece)

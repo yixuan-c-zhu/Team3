@@ -1,0 +1,6 @@
+{
+    "name": "Team3.Analytics.Tests",
+    "references": ["Team3.Analytics"],
+    "includePlatforms": ["Editor"],
+    "optionalUnityReferences": ["TestAssemblies"]
+}

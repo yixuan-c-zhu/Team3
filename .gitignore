@@ -112,3 +112,15 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Local analytics inputs, generated reports and Python environment
+/analytics-data/
+/analytics-output/
+/.venv-analytics/
+__pycache__/
+
+# Unity MCP stays local; shared package manifests must not depend on it
+/Packages/com.coplaydev.unity-mcp/
+/Packages/com.coplaydev.unity-mcp.meta
+/Assets/__LocalUnityMCP/
+/Assets/__LocalUnityMCP.meta

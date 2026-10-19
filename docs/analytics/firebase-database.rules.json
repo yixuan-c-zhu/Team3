@@ -1,0 +1,72 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "events": {
+      "$pushId": {
+        ".write": "!data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['schema_version', 'event_id', 'session_id', 'sequence', 'build', 'scene', 'room', 'event', 'value', 't_room', 'is_editor']) && (newData.child('schema_version').val() == 1 || newData.hasChildren(['room_visit_id', 'room_index', 'room_attempt', 't_visit', 'cuts_left', 'cuts_budget', 'reason', 'first_use']))",
+        "schema_version": {
+          ".validate": "newData.isNumber() && (newData.val() == 1 || newData.val() == 2)"
+        },
+        "event_id": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)"
+        },
+        "session_id": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)"
+        },
+        "sequence": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() % 1 == 0"
+        },
+        "build": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 64"
+        },
+        "scene": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 128"
+        },
+        "room": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 128"
+        },
+        "event": {
+          ".validate": "(newData.val() == 'cut_success' || newData.val() == 'cut_miss' || newData.val() == 'cut_too_small' || newData.val() == 'cut_cancel') || (newData.parent().child('schema_version').val() == 2 && (newData.val() == 'room_enter' || newData.val() == 'room_clear' || newData.val() == 'restart' || newData.val() == 'use_cut' || newData.val() == 'use_view_switch' || newData.val() == 'use_color_shift' || newData.val() == 'use_switch_piece' || newData.val() == 'use_camera'))"
+        },
+        "value": {
+          ".validate": "newData.isNumber() && ((newData.parent().child('event').val() == 'cut_success' && newData.val() >= 0 && newData.val() <= 1) || ((newData.parent().child('event').val() == 'cut_miss' || newData.parent().child('event').val() == 'cut_too_small' || newData.parent().child('event').val() == 'cut_cancel' || newData.parent().child('event').val() == 'room_enter') && newData.val() == -1) || (newData.parent().child('event').val() == 'room_clear' && newData.val() == newData.parent().child('cuts_left').val()) || ((newData.parent().child('event').val() == 'restart' || newData.parent().child('event').val() == 'use_cut' || newData.parent().child('event').val() == 'use_view_switch' || newData.parent().child('event').val() == 'use_color_shift' || newData.parent().child('event').val() == 'use_switch_piece' || newData.parent().child('event').val() == 'use_camera') && newData.val() == 1))"
+        },
+        "t_room": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "is_editor": {
+          ".validate": "newData.isBoolean()"
+        },
+        "room_visit_id": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)"
+        },
+        "room_index": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+        },
+        "room_attempt": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() % 1 == 0"
+        },
+        "cuts_left": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0 && newData.val() <= newData.parent().child('cuts_budget').val()"
+        },
+        "cuts_budget": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 == 0"
+        },
+        "t_visit": {
+          ".validate": "newData.isNumber() && newData.val() >= newData.parent().child('t_room').val()"
+        },
+        "reason": {
+          ".validate": "newData.isString() && newData.val().length <= 64"
+        },
+        "first_use": {
+          ".validate": "newData.isBoolean()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}
