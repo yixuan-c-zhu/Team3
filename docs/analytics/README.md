@@ -4,7 +4,9 @@
 当前开发分支：`feature/analytics-firebase`。Unity 版本：**6000.3.22f1**。
 
 四项指标均按 **Alpha** 阶段实现，已完成数据采集、房间流程接入、Firebase 上传和本地验证。
-WebGL／浏览器验收、真实玩家测试和图表制作仍需单独完成。Editor 验证数据不作为玩家测试结果。
+已提供离线出图脚本，支持从 Firebase 导出的 JSON 生成四组图及 CSV。
+WebGL／浏览器验收、真实玩家测试和使用真实数据生成正式图表仍需完成。
+Editor 验证数据和模拟示例均不作为玩家测试结果。
 
 ## Firebase 配置与开关
 
@@ -141,7 +143,11 @@ Tutorial 和 NewLevel 已加入 Build Settings，支持重新加载场景。
 正式发布时的菜单接入仍属于团队的关卡／菜单任务。
 
 Unity MCP 保留在本地并保持可用。本地 MCP 源码和启动脚本已排除在 Git 跟踪范围外。
-提交 analytics 代码时，不应包含仅适用于本机的嵌入式 MCP 包锁文件修改。
+共享的 `Packages/manifest.json` 和提交到 Git 的 `Packages/packages-lock.json`
+均不包含 MCP 依赖；这两个 Unity 依赖文件本身仍正常跟踪。
+本机通过忽略目录中的嵌入式包加载 MCP，Unity 可能在本地锁文件中重新生成它的条目。
+本机 `.git/info/attributes` 配置的 Git clean filter 只移除该 MCP 条目后再提交，
+其余包依赖保持原样；过滤脚本和配置均保留在 `.git` 内，不会进入仓库。
 
 ## 上传机制
 
@@ -195,7 +201,10 @@ Unity MCP 保留在本地并保持可用。本地 MCP 源码和启动脚本已�
 
 会话数不等于玩家人数，玩家人数应以实际招募记录为准。
 正式图表需要真实玩家测试数据。
-本次实现尚未生成自动制图／报告流程或玩家测试结果文档。
+出图脚本和安装步骤见 [出图工具说明](../../tools/analytics/README.md)。
+脚本默认排除 Editor 数据、按事件 ID 去重，并输出四组 PNG/SVG、汇总 CSV、
+清洗后的事件和统计说明。`--demo` 生成明确标注的模拟示例。
+尚未收集并制作真实玩家测试结果。
 
 ## 验证结果
 
