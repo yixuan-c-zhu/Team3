@@ -27,6 +27,8 @@ public class CheckpointManager : MonoBehaviour
         public Transform root;
         [Tooltip("The exit at the end of this room. A checkpoint, unless this is the last room.")]
         public ExitZone exit;
+        [Tooltip("When the player reaches this room through a checkpoint, the camera switches to the 2D front view.")]
+        public bool startIn2D;
     }
 
     public Room[] rooms;
@@ -161,6 +163,10 @@ public class CheckpointManager : MonoBehaviour
         CurrentRoom = index + 1;
         RemoveLeftovers();
         ResetPlayer(rooms[CurrentRoom].spawn.position);
+        if (rooms[CurrentRoom].startIn2D && camScript != null)
+        {
+            camScript.SetFrontView2D();
+        }
         ApplyRoom();
         EnterAnalyticsRoom();
         levelManager.ShowMessage(checkpointMessage);

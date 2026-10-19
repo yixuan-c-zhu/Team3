@@ -39,11 +39,11 @@ public class LevelSelectMenu : MonoBehaviour
 
         overview = new VisualElement { name = "chapter-overview" };
         overview.AddToClassList("button-row");
-        string[] names = { "Tutorial", "Level 1", "Level 2", "Level 3", "Level 4", "Level 5" };
-        for (int i = 0; i < names.Length; i++)
+        // One button per chapter in LevelCatalog: Tutorial, then Level 1, Level 2, ...
+        for (int i = 0; i < LevelCatalog.Chapters.Length; i++)
         {
             int chapter = i;
-            var button = MakeButton(names[i], "chapter-" + i, () => ShowChapter(chapter));
+            var button = MakeButton(i == 0 ? "Tutorial" : "Level " + i, "chapter-" + i, () => ShowChapter(chapter));
             if (i > 0) button.SetEnabled(LevelCatalog.CanLoad(LevelCatalog.Chapters[i].Lessons[0].Scene));
             overview.Add(button);
         }

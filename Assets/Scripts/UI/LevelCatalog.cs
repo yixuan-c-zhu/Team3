@@ -12,7 +12,7 @@ public static class LevelCatalog
     {
         public readonly string Scene, Title, Description, Mechanic;
         public readonly int Illustration;
-        /// <summary>The checkpoint (room) the lesson starts at inside its scene. The four tutorial lessons share one scene.</summary>
+        /// <summary>The checkpoint (room) the lesson starts at inside its scene. The tutorial lessons share one scene.</summary>
         public readonly int Checkpoint;
         /// <summary>Key for the completion save. The tutorial lessons keep their old scene names, so earlier progress still counts.</summary>
         public readonly string Id;
@@ -43,17 +43,12 @@ public static class LevelCatalog
             new Lesson(TutorialScene, 0, "Level1", "Cut to fit", "A low ceiling stands between you and the exit. Change your shape to find a way through.", "CUTTING + MOVEMENT", 0),
             new Lesson(TutorialScene, 1, "Level2", "Leave a little behind", "One piece holds the pressure plate. The other walks through the door. Make both pieces count.", "WEIGHT + SWITCHING", 1),
             new Lesson(TutorialScene, 2, "Level3", "A different angle", "A narrow gap hides in plain sight. Turn your perspective, then make the cut that fits.", "PERSPECTIVE + PRECISION", 2),
-            new Lesson(TutorialScene, 3, "ColorShift", "Shift your color", "Glass stops pieces of the other color. Press Shift to change yours and walk right through.", "COLOR SHIFT", 3)),
+            new Lesson(TutorialScene, 3, "ColorShift", "Shift your color", "Glass stops pieces of the other color. Press Shift to change yours and walk right through.", "COLOR SHIFT", 3),
+            new Lesson(TutorialScene, 4, "BuildingBridge", "Building Bridge", "The road ends in 2D. Find the hidden path, leave a slice of yourself on the ledge, and line it up with the gap from the lookout.", "HIDDEN PATHS + CUTTING + AIM", 6)),
         new Chapter("LEVEL 01", "New Level", "Explore a new puzzle with color and perspective.", "COLOR + PERSPECTIVE", "jump",
             new Lesson("NewLevel", "New Level", "Use color switching and perspective to overcome obstacles and reach the exit.", "COLOR + PERSPECTIVE", 4)),
         new Chapter("LEVEL 02", "Glass Paradox", "Blue can't get in. Orange can't stand.", "PERSPECTIVE + COLOR", "glass",
-            new Lesson("GlassParadox", "Glass Paradox", "Whatever you line up turns into glass of your slice's color. Pick the color, then find the one floor that holds you.", "AIM + COLOR + SWITCHING", 8)),
-        new Chapter("LEVEL 03", "Building Bridge", "Find the angle. Make it real.", "PERSPECTIVE + AIM", "bridge",
-            new Lesson("BuildingBridge", "Building Bridge", "The road ends in 2D. Find the hidden path, leave a slice of yourself on the ledge, and line it up with the gap from the lookout.", "HIDDEN PATHS + CUTTING + AIM", 6)),
-        new Chapter("LEVEL 04", "Level 4", "Coming soon.", "PERSPECTIVE + COLOR", "level4",
-            new Lesson("Level4Placeholder", "Level 4", "Coming soon.", "PERSPECTIVE + COLOR", 7)),
-        new Chapter("LEVEL 05", "Pushing Button", "Leave your mark. Open a new path.", "WEIGHT + COLOR", "button",
-            new Lesson("PushingButton", "Pushing Button", "Navigate colored barriers and leave a piece on the button. Hold the gate open and find your way to the exit.", "SWITCHING + COLOR + MECHANISMS", 5))
+            new Lesson("GlassParadox", "Glass Paradox", "Whatever you line up turns into glass of your slice's color. Pick the color, then find the one floor that holds you.", "AIM + COLOR + SWITCHING", 8))
     };
 
     public static bool IsComplete(string id) => PlayerPrefs.GetInt(CompletionPrefix + id, 0) == 1;
@@ -77,7 +72,7 @@ public static class LevelCatalog
                 if (lesson.Scene == scene && lesson.Checkpoint == checkpoint) return lesson;
         return null;
     }
-    // Each chapter ends at chapter select. Lessons that share a scene (the tutorial's four rooms) move on after the last one.
+    // Each chapter ends at chapter select. Lessons that share a scene (the tutorial's rooms) move on after the last one.
     public static string NextScene(string scene)
     {
         foreach (var chapter in Chapters)

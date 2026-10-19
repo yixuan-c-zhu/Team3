@@ -182,6 +182,15 @@ public class CameraRig : MonoBehaviour
         }
     }
 
+    /// <summary>Switches to the 2D view looking from the front (or another 90-degree side), without a turn animation.</summary>
+    public void SetFrontView2D(float angle = 0f)
+    {
+        is2D = true;
+        analyticsTurnDirection = 0f;
+        targetRotY = Mathf.Round(angle / 90f) * 90f;
+        rotY = targetRotY;
+    }
+
     public void SetAim(float blend, Vector3 position, Quaternion rotation, float fov)
     {
         aimBlend = blend;
