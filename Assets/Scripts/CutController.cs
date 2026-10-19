@@ -262,7 +262,13 @@ public class CutController : MonoBehaviour
         lineRenderer.enabled = false;
         camScript.canControl = false;
         state = State.Choosing;
-        levelManager.ShowMessage(chooseMsg.text);
+
+        string advice = AimZone.GetCutAdvice(front, back);
+        if (advice == null)
+        {
+            advice = chooseMsg.text;
+        }
+        levelManager.ShowMessage(advice);
     }
 
     Material GetPreviewMaterial(Material fallback)

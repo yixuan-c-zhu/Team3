@@ -19,6 +19,10 @@ public class CameraRig : MonoBehaviour
     public float turnSpeed = 10f;
     public float offsetY = 0.8f;
 
+    public float wallRadius = 0.35f;
+    public float minWallDistance = 1f;
+    public float wallReturnSpeed = 4f;
+
     public bool is2D = true;
     public bool canControl = true;
 
@@ -27,6 +31,12 @@ public class CameraRig : MonoBehaviour
     private float rotX;
     private Vector3 lookPos;
     private Vector3 lastMousePos;
+    private float normalFov;
+    private float aimBlend;
+    private Vector3 aimPosition;
+    private Quaternion aimRotation;
+    private float aimFov;
+    private float shownDistance3D = -1f;
 
     public bool IsTurning()
     {
@@ -69,12 +79,13 @@ public class CameraRig : MonoBehaviour
         {
             cam = GetComponent<Camera>();
         }
+        normalFov = cam.fieldOfView;
         rotX = angle3D;
         if (player != null)
         {
             lookPos = player.position;
         }
-        MoveCamera();
+        MoveCamera(0f);
     }
 
     void LateUpdate()
@@ -95,7 +106,7 @@ public class CameraRig : MonoBehaviour
         {
             lookPos = Vector3.Lerp(lookPos, player.position, 1f - Mathf.Exp(-followSpeed * deltaTime));
         }
-        MoveCamera();
+        MoveCamera(deltaTime);
     }
 
     void CheckInput(float deltaTime)
@@ -147,7 +158,22 @@ public class CameraRig : MonoBehaviour
         }
     }
 
-    void MoveCamera()
+    public void SetAim(float blend, Vector3 position, Quaternion rotation, float fov)
+    {
+        aimBlend = blend;
+        aimPosition = position;
+        aimRotation = rotation;
+        aimFov = fov;
+    }
+
+    public void TurnTo(float angle)
+    {
+        if (is2D) return;
+        targetRotY = angle;
+        rotY = angle;
+    }
+
+    void MoveCamera(float deltaTime)
     {
         Vector3 center = lookPos + Vector3.up * offsetY;
 
@@ -155,12 +181,59 @@ public class CameraRig : MonoBehaviour
         if (is2D) camAngle = 0f;
         Quaternion camRot = Quaternion.Euler(camAngle, rotY, 0f);
 
-        float distance = distance3D;
-        if (is2D) distance = distance2D;
+        float distance = distance2D;
+        if (is2D)
+        {
+            shownDistance3D = -1f;
+        }
+        else
+        {
+            distance = GetShownDistance3D(center, camRot, deltaTime);
+        }
 
+        Vector3 camPos = center - camRot * Vector3.forward * distance;
         cam.orthographic = is2D;
         cam.orthographicSize = size2D;
-        cam.transform.SetPositionAndRotation(center - camRot * Vector3.forward * distance, camRot);
+        cam.fieldOfView = normalFov;
+
+        if (aimBlend > 0f)
+        {
+            camPos = Vector3.Lerp(camPos, aimPosition, aimBlend);
+            camRot = Quaternion.Slerp(camRot, aimRotation, aimBlend);
+            cam.orthographic = false;
+            cam.fieldOfView = Mathf.Lerp(normalFov, aimFov, aimBlend);
+        }
+
+        cam.transform.SetPositionAndRotation(camPos, camRot);
+    }
+
+    float GetShownDistance3D(Vector3 center, Quaternion camRot, float deltaTime)
+    {
+        Vector3 back = camRot * Vector3.back;
+        float clearDistance = distance3D;
+        foreach (RaycastHit hit in Physics.SphereCastAll(center, wallRadius, back, distance3D, ~0, QueryTriggerInteraction.Ignore))
+        {
+            if (hit.distance > 0f && BlocksView(hit.collider))
+            {
+                clearDistance = Mathf.Min(clearDistance, hit.distance);
+            }
+        }
+        clearDistance = Mathf.Max(clearDistance, minWallDistance);
+
+        if (shownDistance3D < 0f || clearDistance < shownDistance3D)
+        {
+            shownDistance3D = clearDistance;
+        }
+        else
+        {
+            shownDistance3D = Mathf.Lerp(shownDistance3D, clearDistance, 1f - Mathf.Exp(-wallReturnSpeed * deltaTime));
+        }
+        return shownDistance3D;
+    }
+
+    bool BlocksView(Collider other)
+    {
+        return other.attachedRigidbody == null && other.GetComponent<ColorObstacle>() == null;
     }
 
     static Vector3 RoundDir(Vector3 dir)

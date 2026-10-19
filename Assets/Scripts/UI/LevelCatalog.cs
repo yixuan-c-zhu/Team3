@@ -38,7 +38,13 @@ public static class LevelCatalog
             new Lesson("Level4", "Put it all together", "Keep enough weight on the plate and enough room under the ceiling. Find the balance in one shape.", "YOUR FIRST COMBINED PUZZLE", 3)),
         new Chapter("LEVEL 01", "Double Jump", "Two pieces. A little more airtime.", "TIMING + COLOR", "jump",
             new Lesson("DoubleJump", "Double Jump", "Split, stack, and take flight. Switch pieces in mid-air and use color to cross the glass platforms.", "STACKING + COLOR + TIMING", 4)),
-        new Chapter("LEVEL 02", "Pushing Button", "Leave your mark. Open a new path.", "WEIGHT + COLOR", "button",
+        new Chapter("LEVEL 02", "Glass Paradox", "Blue can't get in. Orange can't stand.", "PERSPECTIVE + COLOR", "glass",
+            new Lesson("GlassParadox", "Glass Paradox", "Whatever you line up turns into glass of your slice's color. Pick the color, then find the one floor that holds you.", "AIM + COLOR + SWITCHING", 8)),
+        new Chapter("LEVEL 03", "Building Bridge", "Find the angle. Make it real.", "PERSPECTIVE + AIM", "bridge",
+            new Lesson("BuildingBridge", "Building Bridge", "The road ends in 2D. Find the hidden path, leave a slice of yourself on the ledge, and line it up with the gap from the lookout.", "HIDDEN PATHS + CUTTING + AIM", 6)),
+        new Chapter("LEVEL 04", "Level 4", "Coming soon.", "PERSPECTIVE + COLOR", "level4",
+            new Lesson("Level4Placeholder", "Level 4", "Coming soon.", "PERSPECTIVE + COLOR", 7)),
+        new Chapter("LEVEL 05", "Pushing Button", "Leave your mark. Open a new path.", "WEIGHT + COLOR", "button",
             new Lesson("PushingButton", "Pushing Button", "Navigate colored barriers and leave a piece on the button. Hold the gate open and find your way to the exit.", "SWITCHING + COLOR + MECHANISMS", 5))
     };
 
