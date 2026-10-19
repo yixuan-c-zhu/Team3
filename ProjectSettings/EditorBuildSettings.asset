@@ -11,10 +11,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Tutorial.unity
     guid: aab41fad23e0e51499fa5e9fc3ef54bb
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/DoubleJump.unity
     guid: 8320ad11ad69a274492101155d3145b2
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/PushingButton.unity
     guid: ccf601786ddf4de47ad26c5892fc62ea
   - enabled: 1
