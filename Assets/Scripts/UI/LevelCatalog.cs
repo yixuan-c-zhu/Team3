@@ -48,7 +48,9 @@ public static class LevelCatalog
         new Chapter("LEVEL 01", "New Level", "Explore a new puzzle with color and perspective.", "COLOR + PERSPECTIVE", "jump",
             new Lesson("NewLevel", "New Level", "Use color switching and perspective to overcome obstacles and reach the exit.", "COLOR + PERSPECTIVE", 4)),
         new Chapter("LEVEL 02", "Glass Paradox", "Blue can't get in. Orange can't stand.", "PERSPECTIVE + COLOR", "glass",
-            new Lesson("GlassParadox", "Glass Paradox", "Whatever you line up turns into glass of your slice's color. Pick the color, then find the one floor that holds you.", "AIM + COLOR + SWITCHING", 8))
+            new Lesson("GlassParadox", "Glass Paradox", "Whatever you line up turns into glass of your slice's color. Pick the color, then find the one floor that holds you.", "AIM + COLOR + SWITCHING", 8)),
+        new Chapter("LEVEL 03", "Keyhole", "You are the key.", "CUT + PERSPECTIVE + COLOR", "glass",
+            new Lesson("Keyhole", "Keyhole", "Locked walls only open for the right corner of you. Cut it off, line it up from the lookout, then match the wall's color to walk through.", "KEY + AIM + COLOR", 8))
     };
 
     public static bool IsComplete(string id) => PlayerPrefs.GetInt(CompletionPrefix + id, 0) == 1;

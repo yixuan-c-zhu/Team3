@@ -9,6 +9,7 @@ public class AimZone : MonoBehaviour
     public PieceSpot pieceSpot;
     public Transform target;
     public LineRenderer targetOutline;
+    public LockWall lockWall;
 
     public Vector3 pieceSize = new Vector3(2f, 0.25f, 2f);
     public float sizeTolerance = 0.4f;
@@ -130,6 +131,10 @@ public class AimZone : MonoBehaviour
         cutController = FindFirstObjectByType<CutController>();
         colorManager = FindFirstObjectByType<PieceControlManager>();
         levelManager = FindFirstObjectByType<LevelManager>();
+        if (lockWall != null)
+        {
+            lockWall.Build(pieceSpot, pieceSize, sizeTolerance);
+        }
     }
 
     void OnEnable()
@@ -253,7 +258,7 @@ public class AimZone : MonoBehaviour
             camRig.SwitchView();
         }
 
-        piece = pieceSpot.GetPiece();
+        piece = GetSpotPiece();
         if (piece != null && HasRightSize(piece))
         {
             SetUpOrbit(piece.GetComponent<Collider>().bounds);
@@ -265,7 +270,7 @@ public class AimZone : MonoBehaviour
 
         outlineColor = defaultOutlineColor;
         PieceColor.PieceColorType color;
-        if (GetGlassColor(piece, out color))
+        if (lockWall == null && GetGlassColor(piece, out color))
         {
             outlineColor = GetGlassMaterial(color).color;
             outlineColor.a = 1f;
@@ -307,6 +312,15 @@ public class AimZone : MonoBehaviour
             levelManager.ShowMessage(noPieceMessage);
             return;
         }
+        if (lockWall != null)
+        {
+            string keyProblem = lockWall.GetKeyProblem(piece.GetWorldShape(), restartAction);
+            if (keyProblem != null)
+            {
+                levelManager.ShowMessage(keyProblem + "\n" + stepBackNote);
+                return;
+            }
+        }
         Problem problem = GetProblem(piece.GetComponent<Collider>().bounds.size, piece.volume);
         if (problem != Problem.None)
         {
@@ -325,7 +339,7 @@ public class AimZone : MonoBehaviour
         int percent = Mathf.RoundToInt(match * 100f);
         string aimText = string.Format(aimMessage, percent);
         PieceColor.PieceColorType color;
-        if (GetGlassColor(piece, out color))
+        if (lockWall == null && GetGlassColor(piece, out color))
         {
             aimText = aimText + "\n" + string.Format(previewMessage, GetColorName(color));
         }
@@ -521,6 +535,11 @@ public class AimZone : MonoBehaviour
 
     void MakePieceReal()
     {
+        if (lockWall != null)
+        {
+            UseKey();
+            return;
+        }
         ConvexShape grownShape = piece.GetWorldShape();
         piece.transform.localScale = Vector3.one;
         piece.SetWorldShape(grownShape);
@@ -536,6 +555,23 @@ public class AimZone : MonoBehaviour
         Destroy(piece.GetComponent<PieceCarry>());
         Destroy(piece);
         piece = null;
+
+        if (targetOutline != null)
+        {
+            targetOutline.enabled = false;
+        }
+    }
+
+    void UseKey()
+    {
+        MeshFilter filter = piece.GetComponent<MeshFilter>();
+        if (filter.sharedMesh != null && filter.sharedMesh.name == "CutPiece")
+        {
+            Destroy(filter.sharedMesh);
+        }
+        Destroy(piece.gameObject);
+        piece = null;
+        lockWall.Unlock();
 
         if (targetOutline != null)
         {
@@ -578,6 +614,10 @@ public class AimZone : MonoBehaviour
 
     string GetDoneMessage()
     {
+        if (lockWall != null)
+        {
+            return lockWall.GetUnlockMessage();
+        }
         if (placedGlass == null)
         {
             return doneMessage;
@@ -671,6 +711,10 @@ public class AimZone : MonoBehaviour
 
     bool HasRightSize(CuttablePiece checkPiece)
     {
+        if (lockWall != null)
+        {
+            return lockWall.GetKeyProblem(checkPiece.GetWorldShape(), "") == null;
+        }
         Vector3 size = checkPiece.GetComponent<Collider>().bounds.size;
         bool rightX = Mathf.Abs(size.x - pieceSize.x) <= sizeTolerance;
         bool rightY = Mathf.Abs(size.y - pieceSize.y) <= sizeTolerance;
@@ -696,6 +740,10 @@ public class AimZone : MonoBehaviour
         if (done || step != Step.None || pieceSpot == null)
         {
             return null;
+        }
+        if (lockWall != null)
+        {
+            return CheckKeyCut(first, second);
         }
 
         ConvexShape[] shapes = { first, second };
@@ -726,8 +774,40 @@ public class AimZone : MonoBehaviour
         return GetProblemMessage(problem, recutAction);
     }
 
+    string CheckKeyCut(ConvexShape first, ConvexShape second)
+    {
+        ConvexShape[] shapes = { first, second };
+        int key = -1;
+        for (int i = 0; i < shapes.Length; i++)
+        {
+            if (!lockWall.CoversKey(pieceSpot, shapes[i].GetBounds().center))
+            {
+                continue;
+            }
+            if (key < 0 || shapes[i].GetVolume() < shapes[key].GetVolume())
+            {
+                key = i;
+            }
+        }
+
+        if (key < 0)
+        {
+            return null;
+        }
+        string problem = lockWall.GetKeyProblem(shapes[key], recutAction);
+        if (problem != null)
+        {
+            return problem;
+        }
+        return string.Format(fitsMessage, shapes.Length - key);
+    }
+
     Problem GetProblem(Vector3 size, float volume)
     {
+        if (lockWall != null)
+        {
+            return Problem.None;
+        }
         int thinSide = GetThinSide(pieceSize);
         int sliceThinSide = GetThinSide(size);
         if (sliceThinSide != thinSide && size[sliceThinSide] + sizeTolerance < size[thinSide])
@@ -809,6 +889,10 @@ public class AimZone : MonoBehaviour
 
     float GetScale(Vector3 size)
     {
+        if (lockWall != null)
+        {
+            return lockWall.Scale;
+        }
         Vector3 targetSize = GetTargetBounds().size;
         int longSide = 0;
         if (targetSize.y > targetSize[longSide])
@@ -824,6 +908,10 @@ public class AimZone : MonoBehaviour
 
     Vector3 GetAimSpot(Bounds pieceBounds)
     {
+        if (lockWall != null)
+        {
+            return lockWall.GetAimSpot(pieceBounds);
+        }
         float scale = GetScale(pieceBounds.size);
         Vector3 pieceAnchor = GetAnchor(pieceBounds);
         Vector3 targetAnchor = GetAnchor(GetTargetBounds());
@@ -843,6 +931,10 @@ public class AimZone : MonoBehaviour
 
     Bounds GetTargetBounds()
     {
+        if (lockWall != null)
+        {
+            return lockWall.GetKeyholeBounds();
+        }
         return new Bounds(target.position, target.lossyScale);
     }
 
@@ -854,6 +946,10 @@ public class AimZone : MonoBehaviour
 
     float GetMatch()
     {
+        if (lockWall != null)
+        {
+            return lockWall.GetMatch(piece.GetWorldShape(), camRig.cam);
+        }
         Rect pieceRect;
         Rect targetRect;
         bool pieceInFront = GetScreenRect(piece.GetComponent<Collider>().bounds, out pieceRect);
@@ -921,8 +1017,33 @@ public class AimZone : MonoBehaviour
             return;
         }
 
-        SetBoxLines(targetOutline, GetTargetBounds());
+        if (lockWall != null)
+        {
+            SetKeyholeLines(targetOutline);
+        }
+        else
+        {
+            SetBoxLines(targetOutline, GetTargetBounds());
+        }
         targetOutline.enabled = false;
+    }
+
+    void SetKeyholeLines(LineRenderer line)
+    {
+        Vector3[] path = lockWall.GetSlotOutline();
+        if (path == null)
+        {
+            line.positionCount = 0;
+            return;
+        }
+        SetLines(line, path);
+    }
+
+    void SetLines(LineRenderer line, Vector3[] path)
+    {
+        line.useWorldSpace = true;
+        line.positionCount = path.Length;
+        line.SetPositions(path);
     }
 
     void SetBoxLines(LineRenderer line, Bounds box)
@@ -960,7 +1081,7 @@ public class AimZone : MonoBehaviour
 
         Bounds playerBounds = cutController.player.GetComponent<Collider>().bounds;
         bool playerOnSpot = pieceSpot.Holds(playerBounds);
-        CuttablePiece spotPiece = pieceSpot.GetPiece();
+        CuttablePiece spotPiece = GetSpotPiece();
         bool canStart = step == Step.None && !done;
         if (playerOnSpot && canStart && spotPiece == null && levelManager.CanCut())
         {
@@ -980,6 +1101,16 @@ public class AimZone : MonoBehaviour
         {
             return;
         }
+        if (lockWall != null)
+        {
+            bool showCut = playerOnSpot && spotPiece == null;
+            spotGuide.gameObject.SetActive(showCut);
+            if (showCut)
+            {
+                SetLines(spotGuide, lockWall.GetGuideLine(playerBounds));
+            }
+            return;
+        }
 
         Bounds footprint = GetExpectedPieceBounds();
         if (playerOnSpot)
@@ -991,6 +1122,15 @@ public class AimZone : MonoBehaviour
             footprint = spotPiece.GetComponent<Collider>().bounds;
         }
         SetBoxLines(spotGuide, GetGuideBox(footprint));
+    }
+
+    CuttablePiece GetSpotPiece()
+    {
+        if (lockWall != null)
+        {
+            return lockWall.FindKey(pieceSpot, cutController.player);
+        }
+        return pieceSpot.GetPiece();
     }
 
     bool IsShowing(string message)
@@ -1122,7 +1262,7 @@ public class AimZone : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        if (pieceSpot == null || target == null)
+        if (pieceSpot == null || target == null || lockWall != null)
         {
             return;
         }
