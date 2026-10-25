@@ -6,8 +6,9 @@ using Team3.Analytics;
 /// <summary>
 /// Runs one scene as a row of rooms. Every room ends in an ExitZone, and each one except the
 /// last room's is a checkpoint. Reaching a checkpoint starts the next room like a new level:
-/// the player becomes a fresh cube at that room's spawn, cuts refill and leftover pieces are
-/// removed. R or falling reloads the scene in the room the player has reached.
+/// the player becomes a fresh cube at that room's spawn and cuts refill. Leftover pieces stay
+/// where they are, frozen, as a trail through the corridor. R or falling reloads the scene in the
+/// room the player has reached.
 /// </summary>
 public class CheckpointManager : MonoBehaviour
 {
@@ -41,7 +42,7 @@ public class CheckpointManager : MonoBehaviour
     public TMP_Text titleText;
     public TMP_Text tipText;
 
-    public string checkpointMessage = "Checkpoint! Fresh cube, cuts refilled";
+    public string checkpointMessage = "Checkpoint! You're whole again. Cuts refilled.";
     [Tooltip("The 2D side views look down the corridor, which lines every room up behind each other. When on, those views only draw the current room.")]
     public bool hideOtherRoomsInSideView = true;
 
@@ -161,7 +162,7 @@ public class CheckpointManager : MonoBehaviour
 
         LevelCatalog.MarkComplete(scene, index);
         CurrentRoom = index + 1;
-        RemoveLeftovers();
+        RetireLeftovers(index);
         ResetPlayer(rooms[CurrentRoom].spawn.position);
         if (rooms[CurrentRoom].startIn2D && camScript != null)
         {
@@ -211,21 +212,30 @@ public class CheckpointManager : MonoBehaviour
         }
     }
 
-    // Leftovers can't follow the player into the next room, and F can't switch back to them.
-    void RemoveLeftovers()
+    // Leftovers stay where they are as a trail through the corridor. They are frozen and parented to the
+    // room they were left in (so the side views still hide them), and F can't switch back to them.
+    void RetireLeftovers(int room)
     {
         cutController.ForgetLeftover();
+        Transform root = rooms[room].root;
         foreach (CuttablePiece piece in FindObjectsByType<CuttablePiece>(FindObjectsSortMode.None))
         {
-            if (piece == cutController.player) continue;
+            // Skip the player and pieces already left behind in an earlier room.
+            if (piece == cutController.player || piece.transform.parent != null) continue;
 
-            MeshFilter filter = piece.GetComponent<MeshFilter>();
-            if (filter.sharedMesh != null && filter.sharedMesh.name == "CutPiece")
+            PieceCarry carry = piece.GetComponent<PieceCarry>();
+            if (carry != null) Destroy(carry);
+            Rigidbody rb = piece.GetComponent<Rigidbody>();
+            if (rb != null)
             {
-                Destroy(filter.sharedMesh);
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.constraints = RigidbodyConstraints.FreezeAll;
             }
-            Destroy(piece.gameObject);
+            if (root != null) piece.transform.SetParent(root, true);
         }
+        if (root != null) roomRenderers[room] = root.GetComponentsInChildren<Renderer>(true);
+        drawnRoom = -2;
     }
 
     void FixedUpdate()

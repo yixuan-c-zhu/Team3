@@ -14,7 +14,7 @@ public static class LevelCatalog
         public readonly int Illustration;
         /// <summary>The checkpoint (room) the lesson starts at inside its scene. The tutorial lessons share one scene.</summary>
         public readonly int Checkpoint;
-        /// <summary>Key for the completion save. The tutorial lessons keep their old scene names, so earlier progress still counts.</summary>
+        /// <summary>Key for the completion save. Rooms 1, 2 and 4 keep their old IDs, so earlier progress still counts.</summary>
         public readonly string Id;
         public Lesson(string scene, string title, string description, string mechanic, int illustration)
             : this(scene, 0, scene, title, description, mechanic, illustration) { }
@@ -40,11 +40,10 @@ public static class LevelCatalog
     public static readonly Chapter[] Chapters =
     {
         new Chapter("START HERE", "Tutorial", "A small cut. A whole new possibility.", "THE FUNDAMENTALS", "tutorial",
-            new Lesson(TutorialScene, 0, "Level1", "Cut to fit", "A low ceiling stands between you and the exit. Change your shape to find a way through.", "CUTTING + MOVEMENT", 0),
-            new Lesson(TutorialScene, 1, "Level2", "Leave a little behind", "One piece holds the pressure plate. The other walks through the door. Make both pieces count.", "WEIGHT + SWITCHING", 1),
-            new Lesson(TutorialScene, 2, "Level3", "A different angle", "A narrow gap hides in plain sight. Turn your perspective, then make the cut that fits.", "PERSPECTIVE + PRECISION", 2),
-            new Lesson(TutorialScene, 3, "ColorShift", "Shift your color", "Glass stops pieces of the other color. Press Shift to change yours and walk right through.", "COLOR SHIFT", 3),
-            new Lesson(TutorialScene, 4, "BuildingBridge", "Building Bridge", "The road ends in 2D. Find the hidden path, leave a slice of yourself on the ledge, and line it up with the gap from the lookout.", "HIDDEN PATHS + CUTTING + AIM", 6)),
+            new Lesson(TutorialScene, 0, "Level1", "Cut to fit", "A low ceiling, a wall that hides a gap, and a road that ends. Change your shape and your view to get through.", "CUTTING + PERSPECTIVE", 0),
+            new Lesson(TutorialScene, 1, "Level2", "Leave a little behind", "A gold plate sits under blue glass by a locked door. Leave a piece of yourself where you can't go.", "WEIGHT + GLASS + SWITCHING", 1),
+            new Lesson(TutorialScene, 2, "FirstBridge", "First bridge", "Leave a thin slice on the gold ledge and line it up with the gap. Your bridge is made of your color.", "AIM + COLOR", 6),
+            new Lesson(TutorialScene, 3, "BuildingBridge", "Building Bridge", "The road ends in 2D. Find the hidden path, leave a slice of yourself on the ledge, and line it up with the gap from the lookout.", "HIDDEN PATHS + CUTTING + AIM", 6)),
         new Chapter("LEVEL 01", "New Level", "Explore a new puzzle with color and perspective.", "COLOR + PERSPECTIVE", "jump",
             new Lesson("NewLevel", "New Level", "Use color switching and perspective to overcome obstacles and reach the exit.", "COLOR + PERSPECTIVE", 4)),
         new Chapter("LEVEL 02", "Glass Paradox", "Blue can't get in. Orange can't stand.", "PERSPECTIVE + COLOR", "glass",

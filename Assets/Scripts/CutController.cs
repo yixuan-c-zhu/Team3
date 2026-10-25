@@ -358,6 +358,7 @@ public class CutController : MonoBehaviour
         player.SetWorldShape(keepShape);
         playerRend.enabled = true;
         playerCol.enabled = true;
+        RefreshGlass(player);
         MakeLeftover(leftShape);
 
         for (int i = 0; i < 2; i++)
@@ -391,7 +392,20 @@ public class CutController : MonoBehaviour
         }
         playerRend.enabled = true;
         playerCol.enabled = true;
+        RefreshGlass(player);
         EndCut(cancelMsg.text);
+    }
+
+    // Turning the collider off for the cut makes physics forget which glass it passes through,
+    // so apply the color rules again. Without this, a blue piece kept over blue glass stays on top of it.
+    void RefreshGlass(CuttablePiece piece)
+    {
+        PieceColor pieceColor = piece.GetComponent<PieceColor>();
+        if (pieceColor == null) return;
+        foreach (ColorObstacle obstacle in FindObjectsByType<ColorObstacle>(FindObjectsSortMode.None))
+        {
+            obstacle.UpdateCollision(pieceColor);
+        }
     }
 
     void MakeLeftover(ConvexShape leftShape)
