@@ -374,9 +374,8 @@ public class HUD : MonoBehaviour
             return;
         }
 
-        // Let the restart tip take priority when no cuts remain.
-        if (levelManager != null &&
-            levelManager.cutsLeft == 0)
+        // Hide normal hints only while the restart tip is visible.
+        if (restartTip != null && restartTip.activeSelf)
         {
             HideHint();
             ResetHintTracking();
