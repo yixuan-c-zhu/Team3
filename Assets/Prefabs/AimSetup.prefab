@@ -474,7 +474,7 @@ MonoBehaviour:
   aimMessage: 'Line up your piece with the outline: {0}%
 
     <size=70%>A / D and
-    W / S or drag to aim. Esc to step back.</size>'
+    W / S or drag to aim. X to step back.</size>'
   previewMessage: <size=70%>Your slice is {0}, so it will turn into {0} glass.</size>
   glassMessage: '<size=70%>It''s {0} glass: {0} falls through it, {1} can stand on
     it.</size>'
@@ -485,10 +485,10 @@ MonoBehaviour:
   noPieceMessage: 'Nothing to line up yet. Leave a piece of yourself in the right
     spot first.
 
-    <size=70%>Esc to step back.</size>'
+    <size=70%>X to step back.</size>'
   wrongSizeMessage: 'This piece is the wrong size to fill the outline.
 
-    <size=70%>Esc
+    <size=70%>X
     to step back.</size>'
   lockedMessage: Lined up!
   doneMessage: It's real!
@@ -521,6 +521,6 @@ MonoBehaviour:
 
     <size=70%>An
     earlier cut made your body narrower than this spot needs. Press R to restart.</size>'
-  recutAction: Press Esc
+  recutAction: Press X
   restartAction: Press R to restart
-  stepBackNote: <size=70%>Esc to step back.</size>
+  stepBackNote: <size=70%>X to step back.</size>

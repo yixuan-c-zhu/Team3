@@ -82,7 +82,7 @@ public class CutController : MonoBehaviour
                 break;
 
             case State.Drawing:
-                if (Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.Escape))
+                if (Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.X))
                 {
                     CutAnalytics.RecordCut(analyticsAttempt.CancelMode(), CutOutcome.Cancel);
                     EndCut(cancelMsg.text);
@@ -101,7 +101,7 @@ public class CutController : MonoBehaviour
                 {
                     PickPiece(1);
                 }
-                else if (Input.GetKeyDown(KeyCode.Escape))
+                else if (Input.GetKeyDown(KeyCode.X))
                 {
                     CancelCut();
                 }

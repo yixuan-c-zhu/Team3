@@ -85,7 +85,7 @@ public class LevelSelectMenu : MonoBehaviour
 
     void Update()
     {
-        if (showingTutorial && Input.GetKeyDown(KeyCode.Escape)) ShowOverview();
+        if (showingTutorial && Input.GetKeyDown(KeyCode.X)) ShowOverview();
     }
 
     public void ShowOverview()

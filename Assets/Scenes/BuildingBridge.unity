@@ -3796,7 +3796,7 @@ PrefabInstance:
         <color=#FFD54A>Left click / 1 / 2</color><pos=46%>Choose
         the piece to keep
 
-        <color=#FFD54A>Esc</color><pos=46%>Cancel cut
+        <color=#FFD54A>X</color><pos=46%>Cancel cut
 
         <color=#FFD54A>F</color><pos=46%>Switch
         piece
@@ -3807,7 +3807,7 @@ PrefabInstance:
         level
 
         <color=#FFD54A>Lookout pad</color><pos=46%>A / D, W / S or
-        drag to aim, Esc to step back'
+        drag to aim, X to step back'
       objectReference: {fileID: 0}
     - target: {fileID: 5070912106611503203, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -5309,7 +5309,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Click a piece to keep (or 1 / 2)
 
-    Esc to cancel'
+    X to cancel'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 79459efec17a4d00a321bdcc27bbc385, type: 2}
@@ -6481,7 +6481,7 @@ PrefabInstance:
       value: 'Line your slice up with the gap: {0}%
 
         <size=70%>A / D and
-        W / S or drag to aim. Esc to step back.</size>'
+        W / S or drag to aim. X to step back.</size>'
       objectReference: {fileID: 0}
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: doneMessage
@@ -6491,7 +6491,7 @@ PrefabInstance:
       propertyPath: wrongSizeMessage
       value: 'Only a thin, flat slice of you can become a bridge.
 
-        <size=70%>Esc
+        <size=70%>X
         to step back.</size>'
       objectReference: {fileID: 0}
     - target: {fileID: 2606514603420926202, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}

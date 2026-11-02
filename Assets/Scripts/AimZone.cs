@@ -30,12 +30,12 @@ public class AimZone : MonoBehaviour
     public Material orangeGlass;
     public float warnDistance = 2f;
 
-    [TextArea] public string aimMessage = "Line up your piece with the outline: {0}%\n<size=70%>A / D and W / S or drag to aim. Esc to step back.</size>";
+    [TextArea] public string aimMessage = "Line up your piece with the outline: {0}%\n<size=70%>A / D and W / S or drag to aim. X to step back.</size>";
     [TextArea] public string previewMessage = "<size=70%>Your slice is {0}, so it will turn into {0} glass.</size>";
     [TextArea] public string glassMessage = "<size=70%>It's {0} glass: {0} falls through it, {1} can stand on it.</size>";
     [TextArea] public string fallMessage = "You're {0}, so you'll fall through this {0} glass.\n<size=70%>Press {2} to turn {1} and stand on it.</size>";
-    [TextArea] public string noPieceMessage = "Nothing to line up yet. Leave a piece of yourself in the right spot first.\n<size=70%>Esc to step back.</size>";
-    [TextArea] public string wrongSizeMessage = "This piece is the wrong size to fill the outline.\n<size=70%>Esc to step back.</size>";
+    [TextArea] public string noPieceMessage = "Nothing to line up yet. Leave a piece of yourself in the right spot first.\n<size=70%>X to step back.</size>";
+    [TextArea] public string wrongSizeMessage = "This piece is the wrong size to fill the outline.\n<size=70%>X to step back.</size>";
     public string lockedMessage = "Lined up!";
     public string doneMessage = "It's real!";
     public string leaveMessage = "Step back onto the pad to aim again.";
@@ -47,9 +47,9 @@ public class AimZone : MonoBehaviour
     [TextArea] public string thickMessage = "This slice is too thick.\n<size=70%>{0} and cut lower, along the orange line at your feet.</size>";
     [TextArea] public string thinMessage = "This slice is too thin.\n<size=70%>{0} and cut a little higher, along the orange line.</size>";
     [TextArea] public string narrowMessage = "This slice is too narrow to fill the outline.\n<size=70%>An earlier cut made your body narrower than this spot needs. Press R to restart.</size>";
-    public string recutAction = "Press Esc";
+    public string recutAction = "Press X";
     public string restartAction = "Press R to restart";
-    public string stepBackNote = "<size=70%>Esc to step back.</size>";
+    public string stepBackNote = "<size=70%>X to step back.</size>";
 
     const float blendTime = 0.8f;
     const float lockTime = 0.45f;
@@ -283,7 +283,7 @@ public class AimZone : MonoBehaviour
 
     void UpdateAiming(float deltaTime)
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.X))
         {
             waitForExit = true;
             StopAiming();
