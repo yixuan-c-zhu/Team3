@@ -871,6 +871,58 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 180596056}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &188485916
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 188485917}
+  - component: {fileID: 188485918}
+  m_Layer: 0
+  m_Name: Cut Hint - Hidden gap
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &188485917
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 188485916}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 40.75, y: 3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1565223702}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &188485918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 188485916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a04a48e7052872e479e66b5e9b83af5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutHint
+  kind: 1
+  size: {x: 6.5, y: 12, z: 8}
+  obstacle: {fileID: 0}
+  gapWidth: 1.3999996
+  gapAxis: {x: 0, y: 0, z: 1}
+  door: {fileID: 0}
+  aimZone: {fileID: 0}
+  margin: 0.2
 --- !u!1 &203844586
 GameObject:
   m_ObjectHideFlags: 0
@@ -3316,6 +3368,58 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 900, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &574343880
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 574343881}
+  - component: {fileID: 574343882}
+  m_Layer: 0
+  m_Name: Cut Hint - First bridge
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &574343881
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 574343880}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 36.992996, y: 4.15, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1798682369}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &574343882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 574343880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a04a48e7052872e479e66b5e9b83af5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutHint
+  kind: 3
+  size: {x: 8, y: 10, z: 8}
+  obstacle: {fileID: 0}
+  gapWidth: 1.4
+  gapAxis: {x: 0, y: 0, z: 1}
+  door: {fileID: 0}
+  aimZone: {fileID: 1847414789}
+  margin: 0.2
 --- !u!1 &579504284
 GameObject:
   m_ObjectHideFlags: 0
@@ -4322,6 +4426,7 @@ Transform:
   - {fileID: 538197047}
   - {fileID: 1848587972}
   - {fileID: 1047470777}
+  - {fileID: 1306477313}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &761106576
@@ -5818,6 +5923,58 @@ MonoBehaviour:
     2D first, then turn to a side view. Still too wide? You have a spare cut.
   stuckDelay: 12
   size: {x: 6.5, y: 12, z: 8}
+--- !u!1 &1011651640
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1011651641}
+  - component: {fileID: 1011651642}
+  m_Layer: 0
+  m_Name: Cut Hint - Low ceiling
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1011651641
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1011651640}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 7.75, y: 3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1565223702}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1011651642
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1011651640}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a04a48e7052872e479e66b5e9b83af5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutHint
+  kind: 0
+  size: {x: 9.5, y: 12, z: 8}
+  obstacle: {fileID: 400517100}
+  gapWidth: 1.4
+  gapAxis: {x: 0, y: 0, z: 1}
+  door: {fileID: 0}
+  aimZone: {fileID: 0}
+  margin: 0.2
 --- !u!1 &1020061432
 GameObject:
   m_ObjectHideFlags: 0
@@ -7697,6 +7854,58 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 900, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1306477312
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1306477313}
+  - component: {fileID: 1306477314}
+  m_Layer: 0
+  m_Name: Cut Hint - Build a bridge
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1306477313
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1306477312}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 8.142853, y: 7.9, z: 8.571429}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 746567393}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1306477314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1306477312}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a04a48e7052872e479e66b5e9b83af5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutHint
+  kind: 3
+  size: {x: 8, y: 10, z: 8}
+  obstacle: {fileID: 0}
+  gapWidth: 1.4
+  gapAxis: {x: 0, y: 0, z: 1}
+  door: {fileID: 0}
+  aimZone: {fileID: 3746815956717837847}
+  margin: 0.2
 --- !u!1 &1317930347
 GameObject:
   m_ObjectHideFlags: 0
@@ -9367,6 +9576,7 @@ Transform:
   - {fileID: 608714849}
   - {fileID: 552962354}
   - {fileID: 1490229649}
+  - {fileID: 2111017263}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1557478012
@@ -9430,6 +9640,8 @@ Transform:
   - {fileID: 1059972072}
   - {fileID: 1007114607}
   - {fileID: 474451343}
+  - {fileID: 1011651641}
+  - {fileID: 188485917}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1567663842
@@ -10823,6 +11035,7 @@ Transform:
   - {fileID: 1072777001}
   - {fileID: 1847414788}
   - {fileID: 1020061433}
+  - {fileID: 574343881}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!222 &1804640153
@@ -11542,6 +11755,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 547610860666337789, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
   m_PrefabInstance: {fileID: 1847414787}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1847414789 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+  m_PrefabInstance: {fileID: 1847414787}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5197771f153c9a3448730bb066958737, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ViewfinderAim
 --- !u!1 &1848587967
 GameObject:
   m_ObjectHideFlags: 0
@@ -13940,6 +14164,58 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
+--- !u!1 &2111017262
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2111017263}
+  - component: {fileID: 2111017264}
+  m_Layer: 0
+  m_Name: Cut Hint - Locked door
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2111017263
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2111017262}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 11.75, y: 2, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1548872218}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2111017264
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2111017262}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a04a48e7052872e479e66b5e9b83af5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutHint
+  kind: 2
+  size: {x: 12, y: 12, z: 8}
+  obstacle: {fileID: 1490229652}
+  gapWidth: 1.4
+  gapAxis: {x: 0, y: 0, z: 1}
+  door: {fileID: 996734506}
+  aimZone: {fileID: 0}
+  margin: 0.1
 --- !u!222 &2111968121
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -14143,6 +14419,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 547610860666337789, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
   m_PrefabInstance: {fileID: 3746815956717837845}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &3746815956717837847 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+  m_PrefabInstance: {fileID: 3746815956717837845}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5197771f153c9a3448730bb066958737, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ViewfinderAim
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
