@@ -1,8 +1,12 @@
-# Publishes two WebGL builds to GitHub Pages as one site:
-#   main                             -> https://yixuan-c-zhu.github.io/Team3/
-#   feature/alpha-milestone-hosting  -> https://yixuan-c-zhu.github.io/Team3/alpha/
+# Publishes three WebGL builds to GitHub Pages as one site:
+#   main                                -> https://yixuan-c-zhu.github.io/Team3/
+#   feature/alpha-milestone-hosting     -> https://yixuan-c-zhu.github.io/Team3/alpha/
+#   feature/beta-progress-check-hosting -> https://yixuan-c-zhu.github.io/Team3/beta-progress-check2/
 # Each branch serves the index.html, Build/ and TemplateData/ at its repo root.
-# Requires Settings > Pages > Source set to "GitHub Actions".
+# A push to any of these branches rebuilds the whole site from all of them, using that
+# branch's copy of this file, so keep this file the same on every branch listed here.
+# Requires Settings > Pages > Source set to "GitHub Actions", and each branch allowed in
+# Settings > Environments > github-pages > Deployment branches.
 
 name: Deploy web builds
 
@@ -11,6 +15,7 @@ on:
     branches:
       - main
       - feature/alpha-milestone-hosting
+      - feature/beta-progress-check-hosting
   workflow_dispatch:
 
 permissions:
@@ -50,11 +55,30 @@ jobs:
             TemplateData
           sparse-checkout-cone-mode: false
 
+      # Skipped (not failed) until the beta branch has been pushed, so the other builds still deploy.
+      - name: Check out beta progress check 2
+        id: beta
+        continue-on-error: true
+        uses: actions/checkout@v7
+        with:
+          ref: feature/beta-progress-check-hosting
+          path: beta
+          lfs: true
+          sparse-checkout: |
+            index.html
+            Build
+            TemplateData
+          sparse-checkout-cone-mode: false
+
       - name: Assemble site
         run: |
           mkdir -p _site/alpha
           cp -r main/index.html main/Build main/TemplateData _site/
           cp -r alpha/index.html alpha/Build alpha/TemplateData _site/alpha/
+          if [ "${{ steps.beta.outcome }}" = "success" ]; then
+            mkdir -p _site/beta-progress-check2
+            cp -r beta/index.html beta/Build beta/TemplateData _site/beta-progress-check2/
+          fi
 
       - uses: actions/configure-pages@v6
 

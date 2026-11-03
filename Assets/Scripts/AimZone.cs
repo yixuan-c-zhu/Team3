@@ -29,13 +29,19 @@ public class AimZone : MonoBehaviour
     public Material blueGlass;
     public Material orangeGlass;
     public float warnDistance = 2f;
+    [Tooltip("Show Spot Message while the player stands on the spot. Turn off when a HintBubble says it instead.")]
+    public bool showSpotMessage = true;
+    [Tooltip("Warn the player before they step on glass of their own color, and explain the glass rule once it is built. Turn off when a HintBubble teaches it instead.")]
+    public bool showGlassHints = true;
+    [Tooltip("The key that steps back out of the aim view. The messages below name it, so change them too.")]
+    public KeyCode stepBackKey = KeyCode.X;
 
-    [TextArea] public string aimMessage = "Line up your piece with the outline: {0}%\n<size=70%>A / D and W / S or drag to aim. Esc to step back.</size>";
+    [TextArea] public string aimMessage = "Line up your piece with the outline: {0}%\n<size=70%>A / D and W / S or drag to aim. X to step back.</size>";
     [TextArea] public string previewMessage = "<size=70%>Your slice is {0}, so it will turn into {0} glass.</size>";
     [TextArea] public string glassMessage = "<size=70%>It's {0} glass: {0} falls through it, {1} can stand on it.</size>";
     [TextArea] public string fallMessage = "You're {0}, so you'll fall through this {0} glass.\n<size=70%>Press {2} to turn {1} and stand on it.</size>";
-    [TextArea] public string noPieceMessage = "Nothing to line up yet. Leave a piece of yourself in the right spot first.\n<size=70%>Esc to step back.</size>";
-    [TextArea] public string wrongSizeMessage = "This piece is the wrong size to fill the outline.\n<size=70%>Esc to step back.</size>";
+    [TextArea] public string noPieceMessage = "Nothing to line up yet. Leave a piece of yourself in the right spot first.\n<size=70%>X to step back.</size>";
+    [TextArea] public string wrongSizeMessage = "This piece is the wrong size to fill the outline.\n<size=70%>X to step back.</size>";
     public string lockedMessage = "Lined up!";
     public string doneMessage = "It's real!";
     public string leaveMessage = "Step back onto the pad to aim again.";
@@ -49,7 +55,7 @@ public class AimZone : MonoBehaviour
     [TextArea] public string narrowMessage = "This slice is too narrow to fill the outline.\n<size=70%>An earlier cut made your body narrower than this spot needs. Press R to restart.</size>";
     public string recutAction = "Press Esc";
     public string restartAction = "Press R to restart";
-    public string stepBackNote = "<size=70%>Esc to step back.</size>";
+    public string stepBackNote = "<size=70%>X to step back.</size>";
 
     const float blendTime = 0.8f;
     const float lockTime = 0.45f;
@@ -122,6 +128,36 @@ public class AimZone : MonoBehaviour
 
     private ColorObstacle placedGlass;
     private string shownFallMessage;
+
+    /// <summary>True while the player is lining the slice up from the pad.</summary>
+    public bool IsAiming { get { return step == Step.Aiming; } }
+
+    /// <summary>True from the moment the player steps on the pad until control comes back.</summary>
+    public bool IsBusy { get { return step != Step.None; } }
+
+    /// <summary>True once the slice has grown into the target (for example, the bridge is built).</summary>
+    public bool IsBuilt { get { return done; } }
+
+    /// <summary>The glass the slice turned into, or null.</summary>
+    public ColorObstacle PlacedGlass { get { return placedGlass; } }
+
+    /// <summary>True when a slice that fits the outline is waiting on the spot.</summary>
+    public bool HasGoodSlice
+    {
+        get
+        {
+            if (pieceSpot == null || target == null || done)
+            {
+                return false;
+            }
+            CuttablePiece spotPiece = pieceSpot.GetPiece();
+            if (spotPiece == null)
+            {
+                return false;
+            }
+            return GetProblem(spotPiece.GetComponent<Collider>().bounds.size, spotPiece.volume) == Problem.None;
+        }
+    }
 
     void Awake()
     {
@@ -283,7 +319,7 @@ public class AimZone : MonoBehaviour
 
     void UpdateAiming(float deltaTime)
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(stepBackKey))
         {
             waitForExit = true;
             StopAiming();
@@ -578,7 +614,7 @@ public class AimZone : MonoBehaviour
 
     string GetDoneMessage()
     {
-        if (placedGlass == null)
+        if (placedGlass == null || !showGlassHints)
         {
             return doneMessage;
         }
@@ -962,7 +998,7 @@ public class AimZone : MonoBehaviour
         bool playerOnSpot = pieceSpot.Holds(playerBounds);
         CuttablePiece spotPiece = pieceSpot.GetPiece();
         bool canStart = step == Step.None && !done;
-        if (playerOnSpot && canStart && spotPiece == null && levelManager.CanCut())
+        if (showSpotMessage && playerOnSpot && canStart && spotPiece == null && levelManager.CanCut())
         {
             if (!playerWasOnSpot || IsShowing(spotMessage))
             {
@@ -1005,7 +1041,7 @@ public class AimZone : MonoBehaviour
 
     void UpdateGlassWarning()
     {
-        if (placedGlass == null || step != Step.None || cutController.state != CutController.State.Normal)
+        if (!showGlassHints || placedGlass == null || step != Step.None || cutController.state != CutController.State.Normal)
         {
             return;
         }

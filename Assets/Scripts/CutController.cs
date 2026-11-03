@@ -489,6 +489,9 @@ public class CutController : MonoBehaviour
         CutAnalytics.RecordMechanic(Mechanic.SwitchPiece, "key_f");
     }
 
+    /// <summary>True when F has a piece to switch into.</summary>
+    public bool HasLeftover { get { return lastLeftover != null; } }
+
     // Called when a checkpoint removes the leftover pieces, so F has nothing left to switch into.
     public void ForgetLeftover()
     {

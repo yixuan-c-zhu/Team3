@@ -263,7 +263,7 @@ PrefabInstance:
       propertyPath: noPieceMessage
       value: 'Nothing to line up yet. Leave a piece of yourself on the gold spot first.
 
-        <size=70%>Esc to step back.</size>'
+        <size=70%>X to step back.</size>'
       objectReference: {fileID: 0}
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: spotMessage
