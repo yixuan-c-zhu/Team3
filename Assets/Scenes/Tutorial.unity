@@ -2709,7 +2709,7 @@ MonoBehaviour:
     spawn: {fileID: 1108765324}
     root: {fileID: 1565223702}
     exit: {fileID: 244929417}
-    startIn2D: 0
+    startIn2D: 1
   - title: "Tutorial \xB7 Leave a little behind"
     tips: 'Leave a piece on the
 
@@ -2728,7 +2728,7 @@ MonoBehaviour:
     spawn: {fileID: 1439947253}
     root: {fileID: 1548872218}
     exit: {fileID: 437967654}
-    startIn2D: 0
+    startIn2D: 1
   - title: "Tutorial \xB7 First bridge"
     tips: 'Leave a thin slice on the
 
@@ -2743,7 +2743,7 @@ MonoBehaviour:
     spawn: {fileID: 831992052}
     root: {fileID: 1798682369}
     exit: {fileID: 515520390}
-    startIn2D: 0
+    startIn2D: 1
   - title: "Tutorial \xB7 Building Bridge"
     tips: 'Find the teal path.
 
