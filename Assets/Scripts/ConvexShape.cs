@@ -1,10 +1,35 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ConvexShape
+[System.Serializable]
+public class ConvexShape : ISerializationCallbackReceiver
 {
+    // Unity cannot serialize nested containers such as List<Vector3[]> directly.
+    // Preserve the actual cut geometry across script reloads, including preview pieces.
+    [System.Serializable]
+    private class SerializedFace
+    {
+        public Vector3[] vertices;
+    }
+
+    [SerializeField, HideInInspector] private List<SerializedFace> savedFaces;
+    [System.NonSerialized]
     public List<Vector3[]> faces;
     const float epsilon = 0.0001f;
+
+    public void OnBeforeSerialize()
+    {
+        if (faces == null) return;
+        savedFaces = new List<SerializedFace>(faces.Count);
+        foreach (var face in faces) savedFaces.Add(new SerializedFace { vertices = face });
+    }
+
+    public void OnAfterDeserialize()
+    {
+        faces = new List<Vector3[]>();
+        if (savedFaces == null) return;
+        foreach (var face in savedFaces) faces.Add(face.vertices);
+    }
 
     public ConvexShape(List<Vector3[]> faceList)
     {

@@ -25,7 +25,7 @@ public class CuttablePiece : MonoBehaviour
             gameObject.AddComponent<PieceCarry>();
         }
 
-        if (shape == null)
+        if (shape == null || shape.faces == null || shape.faces.Count == 0)
         {
             SetShape(ConvexShape.MakeBox(boxSize));
         }

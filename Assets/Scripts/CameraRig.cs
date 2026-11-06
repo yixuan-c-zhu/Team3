@@ -162,10 +162,14 @@ public class CameraRig : MonoBehaviour
         }
     }
 
-    void SwitchViewFromInput()
+    public event System.Action ViewInput;
+
+    public void SwitchViewFromInput(string reason = "key_tab")
     {
+        ViewInput?.Invoke();
+        if (!canControl) return;
         SwitchView();
-        CutAnalytics.RecordMechanic(Mechanic.ViewSwitch, "key_tab");
+        CutAnalytics.RecordMechanic(Mechanic.ViewSwitch, reason);
     }
 
     void TurnFromInput(float direction, float deltaTime)

@@ -35,6 +35,8 @@ public class CutController : MonoBehaviour
 
     public enum State { Normal, Drawing, Choosing }
     public State state = State.Normal;
+    public event System.Action CutInput;
+    public event System.Action PieceSwitchInput;
 
     private Vector3 mouseStart;
     private bool isDragging;
@@ -73,7 +75,7 @@ public class CutController : MonoBehaviour
             case State.Normal:
                 if (Input.GetKeyDown(KeyCode.C))
                 {
-                    StartCut();
+                    ToggleCut();
                 }
                 else if (Input.GetKeyDown(switchKey))
                 {
@@ -84,8 +86,7 @@ public class CutController : MonoBehaviour
             case State.Drawing:
                 if (Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.Escape))
                 {
-                    CutAnalytics.RecordCut(analyticsAttempt.CancelMode(), CutOutcome.Cancel);
-                    EndCut(cancelMsg.text);
+                    ToggleCut();
                     break;
                 }
                 DrawLine();
@@ -101,11 +102,15 @@ public class CutController : MonoBehaviour
                 {
                     PickPiece(1);
                 }
+                else if (Input.GetKeyDown(KeyCode.C))
+                {
+                    ToggleCut();
+                }
                 else if (Input.GetKeyDown(KeyCode.Escape))
                 {
                     CancelCut();
                 }
-                else if (Input.GetMouseButtonDown(0))
+                else if (Input.GetMouseButtonDown(0) && !GameplayUiInput.IsPointerOverControl())
                 {
                     ClickPiece();
                 }
@@ -113,7 +118,19 @@ public class CutController : MonoBehaviour
         }
     }
 
-    void StartCut()
+    public void ToggleCut(string reason = "key_c")
+    {
+        CutInput?.Invoke();
+        if (state == State.Normal) StartCut(reason);
+        else if (state == State.Choosing) CancelCut();
+        else
+        {
+            CutAnalytics.RecordCut(analyticsAttempt.CancelMode(), CutOutcome.Cancel);
+            EndCut(cancelMsg.text);
+        }
+    }
+
+    void StartCut(string reason)
     {
         if (!levelManager.CanCut())
         {
@@ -122,7 +139,7 @@ public class CutController : MonoBehaviour
         }
         state = State.Drawing;
         analyticsAttempt.BeginMode();
-        CutAnalytics.RecordMechanic(Mechanic.Cut, "key_c");
+        CutAnalytics.RecordMechanic(Mechanic.Cut, reason);
         playerScript.StopPlayer();
         playerScript.canMove = false;
         Time.timeScale = 0f;
@@ -149,7 +166,7 @@ public class CutController : MonoBehaviour
 
     void DrawLine()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && !GameplayUiInput.IsPointerOverControl())
         {
             mouseStart = Input.mousePosition;
             isDragging = true;
@@ -447,8 +464,10 @@ public class CutController : MonoBehaviour
         lastLeftover = piece;
     }
 
-    void SwitchPiece()
+    public void SwitchPiece(string reason = "key_f")
     {
+        PieceSwitchInput?.Invoke();
+        if (state != State.Normal) return;
         if (lastLeftover == null) return;
         CuttablePiece other = lastLeftover;
 
@@ -486,7 +505,7 @@ public class CutController : MonoBehaviour
         {
             levelManager.ShowMessage(switchMsg.text);
         }
-        CutAnalytics.RecordMechanic(Mechanic.SwitchPiece, "key_f");
+        CutAnalytics.RecordMechanic(Mechanic.SwitchPiece, reason);
     }
 
     /// <summary>True when F has a piece to switch into.</summary>

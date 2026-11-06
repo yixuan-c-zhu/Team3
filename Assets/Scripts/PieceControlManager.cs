@@ -86,9 +86,12 @@ public class PieceControlManager : MonoBehaviour
     }
 
 
-    void ChangeControlledPieceColor()
+    public event System.Action ColorInput;
+
+    public void ChangeControlledPieceColor(string reason = "key_shift")
     {
-        if (controlledPiece == null)
+        ColorInput?.Invoke();
+        if (controlledPiece == null || cutController.state != CutController.State.Normal)
         {
             return;
         }
@@ -99,7 +102,7 @@ public class PieceControlManager : MonoBehaviour
         pieceColor.ToggleColor(
             blueMaterial,
             orangeMaterial);
-        CutAnalytics.RecordMechanic(Mechanic.ColorShift, "key_shift");
+        CutAnalytics.RecordMechanic(Mechanic.ColorShift, reason);
     }
 
     void SetControlledPiece(CuttablePiece newPiece)

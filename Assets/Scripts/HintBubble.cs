@@ -291,7 +291,7 @@ public class HintBubble : MonoBehaviour
         {
             foreach (KeyCode key in doneKeys)
             {
-                if (Input.GetKeyDown(key))
+                if (Input.GetKeyDown(key) || GameplayUiInput.WasControlPressed(key))
                 {
                     Finish();
                     return;
