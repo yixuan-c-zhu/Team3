@@ -7,6 +7,8 @@ public class HUD : MonoBehaviour
     [Header("Existing HUD")]
     public TMP_Text statsText;
     public TMP_Text modeText;
+    // Retained as the legacy message buffer for AimZone/HintZone priority checks.
+    // Standalone text is no longer rendered; teaching uses the existing hint panels.
     public TMP_Text messageText;
 
     public TMP_Text title2D;
@@ -74,7 +76,6 @@ public class HUD : MonoBehaviour
     [Header("Message Settings")]
     public float messageTime = 2.5f;
 
-    private bool showedRestartTip;
     private float messageTimer;
     private string statsFormat;
 
@@ -86,6 +87,12 @@ public class HUD : MonoBehaviour
     private float stuckTimer;
     private float visibleHintTimer;
     private int nextHintIndex;
+
+    private void OnEnable()
+    {
+        if (messageText != null) messageText.enabled = false;
+        if (restartTip != null) restartTip.SetActive(false);
+    }
 
     private void Awake()
     {
@@ -120,7 +127,6 @@ public class HUD : MonoBehaviour
         UpdateColorIndicator();
         UpdateHintSystem();
         UpdateMessageTimer();
-        UpdateRestartTip();
     }
 
     // ---------------------------------------------------------
@@ -545,44 +551,9 @@ public class HUD : MonoBehaviour
     // RESTART TIP
     // ---------------------------------------------------------
 
-    private void UpdateRestartTip()
-    {
-        if (showedRestartTip ||
-            levelManager == null ||
-            cutScript == null)
-        {
-            return;
-        }
-
-        bool hasNoCuts =
-            levelManager.cutsLeft == 0;
-
-        bool isNormalMode =
-            cutScript.state == CutController.State.Normal;
-
-        bool delayFinished =
-            Time.time - levelManager.lastCutTime >
-            restartTipDelay;
-
-        if (hasNoCuts &&
-            isNormalMode &&
-            delayFinished)
-        {
-            showedRestartTip = true;
-            HideHint();
-
-            if (restartTip != null)
-            {
-                restartTip.SetActive(true);
-            }
-        }
-    }
-
     // Call this when restarting or loading a checkpoint.
     public void ResetRestartTip()
     {
-        showedRestartTip = false;
-
         if (restartTip != null)
         {
             restartTip.SetActive(false);

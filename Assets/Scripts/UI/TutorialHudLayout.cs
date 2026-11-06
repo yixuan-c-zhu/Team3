@@ -24,7 +24,6 @@ public sealed class TutorialHudLayout : MonoBehaviour
     TMP_Text objectiveText;
     TMP_FontAsset font;
     bool statsEnabled, tipsEnabled;
-    Vector2 messagePosition;
     int shownRoom = -1;
     CutController cut;
     CameraRig cameraRig;
@@ -86,11 +85,6 @@ public sealed class TutorialHudLayout : MonoBehaviour
             tipsEnabled = checkpoints.tipText.enabled;
             checkpoints.tipText.enabled = false;
         }
-        if (hud.messageText != null)
-        {
-            messagePosition = hud.messageText.rectTransform.anchoredPosition;
-            hud.messageText.rectTransform.anchoredPosition = new Vector2(messagePosition.x, 330f);
-        }
 
         root = Rect("Tutorial controls", transform, Vector2.zero, Vector2.zero, Vector2.zero);
         root.anchorMax = Vector2.one;
@@ -137,8 +131,6 @@ public sealed class TutorialHudLayout : MonoBehaviour
         // The parent canvas scales with width. Limit the footer on short, ultrawide windows too.
         float scale = Mathf.Min(0.9f, root.rect.height * 0.24f / 212f);
         footer.localScale = Vector3.one * scale;
-        if (hud.messageText != null)
-            hud.messageText.rectTransform.anchoredPosition = new Vector2(messagePosition.x, 30 + 234 * scale);
     }
 
     void UpdateGoal()
@@ -161,7 +153,6 @@ public sealed class TutorialHudLayout : MonoBehaviour
         if (hud != null)
         {
             if (hud.statsText != null) hud.statsText.enabled = statsEnabled;
-            if (hud.messageText != null) hud.messageText.rectTransform.anchoredPosition = messagePosition;
         }
         if (checkpoints != null && checkpoints.tipText != null) checkpoints.tipText.enabled = tipsEnabled;
         if (root != null) Destroy(root.gameObject);
