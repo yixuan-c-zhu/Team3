@@ -138,6 +138,23 @@ public class AimZone : MonoBehaviour
     /// <summary>True once the slice has grown into the target (for example, the bridge is built).</summary>
     public bool IsBuilt { get { return done; } }
 
+    /// <summary>The live overlap percentage, followed by 100% once alignment is accepted.</summary>
+    public bool TryGetAlignmentPercent(out int percent)
+    {
+        percent = 0;
+        if (step == Step.LockingOn || step == Step.Growing || step == Step.Showing)
+        {
+            percent = 100;
+            return true;
+        }
+        if (step != Step.Aiming || piece == null || target == null) return false;
+        Collider body = piece.GetComponent<Collider>();
+        if (body == null || GetProblem(body.bounds.size, piece.volume) != Problem.None) return false;
+
+        percent = Mathf.RoundToInt(Mathf.Clamp01(GetMatch()) * 100f);
+        return true;
+    }
+
     /// <summary>The glass the slice turned into, or null.</summary>
     public ColorObstacle PlacedGlass { get { return placedGlass; } }
 

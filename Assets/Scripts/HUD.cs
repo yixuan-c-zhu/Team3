@@ -87,6 +87,7 @@ public class HUD : MonoBehaviour
     private float stuckTimer;
     private float visibleHintTimer;
     private int nextHintIndex;
+    private TextMeshProUGUI alignmentText;
 
     private void OnEnable()
     {
@@ -127,6 +128,42 @@ public class HUD : MonoBehaviour
         UpdateColorIndicator();
         UpdateHintSystem();
         UpdateMessageTimer();
+    }
+
+    private void LateUpdate()
+    {
+        foreach (AimZone zone in AimZone.allZones)
+        {
+            if (zone == null || !zone.isActiveAndEnabled || !zone.TryGetAlignmentPercent(out int percent)) continue;
+            if (alignmentText == null) CreateAlignmentText();
+            alignmentText.SetText("{0}%", percent);
+            alignmentText.color = zone.IsAiming ? Color.white : new Color(0.24f, 1f, 0.50f);
+            alignmentText.enabled = true;
+            return;
+        }
+        if (alignmentText != null) alignmentText.enabled = false;
+    }
+
+    private void CreateAlignmentText()
+    {
+        var obj = new GameObject("Alignment percentage", typeof(RectTransform));
+        obj.layer = gameObject.layer;
+        var rect = obj.GetComponent<RectTransform>();
+        rect.SetParent(transform, false);
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0);
+        rect.pivot = new Vector2(0.5f, 0);
+        rect.anchoredPosition = new Vector2(0, 40);
+        rect.sizeDelta = new Vector2(240, 110);
+
+        alignmentText = obj.AddComponent<TextMeshProUGUI>();
+        alignmentText.font = modeText != null ? modeText.font : TMP_Settings.defaultFontAsset;
+        alignmentText.fontSize = 76;
+        alignmentText.fontStyle = FontStyles.Bold;
+        alignmentText.alignment = TextAlignmentOptions.Center;
+        alignmentText.textWrappingMode = TextWrappingModes.NoWrap;
+        alignmentText.outlineColor = new Color(0.05f, 0.07f, 0.09f, 0.85f);
+        alignmentText.outlineWidth = 0.15f;
+        alignmentText.raycastTarget = false;
     }
 
     // ---------------------------------------------------------
