@@ -94,15 +94,8 @@ public class CutController : MonoBehaviour
 
             case State.Choosing:
                 UpdateHover();
-                if (Input.GetKeyDown(KeyCode.Alpha1))
-                {
-                    PickPiece(0);
-                }
-                else if (Input.GetKeyDown(KeyCode.Alpha2))
-                {
-                    PickPiece(1);
-                }
-                else if (Input.GetKeyDown(KeyCode.C))
+                // Pieces are picked with the mouse only (the 1 / 2 keys were removed).
+                if (Input.GetKeyDown(KeyCode.C))
                 {
                     ToggleCut();
                 }
@@ -325,6 +318,19 @@ public class CutController : MonoBehaviour
         return playerRend.sharedMaterial;
     }
 
+
+    /// <summary>The bounds of both pieces while the player picks one after a cut. False at other times.</summary>
+    public bool TryGetChoiceBounds(out Bounds bounds)
+    {
+        bounds = new Bounds();
+        if (state != State.Choosing || previewObjs[0] == null || previewObjs[1] == null)
+        {
+            return false;
+        }
+        bounds = previewObjs[0].GetComponent<MeshRenderer>().bounds;
+        bounds.Encapsulate(previewObjs[1].GetComponent<MeshRenderer>().bounds);
+        return true;
+    }
 
     void UpdateHover()
     {

@@ -5749,7 +5749,7 @@ PrefabInstance:
         <color=#FFD54A>Left mouse drag</color><pos=46%>Draw
         a cut line
 
-        <color=#FFD54A>Left click / 1 / 2</color><pos=46%>Choose
+        <color=#FFD54A>Left click</color><pos=46%>Choose
         the piece to keep
 
         <color=#FFD54A>F</color><pos=46%>Switch
@@ -7102,7 +7102,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Click a piece to keep (or 1 / 2)
+  m_text: 'Click a piece to keep
 
     C to cancel'
   m_isRightToLeft: 0

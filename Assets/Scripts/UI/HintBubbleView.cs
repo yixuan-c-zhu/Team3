@@ -185,7 +185,7 @@ public class HintBubbleView : MonoBehaviour
 
     bool Allowed(HintBubble hint)
     {
-        if (cutController.state == CutController.State.Choosing) return false;
+        if (cutController.state == CutController.State.Choosing) return hint.WhileChoosing;
         if (cutController.state == CutController.State.Drawing) return hint.showWhileCutting;
         if (Time.timeScale == 0f) return false;
         if (!camRig.canControl) return hint.InAimView;

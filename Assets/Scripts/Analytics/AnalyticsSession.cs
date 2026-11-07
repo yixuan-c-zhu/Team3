@@ -13,7 +13,7 @@ namespace Team3.Analytics
         public string Level;        // tutorial / level01 / level02
         public string LevelTitle;   // menu title
         public int Segment;         // 1-based
-        public int SegmentCount;    // segments in this level (Tutorial = 4)
+        public int SegmentCount;    // segments in this level (Tutorial = 3)
         public string SegmentName;  // player-facing lesson title
 
         public SegmentInfo(string scene, string level, string levelTitle, int segment, int segmentCount, string segmentName)

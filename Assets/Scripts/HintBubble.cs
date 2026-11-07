@@ -38,7 +38,11 @@ public class HintBubble : MonoBehaviour
         /// <summary>In the area, Aim Zone's bridge is built, and the player is the same color as its glass.</summary>
         SameColorAsBridge,
         /// <summary>On Aim Zone's pad in the aim view, but no slice that fits is on the spot (for example, stepped on the pad by accident).</summary>
-        AimingWithoutSlice
+        AimingWithoutSlice,
+        /// <summary>In the area, after a cut, while the player picks which piece to keep.</summary>
+        ChoosingPiece,
+        /// <summary>In the area, and the player has no cuts left.</summary>
+        OutOfCuts
     }
 
     public enum ViewNeeded { Any, Only2D, Only3D }
@@ -78,6 +82,8 @@ public class HintBubble : MonoBehaviour
     public float delay;
     [Tooltip("More than 0: once it appears, the bubble stays this many seconds and then goes away for good.")]
     public float duration;
+    [Tooltip("Shows one time only, even after a restart: once it has been on screen, it goes away for good when its situation ends.")]
+    public bool onlyOnce;
     [Tooltip("Pressing one of these keys finishes the hint for good.")]
     public KeyCode[] doneKeys;
     [Tooltip("Finishes the hint for good once the player has turned the 3D camera by dragging with the right mouse button.")]
@@ -129,6 +135,18 @@ public class HintBubble : MonoBehaviour
     private bool rightHeld;
     private Vector3 lastMouse;
     private float dragged;
+    private bool seen;
+
+    // Only Once bubbles that have shown this session, so a restart doesn't bring them back.
+    static readonly HashSet<string> shownOnce = new HashSet<string>();
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ClearShownOnce() => shownOnce.Clear();
+
+    string OnceKey
+    {
+        get { return gameObject.scene.name + "/" + name; }
+    }
 
     /// <summary>True when the bubble should be on screen now (HintBubbleView still checks cut mode, pauses and priority).</summary>
     public bool IsReady
@@ -147,6 +165,10 @@ public class HintBubble : MonoBehaviour
         camRig = FindFirstObjectByType<CameraRig>();
         levelManager = FindFirstObjectByType<LevelManager>();
         wasIn2D = camRig == null || camRig.is2D;
+        if (onlyOnce && shownOnce.Contains(OnceKey))
+        {
+            finished = true;
+        }
     }
 
     void OnEnable()
@@ -186,6 +208,11 @@ public class HintBubble : MonoBehaviour
         }
 
         wants = Check();
+        if (!wants && onlyOnce && seen)
+        {
+            Finish();
+            return;
+        }
         if (!wants)
         {
             heldFor = 0f;
@@ -195,7 +222,7 @@ public class HintBubble : MonoBehaviour
 
         // The delay only runs while the game runs (or while cutting, for bubbles that show then).
         bool cutting = cutController.state == CutController.State.Drawing;
-        if (Time.timeScale > 0f || (cutting && showWhileCutting))
+        if (Time.timeScale > 0f || (cutting && showWhileCutting) || WhileChoosing)
         {
             heldFor += deltaTime;
         }
@@ -206,6 +233,11 @@ public class HintBubble : MonoBehaviour
     public void WhileShown(float deltaTime)
     {
         shownFor += deltaTime;
+        if (onlyOnce && !seen)
+        {
+            seen = true;
+            shownOnce.Add(OnceKey);
+        }
         if (duration > 0f)
         {
             latched = true;
@@ -226,12 +258,21 @@ public class HintBubble : MonoBehaviour
 
     bool Check()
     {
-        Collider body = cutController.player.GetComponent<Collider>();
-        if (body == null || !body.enabled)
+        Bounds bounds;
+        if (WhileChoosing)
         {
-            return false;
+            // The player's body is hidden while picking; use the two pieces instead.
+            if (!cutController.TryGetChoiceBounds(out bounds)) return false;
         }
-        Bounds bounds = body.bounds;
+        else
+        {
+            Collider body = cutController.player.GetComponent<Collider>();
+            if (body == null || !body.enabled)
+            {
+                return false;
+            }
+            bounds = body.bounds;
+        }
 
         if (view == ViewNeeded.Only2D && !camRig.is2D) return false;
         if (view == ViewNeeded.Only3D && camRig.is2D) return false;
@@ -275,6 +316,10 @@ public class HintBubble : MonoBehaviour
                     && IsPlayerColor(aimZone.PlacedGlass.obstacleColor);
             case Situation.AimingWithoutSlice:
                 return aimZone != null && aimZone.IsAiming && !aimZone.HasGoodSlice;
+            case Situation.ChoosingPiece:
+                return true;
+            case Situation.OutOfCuts:
+                return levelManager != null && levelManager.cutsLeft <= 0;
         }
         return false;
     }
@@ -283,6 +328,12 @@ public class HintBubble : MonoBehaviour
     public bool InAimView
     {
         get { return situation == Situation.Aiming || situation == Situation.AimingWithoutSlice; }
+    }
+
+    /// <summary>True for bubbles that show while the player picks a piece after a cut (other bubbles hide then).</summary>
+    public bool WhileChoosing
+    {
+        get { return situation == Situation.ChoosingPiece; }
     }
 
     void CheckDone()
@@ -402,6 +453,15 @@ public class HintBubble : MonoBehaviour
     public bool TryGetAnchor(out Vector3 point)
     {
         point = Vector3.zero;
+        if (anchor == Anchor.Player && WhileChoosing && cutController != null)
+        {
+            Bounds pieces;
+            if (cutController.TryGetChoiceBounds(out pieces))
+            {
+                point = new Vector3(pieces.center.x, pieces.max.y, pieces.center.z);
+                return true;
+            }
+        }
         if (anchor == Anchor.Player && cutController != null && cutController.player != null)
         {
             Bounds bounds = cutController.player.GetComponent<Collider>().bounds;

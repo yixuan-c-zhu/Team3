@@ -1796,7 +1796,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Click a piece to keep (or 1 / 2)
+  m_text: 'Click a piece to keep
 
     Esc to cancel'
   m_isRightToLeft: 0

@@ -20,7 +20,7 @@ public sealed class TutorialHudLayout : MonoBehaviour
 
     HUD hud;
     CheckpointManager checkpoints;
-    RectTransform root, footer, objective;
+    RectTransform root, footer, objective, restartArea;
     TMP_Text objectiveText;
     TMP_FontAsset font;
     bool statsEnabled, tipsEnabled;
@@ -110,6 +110,12 @@ public sealed class TutorialHudLayout : MonoBehaviour
             () => { if (colors != null) { GameplayUiInput.ReportControl(colors.colorKey); colors.ChangeControlledPieceColor("ui_color"); } });
         switchCard = Card("Switch piece", "F", TutorialHudGraphic.Shape.Switch, new Vector2(420, 0), 428,
             () => { if (cut != null) { GameplayUiInput.ReportControl(cut.switchKey); cut.SwitchPiece("ui_piece"); } });
+        // Restart sits apart from the other controls, in the bottom-right corner.
+        restartArea = Rect("Restart", root, new Vector2(1, 0), new Vector2(-44, 30), new Vector2(402, 98));
+        restartArea.pivot = new Vector2(1, 0);
+        var levelManager = FindFirstObjectByType<LevelManager>();
+        Card("Restart room", "R", TutorialHudGraphic.Shape.Restart, Vector2.zero, 402,
+            () => { if (levelManager != null) { GameplayUiInput.ReportControl(KeyCode.R); levelManager.RestartLevel("ui_restart"); } }, restartArea);
         if (cut != null)
         {
             cut.CutInput += cutCard.Flash;
@@ -131,6 +137,7 @@ public sealed class TutorialHudLayout : MonoBehaviour
         // The parent canvas scales with width. Limit the footer on short, ultrawide windows too.
         float scale = Mathf.Min(0.9f, root.rect.height * 0.24f / 212f);
         footer.localScale = Vector3.one * scale;
+        if (restartArea != null) restartArea.localScale = footer.localScale;
     }
 
     void UpdateGoal()
@@ -160,9 +167,9 @@ public sealed class TutorialHudLayout : MonoBehaviour
     }
 
     CardFeedback Card(string action, string key, TutorialHudGraphic.Shape icon, Vector2 position, float width,
-        UnityEngine.Events.UnityAction onClick)
+        UnityEngine.Events.UnityAction onClick, RectTransform parent = null)
     {
-        var card = Rect(action + " card", footer, Vector2.zero, position, new Vector2(width, 98));
+        var card = Rect(action + " card", parent != null ? parent : footer, Vector2.zero, position, new Vector2(width, 98));
         card.pivot = Vector2.zero;
         var panel = Panel(card, cardFill, cardEdge, 18, 2f);
         panel.raycastTarget = true;

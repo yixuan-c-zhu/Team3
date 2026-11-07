@@ -5,7 +5,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(CanvasRenderer))]
 public sealed class TutorialHudGraphic : MaskableGraphic
 {
-    public enum Shape { Panel, Diamond, Cut, View, Color, Switch }
+    public enum Shape { Panel, Diamond, Cut, View, Color, Switch, Restart }
     public Shape shape;
     public Color edge = Color.white;
     public Color blue = new Color(0.30f, 0.48f, 1f);
@@ -55,6 +55,11 @@ public sealed class TutorialHudGraphic : MaskableGraphic
                 Stroke(mesh, 49, 74, 34, 74);
                 Stroke(mesh, 34, 74, 20, 59);
                 Arrow(mesh, 21, 70, 20, 59, 31, 60);
+                break;
+            case Shape.Restart:
+                // A circle that is almost closed, with an arrowhead at the top, like a reload button.
+                Arc(mesh, 50, 52, 26, 36, -40, 270);
+                Arrow(mesh, 44, 5, 52, 16, 44, 27);
                 break;
         }
     }
