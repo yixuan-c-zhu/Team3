@@ -1,11 +1,20 @@
-# Firebase 数据出图工具
+# Firebase 数据出图工具（schema v3）
 
-从 Firebase Console 导出的 JSON 生成四项指标图表。脚本只读取本地文件，
+从 Firebase Console 导出的 JSON 生成四项指标的图表和表格。脚本只读取本地文件，
 不会连接 Firebase，不需要管理员密钥，也不会上传或修改数据。
+
+支持两种数据：
+
+- **v3（Beta 起）**：`/v3/<build>/<player>/<session>/<事件>`。
+- **v2（Alpha）**：`/events/<push key>`。读入时自动改成 v3 的名字（`Tutorial → tutorial`、`NewLevel → level01`、
+  `GlassParadox → level02`，段名改为玩家看到的标题），日期从 push key 还原，
+  `level_start`、`checkpoint_reached`/`level_complete`、`t_level` 由脚本推算。Alpha 没有玩家 ID，按 session 计。
+
+字段和事件的定义见 [v3 方案](../../docs/analytics/v3-schema-proposal.md)。
 
 ## 安装
 
-在仓库根目录运行。以下为 Windows PowerShell 命令，已使用 Python 3.12 验证：
+在仓库根目录运行。以下为 Windows PowerShell 命令：
 
 ```powershell
 python -m venv .venv-analytics
@@ -14,71 +23,68 @@ python -m venv .venv-analytics
 
 macOS/Linux 使用 `.venv-analytics/bin/python` 替换上述解释器路径。
 
-## 先查看模拟示例
+## 先看模拟示例
 
 ```powershell
 .\.venv-analytics\Scripts\python.exe tools/analytics/plot_analytics.py --demo --output analytics-output/demo
 ```
 
-会生成四组 PNG/SVG 和汇总 CSV；每张示例图均标有
-**SYNTHETIC DEMO - NOT PLAYER RESULTS**，不能作为真实玩家测试结果提交。
+每张示例图都标有 **SYNTHETIC DEMO - NOT PLAYER RESULTS**，不能作为玩家测试结果提交。
 
 ## 使用真实数据
 
-1. 在 Firebase Console 的 Realtime Database > Data 页面，选数据库根节点或 `events` 节点，导出 JSON。
-2. 将文件放到仓库根目录的 `analytics-data/`，例如 `analytics-data/firebase-export.json`。
-3. 确认测试构建使用的 Build Id，然后运行：
+1. 在 Firebase Console 的 Realtime Database > Data 页面，选中数据库根节点、`v3` 节点或某个版本节点，导出 JSON。
+2. 放到 `analytics-data/`，用新文件名（例如 `analytics-data/firebase-2026-11-20.json`）。原始导出只读，不要覆盖。
+3. 用准确的版本号运行：
 
 ```powershell
-.\.venv-analytics\Scripts\python.exe tools/analytics/plot_analytics.py --input analytics-data/firebase-export.json --build alpha2-all-metrics --output analytics-output/alpha2
+.\.venv-analytics\Scripts\python.exe tools/analytics/plot_analytics.py --input analytics-data/firebase-2026-11-20.json --build beta1-all-metrics --output analytics-output/beta1
 ```
 
-必须指定准确的 `--build`，避免混合不同版本。默认排除所有 `is_editor=true` 的事件。
-如果筛选后没有数据，脚本会明确报错，不会生成全零的假结果。
-
-仅排查 Editor 数据时，可使用：
+和 Alpha 做关卡层面的对比（另出 `comparison_levels.png/csv` 和段映射表）：
 
 ```powershell
-.\.venv-analytics\Scripts\python.exe tools/analytics/plot_analytics.py --input analytics-data/firebase-export.json --build alpha2-editor-check --include-editor --output analytics-output/editor-check
+.\.venv-analytics\Scripts\python.exe tools/analytics/plot_analytics.py --input analytics-data/firebase-2026-11-20.json --build beta1-all-metrics --baseline-input analytics-data/firebase-2026-11-01.json --baseline-build alpha2-all-metrics --output analytics-output/beta1-vs-alpha2
 ```
 
-含 Editor 数据的图会标为 **EDITOR DATA INCLUDED - DIAGNOSTIC ONLY**。
-原始数据、生成的报告和本地 Python 环境已在 `.gitignore` 中排除。
+- `--build` 必填，避免混入其他版本；冒烟测试版本（如 `beta1-smoke`）不要拿来出正式图。
+- 默认排除 `is_editor=true`；只在排查时加 `--include-editor`，图上会标 **EDITOR DATA INCLUDED - DIAGNOSTIC ONLY**。
+- 筛选后没有数据会直接报错，不会生成全零的假图。
+- 每次运行会覆盖同一输出目录，不同版本请用不同目录。
 
 ## 输出内容
 
 | 文件 | 内容 |
 | --- | --- |
-| `metric1_cut_outcomes.png/.svg` | 四种切割结果次数，以及成功切割的保留体积比例分布 |
-| `metric2_progression.png/.svg` | 各房间进入／通关会话数，以及通关率 |
-| `metric3_mechanics.png/.svg` | 五种机制的使用比例，以及首次使用时间中位数 |
-| `metric4_difficulty.png/.svg` | 平均手动／掉落重开次数、累计通关时间、通关剩余切割次数 |
-| `cut_outcomes.csv` | 切割次数、成功率、保留体积比例中位数 |
-| `progression.csv` | 房间会话数、游玩次数及通关率 |
-| `mechanics.csv` | 机制使用次数、使用比例、首次使用样本数与时间 |
-| `difficulty.csv` | 重开、用时、剩余次数及剩余比例 |
-| `last_rooms.csv` | 每个会话最后观测到的房间及是否观测到其通关 |
-| `events_clean.csv` | 筛选、校验和去重后的事件，可用于复查 |
-| `summary.json` | 输入文件 SHA-256、版本、筛选及数据质量统计 |
-| `report.md` | 中文统计口径说明和四张图的入口 |
+| `metric1_cut_outcomes.png/.svg` | 切割结果：按关卡汇总，Tutorial 再按段细分 |
+| `metric2_progression.png/.svg` | 每关从头开始/通关的玩家数；Tutorial 漏斗（停在哪个检查点） |
+| `metric3_mechanics.png/.svg` | 机制使用比例：整关（按游玩）和每段（按段游玩）；框出的格子是该段要教的机制 |
+| `metric4_difficulty.png/.svg` | 卡关信号：每段到达出口的比例、重开（R/掉落）、耗时和剩余 cut；整关用时与重开 |
+| `level_summary.csv` | 每关：开始/通关玩家数、通关率、从中间段开始的游玩数、用时中位数、重开 |
+| `funnel.csv` | 多段关卡的漏斗：每个检查点的玩家数、游玩数、停在这里的人数 |
+| `segment_difficulty.csv` | 每段：段游玩数、到达出口比例、重开、耗时、剩余 cut、切割失败；`hardest` 标出最难的一段 |
+| `cut_outcomes.csv` | 每关、每段的四种切割结果、成功率、保留体积中位数 |
+| `mechanics.csv` | 每关、每段每种机制：使用比例、次数、首次使用时间、`taught`（是否为该段要教的机制） |
+| `players.csv` | 每位玩家每关一行：游玩次数、最远到达、是否通关、最好用时、重开次数、首次出现日期 |
+| `comparison_levels.csv`、`segment_mapping.csv` | 仅在加 `--baseline-*` 时生成 |
+| `events_clean.csv` | 清洗后的全部事件（含 `date_utc` 和来源 schema），可用 Excel 打开复查 |
+| `summary.json` | 输入文件 SHA-256、版本、过滤和数据质量统计 |
+| `report.md` | 中文报告：关键结果（最难的一段、流失最多的位置）、四张图、统计口径 |
 
-PNG 为 200 DPI，方便放进 GDD；SVG 可以无损缩放。图中文字使用英文，保持与游戏一致。
-CSV 使用 UTF-8 BOM，方便 Excel 读取。未定义的统计值在 CSV 中留空，图中显示 N/A 或无样本。
-每次运行会覆盖同一输出目录的同名结果，不同构建应使用不同目录。
+PNG 为 200 DPI，方便放进 GDD；SVG 可无损缩放。图中文字使用英文，与游戏一致；横轴不用日期。
+CSV 使用 UTF-8 BOM，方便 Excel 读取。未定义的值留空，图中显示 N/A。
 
 ## 统计口径
 
-- 按 `event_id` 去重。相同 ID 的内容矛盾时排除全部矛盾副本；同一会话的同一序号对应多个不同事件时也排除，数量写入 `summary.json`。
-- 数据必须具备合法类型与取值；缺少 `is_editor`、未知事件、非有限数值等记录会被排除。
-- 指标 1 可使用旧版 v1 切割事件；指标 2–4 需要 v2 的房间字段。
-- 房间按 `scene + room` 区分，不会把不同场景中同名的房间混在一起。
-- 指标 2 按不同会话统计；重开不会增加进入会话数。仅在同一房间游玩中观测到先进入、后通关，才计入通关数。
-- 指标 3、4 以 `session_id + room_visit_id` 为一次游玩；重开保留游玩身份，通关后重玩产生新的身份。
-- 机制使用比例 = 使用过该机制的游玩次数 / 观测到进入的游玩次数。首次使用时间只使用 `first_use=true` 的 `t_visit`；未使用不算 0 秒。
-- 重开平均值包含零次重开的游玩。通关时间直接读取 `room_clear.t_visit`，不累加中途快照；切割次数读取通关事件，不读取下一关补满后的值。
-- 通关时间和剩余次数只使用已通关游玩；`progression.csv` 的游玩次数减去已通关次数得到观测到的未通关次数。
-- 未观测到房间进入的事件不计入指标 2–4；同一个游玩 ID 对应多个房间的异常记录也不计入这些指标。
-- 会话数不等于独立玩家人数；退出原因不能从最后一条事件确定。网络丢失也可能造成不完整记录。
+- **一次游玩（run）**：一个 `level_start` 到 `level_complete` 或离开该关；重开不会开始新的游玩。
+- **通关率**只看从第 1 段开始的游玩；从菜单直接选中间段开始的计入 `runs_started_mid_level`，不进漏斗。
+- **漏斗**按玩家取最好的一次游玩：比如第一次停在检查点 1、第二次通关，算通关。
+- **段游玩（visit）**：一段从开始到出口；重开保留同一个 visit，所以重开不会增加 visit 数。
+- 时间包含切割暂停、帮助面板和离开窗口的时间；只对到达出口/通关的游玩统计用时。
+- 首次使用时间：整关用 `t_level`，分段用 `t_segment`；从未使用不记为 0 秒。
+- 「该段要教的机制」来自 LevelCatalog 的机制标签，写在脚本的 `TAUGHT` 中，课程内容改了要同步改。
+- 按 `event_id` 去重；同一 ID 内容矛盾、或同一 session 同一序号出现不同事件时全部排除，数量写进 `summary.json`。
+- 玩家 = 浏览器里的匿名 ID，不等于真实人数；没有出口事件不能证明放弃，也可能是关页面时数据丢失。
 
 ## 测试
 
@@ -86,7 +92,6 @@ CSV 使用 UTF-8 BOM，方便 Excel 读取。未定义的统计值在 CSV 中留
 .\.venv-analytics\Scripts\python.exe -m unittest discover -s tools/analytics -p "test_*.py" -v
 ```
 
-测试覆盖重复上传、数据冲突、过滤、房间分组、重开不重复计数、首次使用、累计用时、旧版数据与模拟数据。
-2026-10-18 验证：11/11 项测试通过；完整 JSON 导入出图、默认排除 Editor、无匹配数据报错、
-仅含 v1 切割数据的出图均已运行检查，四组模拟图已做显示检查。
-真实玩家图表仍需完成浏览器构建验证并收集玩家数据后生成。
+覆盖：v3 嵌套导出解析、与数据库规则一致的字段校验、重试去重、冲突排除、push key 日期、
+Alpha 转换（推算 level_start、检查点/通关、t_level）、漏斗按最好一次、段内重开计数、
+「要教的机制」标记、最难一段、命令行出图与对比。2026-11-06：14/14 通过（Python 3.11、matplotlib 3.11.2）。

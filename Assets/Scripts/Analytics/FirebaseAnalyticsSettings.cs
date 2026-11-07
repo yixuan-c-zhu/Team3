@@ -12,8 +12,8 @@ namespace Team3.Analytics
         public bool collectionEnabled = true;
         [Tooltip("Root HTTPS URL copied from Firebase Realtime Database. Empty means local preview only.")]
         public string databaseUrl = "";
-        [Tooltip("Change for each playtest build so results can be separated.")]
-        public string buildId = "alpha2-all-metrics";
+        [Tooltip("Change for each playtest build so results land in their own folder under /v3. Letters, digits, - and _ only.")]
+        public string buildId = "beta1-all-metrics";
         [Tooltip("Editor events always carry is_editor=true. Keep off for normal development.")]
         public bool uploadInEditor = false;
         public bool logEventsInEditor = true;
@@ -21,10 +21,11 @@ namespace Team3.Analytics
         [Range(1, 6)] public int maxAttempts = 4;
         [Range(5, 60)] public int requestTimeoutSeconds = 10;
 
-        public bool TryGetEndpoint(out string endpoint)
+        /// <summary>The database root (https://host) when the URL and build ID are usable; events go under /v3/&lt;build&gt;/...</summary>
+        public bool TryGetDatabaseRoot(out string root)
         {
-            endpoint = null;
-            if (string.IsNullOrWhiteSpace(buildId) || buildId.Length > 64) return false;
+            root = null;
+            if (!AnalyticsFormat.IsValidBuild(buildId)) return false;
             if (!Uri.TryCreate((databaseUrl ?? "").Trim(), UriKind.Absolute, out Uri uri)) return false;
             if (uri.Scheme != Uri.UriSchemeHttps || !uri.IsDefaultPort || !string.IsNullOrEmpty(uri.UserInfo)
                 || !string.IsNullOrEmpty(uri.Query) || !string.IsNullOrEmpty(uri.Fragment)
@@ -32,7 +33,7 @@ namespace Team3.Analytics
             bool firebaseHost = uri.Host.EndsWith(".firebaseio.com", StringComparison.OrdinalIgnoreCase)
                 || uri.Host.EndsWith(".firebasedatabase.app", StringComparison.OrdinalIgnoreCase);
             if (!firebaseHost) return false;
-            endpoint = uri.GetLeftPart(UriPartial.Authority) + "/events.json?print=silent";
+            root = uri.GetLeftPart(UriPartial.Authority);
             return true;
         }
     }

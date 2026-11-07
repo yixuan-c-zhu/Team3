@@ -116,14 +116,14 @@ public class CheckpointManager : MonoBehaviour
     {
         // Start runs after scene loading and every Awake, including LevelManager's cut reset.
         ApplyRoom();
-        EnterAnalyticsRoom();
+        EnterAnalyticsSegment();
     }
 
-    void EnterAnalyticsRoom()
+    // Analytics uses the menu's names: level "tutorial", segment = room + 1, segment name = lesson title.
+    void EnterAnalyticsSegment()
     {
-        var lesson = LevelCatalog.Find(SceneManager.GetActiveScene().name, CurrentRoom);
-        string id = lesson != null ? lesson.Id : "room_" + CurrentRoom;
-        CutAnalytics.EnterRoom(id, levelManager.cutsLeft, levelManager.maxCuts, CurrentRoom);
+        var info = LevelCatalog.AnalyticsSegment(SceneManager.GetActiveScene().name, CurrentRoom, rooms.Length);
+        CutAnalytics.BeginSegment(info, levelManager.cutsLeft, levelManager.maxCuts);
     }
 
     /// <summary>Called by an ExitZone when the player touches it.</summary>
@@ -142,9 +142,10 @@ public class CheckpointManager : MonoBehaviour
             return;
         }
 
-        // Capture the old room's time and remaining cuts BEFORE the checkpoint refills them.
-        // Skipped rooms are not assigned fabricated enter/clear events.
-        CutAnalytics.CompleteRoom(levelManager.cutsLeft, levelManager.maxCuts);
+        // Capture the old room's time and remaining cuts BEFORE the checkpoint refills them:
+        // checkpoint_reached, or level_complete at the last room's exit.
+        // Skipped rooms are not assigned fabricated start/checkpoint events.
+        CutAnalytics.CompleteSegment(index == rooms.Length - 1, levelManager.cutsLeft, levelManager.maxCuts);
 
         string scene = SceneManager.GetActiveScene().name;
         for (int i = CurrentRoom; i < index; i++)
@@ -169,7 +170,7 @@ public class CheckpointManager : MonoBehaviour
             camScript.SetFrontView2D();
         }
         ApplyRoom();
-        EnterAnalyticsRoom();
+        EnterAnalyticsSegment();
         levelManager.ShowMessage(checkpointMessage);
     }
 

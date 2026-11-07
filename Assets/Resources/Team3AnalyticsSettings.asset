@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   collectionEnabled: 1
   databaseUrl: https://team3-game-37d24-default-rtdb.firebaseio.com/
-  buildId: alpha2-all-metrics
+  buildId: beta1-all-metrics
   uploadInEditor: 0
   logEventsInEditor: 1
   queueCapacity: 256

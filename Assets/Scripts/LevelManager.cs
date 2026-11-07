@@ -29,8 +29,9 @@ public class LevelManager : MonoBehaviour
     void Start()
     {
         GameplayMenuButton.Create();
+        // Single-segment levels (level01, level02). Scenes with checkpoints report through CheckpointManager.
         if (checkpoints == null)
-            CutAnalytics.EnterRoom(SceneManager.GetActiveScene().name, cutsLeft, maxCuts);
+            CutAnalytics.BeginSegment(LevelCatalog.AnalyticsSegment(SceneManager.GetActiveScene().name, 0, 1), cutsLeft, maxCuts);
     }
 
     void Update()
@@ -69,7 +70,7 @@ public class LevelManager : MonoBehaviour
         if (!isLoading)
         {
             isLoading = true;
-            CutAnalytics.RestartRoom(reason, cutsLeft, maxCuts);
+            CutAnalytics.Restart(reason, cutsLeft, maxCuts);
             Time.timeScale = 1f;
             HelpPanel.CloseAll();
             if (checkpoints != null) checkpoints.RememberForRestart();
@@ -90,7 +91,7 @@ public class LevelManager : MonoBehaviour
         }
 
         isCompleted = true;
-        CutAnalytics.CompleteRoom(cutsLeft, maxCuts);
+        CutAnalytics.CompleteSegment(true, cutsLeft, maxCuts);
         LevelCatalog.MarkComplete(SceneManager.GetActiveScene().name, checkpoints != null ? checkpoints.CurrentRoom : 0);
 
         LevelClearScreen clearScreen = FindFirstObjectByType<LevelClearScreen>();

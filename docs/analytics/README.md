@@ -1,4 +1,84 @@
-# Alpha 数据分析：四项指标说明
+# 数据采集说明（schema v3，Beta 起）
+
+> 设计与决定记录见 [v3-schema-proposal.md](v3-schema-proposal.md)；出图见 [工具说明](../../tools/analytics/README.md)。
+> 本页后半部分是 Alpha（schema v2）的原始说明，作为存档保留。
+
+## 现在写入 Firebase 的内容
+
+```
+/events/...                                        Alpha 存档（v2），不再写入
+/v3/<build>/<player_key>/<session_key>/<event_key>  Beta 起的新数据
+```
+
+- `build`：设置资源 `Assets/Resources/Team3AnalyticsSettings.asset` 里的 Build Id，当前为 **`beta1-all-metrics`**。
+  只能用字母、数字、`-`、`_`。**每次发布新的测试版本都要换一个值**，数据会自动落在新文件夹里。
+- `player_key`：`p_` + 匿名玩家 ID 前 8 位。玩家 ID 第一次运行时随机生成，存在浏览器本地（PlayerPrefs），不含个人信息。
+- `session_key`：玩家本地时间 `yyyyMMdd-HHmm` + session ID 前 8 位，只用于在 Console 里排序；准确时间看事件里的 `server_time`。
+- `event_key`：4 位序号 + 事件名，例如 `0005_checkpoint_reached`，Console 里按发生顺序排列。
+- 上传方式：PUT 到上面的固定位置（不是 POST），网络重试只会覆盖同一个节点，不会产生重复记录。
+
+## 关卡、段与事件
+
+| 菜单 | Unity 场景 | `level` | 段（`segment` · `segment_name`） |
+|---|---|---|---|
+| Tutorial | Tutorial | `tutorial` | 1 Cut to fit · 2 Leave a little behind · 3 First bridge · 4 Building Bridge |
+| LEVEL 01 | NewLevel | `level01` | 1 New Level |
+| LEVEL 02 | GlassParadox | `level02` | 1 Glass Paradox |
+
+Tutorial 是一个关卡：3 个检查点 + 1 个终点。一次完整的 Tutorial 记录为
+`level_start` → `segment_start` → … → `checkpoint_reached`（×3）→ `segment_start` → … → `level_complete`。
+
+| 事件 | 何时记录 | 代码位置 |
+|---|---|---|
+| `level_start` | 进入关卡（菜单、下一关、通关后 Retry）；重开重新加载不记 | `CheckpointManager.Start` / `LevelManager.Start` |
+| `segment_start` | 一段开始：关卡开始、过检查点、重开后 | 同上，以及 `CheckpointManager.Reach` |
+| `checkpoint_reached` | 到达非最后一段的出口（补满 cut 之前记录） | `CheckpointManager.Reach` |
+| `level_complete` | 到达关卡终点 | `CheckpointManager.Reach` / `LevelManager.CompleteLevel` |
+| `restart` | 通关前按 R（`manual`）或掉落（`fall`） | `LevelManager.RestartLevel` |
+| `cut_success` / `cut_miss` / `cut_too_small` / `cut_cancel` | 与 Alpha 相同 | `CutController` |
+| `use_cut` / `use_view_switch` / `use_color_shift` / `use_switch_piece` / `use_camera` | 与 Alpha 相同 | `CutController`、`CameraRig`、`PieceControlManager` |
+
+每条事件 26 个字段，完整定义见方案第 3 节。和卡关分析最相关的是：
+`attempt`（本段第几次尝试）、`t_segment`（本段累计时间，含重开）、`t_level`（本关累计时间）、
+`level_restarts`（本关累计重开次数）、`cuts_left`/`cuts_budget`。
+
+## 发布顺序（不能反）
+
+1. 在 Console 的 Realtime Database > Rules 发布 [firebase-database.rules.json](firebase-database.rules.json)。
+   新规则只是**新增** `v3` 分支，旧的 `events` 分支不变。
+2. 用 Rules playground 模拟一次写入（示例见下）。
+3. 把 Build Id 临时改成 `beta1-smoke`，打一个 WebGL 包冒烟测试，确认 Console 里出现 `v3/beta1-smoke/...`（这一步会写入数据）。
+4. 改回 `beta1-all-metrics`，正式发布。
+
+规则只接受登记过的字段：如果先发布新游戏、后发布规则，Beta 数据会被全部拒收（HTTP 401/403，游戏会停止上传并在 Console 打印警告）。
+
+### Rules playground 示例
+
+- 类型：`set`；位置：`/v3/beta1-smoke/p_7f3a9c21/20261110-1432-a1b2c3d4/0001_level_start`；不登录。
+- 数据：
+
+```json
+{"server_time": {".sv": "timestamp"}, "schema_version": 3, "event": "level_start",
+ "event_id": "0123456789abcdef0123456789abcdef", "player_id": "7f3a9c21aaaaaaaaaaaaaaaaaaaaaaaa",
+ "session_id": "a1b2c3d4bbbbbbbbbbbbbbbbbbbbbbbb", "sequence": 1, "build": "beta1-smoke", "is_editor": false,
+ "level": "tutorial", "level_title": "Tutorial", "scene": "Tutorial", "segment": 1, "segment_count": 4,
+ "segment_name": "Cut to fit", "visit_id": "fedcba9876543210fedcba9876543210", "attempt": 1,
+ "t_attempt": 0, "t_segment": 0, "t_level": 0, "level_restarts": 0, "cuts_left": 3, "cuts_budget": 3,
+ "kept_ratio": -1, "reason": "", "first_use": false}
+```
+
+预期：允许。把 `build` 改成别的值、或把 `0001_level_start` 改成 `0001_use_cut`，预期：拒绝。
+如果 playground 不支持 `{".sv": "timestamp"}`，以第 3 步的冒烟测试为准。
+
+## 本地检查
+
+- Editor 中默认只在 Console 打印将要上传的地址和 JSON（`[Analytics] https://.../v3/...`），不上传。
+- Unity Test Runner > EditMode > `Team3.Analytics.Tests`：59 项测试。
+- 出图脚本测试：`python -m unittest discover -s tools/analytics -p "test_*.py"`。
+
+---
+
+# 附录：Alpha 数据分析说明（schema v2，存档）
 
 代码基线：`feature/alpha_new_level2`，提交 `4725a89`。
 当前开发分支：`feature/analytics-firebase`。Unity 版本：**6000.3.22f1**。
@@ -8,7 +88,7 @@
 WebGL／浏览器验收、真实玩家测试和使用真实数据生成正式图表仍需完成。
 Editor 验证数据和模拟示例均不作为玩家测试结果。
 
-## Firebase 配置与开关
+### Firebase 配置与开关
 
 项目 ID：`team3-game-37d24`。
 数据库地址：`https://team3-game-37d24-default-rtdb.firebaseio.com/`。
@@ -39,7 +119,7 @@ Editor 验证数据和模拟示例均不作为玩家测试结果。
 当前方案用于范围有限的课堂玩家测试，采集结束后，项目所有者可以恢复锁定规则。
 Firebase Console 的访问权限仍由项目账号权限控制。
 
-## 事件与计数方式
+### 事件与计数方式
 
 | 指标 | 事件名 | 触发条件与 value |
 | --- | --- | --- |
@@ -75,7 +155,7 @@ Firebase Console 的访问权限仍由项目账号权限控制。
 不会计为通关前的重开。重复触发出口不会重复记录通关。
 房间切换时，先记录当前房间的剩余切割次数，再补满下一房间的次数。
 
-## 数据字段与时间口径
+### 数据字段与时间口径
 
 第 2 版每条事件包含以下 19 个字段：
 
@@ -112,7 +192,7 @@ Firebase Console 的访问权限仍由项目账号权限控制。
 这些时间字段是累计值，**不要把多条事件的时间直接相加**。
 事件进入上传队列后，即使切换场景，其原始场景、房间和时间信息也不会改变。
 
-## 教程接入与 checkpoint 来源
+### 教程接入与 checkpoint 来源
 
 合并后的 Tutorial 场景及房间管理器来自 **Connie Zhu** 的
 `origin/feature/merged-tutorials` 分支，提交为 `eeef2ea`。
@@ -149,7 +229,7 @@ Unity MCP 保留在本地并保持可用。本地 MCP 源码和启动脚本已�
 本机 `.git/info/attributes` 配置的 Git clean filter 只移除该 MCP 条目后再提交，
 其余包依赖保持原样；过滤脚本和配置均保留在 `.git` 内，不会进入仓库。
 
-## 上传机制
+### 上传机制
 
 跨场景保留的 `[Analytics]` 对象将事件 JSON 上传到
 `/events.json?print=silent`。
@@ -174,7 +254,7 @@ Unity MCP 保留在本地并保持可用。本地 MCP 源码和启动脚本已�
 修改脚本前先停止 Play，编译后重新开始一次会话。
 当前不支持在 Editor 热重载脚本后继续原来的 analytics 会话。
 
-## 如何把数据转换成四类图表
+### 如何把数据转换成四类图表
 
 在 Firebase Console 的 **Data** 页面导出 JSON，将 `events` 下的记录展开成表格行。
 筛选目标 `build`，排除 `is_editor=true`，按 `event_id` 去重。
@@ -206,7 +286,7 @@ Unity MCP 保留在本地并保持可用。本地 MCP 源码和启动脚本已�
 清洗后的事件和统计说明。`--demo` 生成明确标注的模拟示例。
 尚未收集并制作真实玩家测试结果。
 
-## 验证结果
+### 验证结果
 
 测试入口：Unity **Test Runner > EditMode > Team3.Analytics.Tests**。
 

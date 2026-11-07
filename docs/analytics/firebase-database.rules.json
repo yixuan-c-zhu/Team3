@@ -67,6 +67,102 @@
           ".validate": false
         }
       }
+    },
+    "v3": {
+      "$build": {
+        ".validate": "$build.matches(/^[A-Za-z0-9_-]{1,64}$/)",
+        "$player": {
+          ".validate": "$player.matches(/^p_[a-f0-9]{8}$/)",
+          "$session": {
+            ".validate": "$session.matches(/^[0-9]{8}-[0-9]{4}-[a-f0-9]{8}$/)",
+            "$event": {
+              ".write": "!data.exists() || data.child('event_id').val() == newData.child('event_id').val()",
+              ".validate": "$event.matches(/^[0-9]{4,6}_[a-z_]{1,32}$/) && newData.hasChildren(['schema_version', 'event', 'event_id', 'player_id', 'session_id', 'sequence', 'build', 'server_time', 'is_editor', 'level', 'level_title', 'scene', 'segment', 'segment_count', 'segment_name', 'visit_id', 'attempt', 't_attempt', 't_segment', 't_level', 'level_restarts', 'cuts_left', 'cuts_budget', 'kept_ratio', 'reason', 'first_use']) && newData.child('build').val() == $build && ('p_' + newData.child('player_id').val()).beginsWith($player) && $event.endsWith('_' + newData.child('event').val())",
+              "schema_version": {
+                ".validate": "newData.isNumber() && newData.val() == 3"
+              },
+              "event": {
+                ".validate": "newData.val() == 'level_start' || newData.val() == 'segment_start' || newData.val() == 'checkpoint_reached' || newData.val() == 'level_complete' || newData.val() == 'restart' || newData.val() == 'cut_success' || newData.val() == 'cut_miss' || newData.val() == 'cut_too_small' || newData.val() == 'cut_cancel' || newData.val() == 'use_cut' || newData.val() == 'use_view_switch' || newData.val() == 'use_color_shift' || newData.val() == 'use_switch_piece' || newData.val() == 'use_camera'"
+              },
+              "event_id": {
+                ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)"
+              },
+              "player_id": {
+                ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)"
+              },
+              "session_id": {
+                ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)"
+              },
+              "sequence": {
+                ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 1"
+              },
+              "build": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 64"
+              },
+              "server_time": {
+                ".validate": "newData.isNumber() && newData.val() == now"
+              },
+              "is_editor": {
+                ".validate": "newData.isBoolean()"
+              },
+              "level": {
+                ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_]{1,32}$/)"
+              },
+              "level_title": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 128"
+              },
+              "scene": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 128"
+              },
+              "segment": {
+                ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 1 && newData.val() <= newData.parent().child('segment_count').val()"
+              },
+              "segment_count": {
+                ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 1 && newData.val() <= 64"
+              },
+              "segment_name": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 128"
+              },
+              "visit_id": {
+                ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{32}$/)"
+              },
+              "attempt": {
+                ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 1"
+              },
+              "t_attempt": {
+                ".validate": "newData.isNumber() && newData.val() >= 0"
+              },
+              "t_segment": {
+                ".validate": "newData.isNumber() && newData.val() >= newData.parent().child('t_attempt').val()"
+              },
+              "t_level": {
+                ".validate": "newData.isNumber() && newData.val() >= newData.parent().child('t_attempt').val()"
+              },
+              "level_restarts": {
+                ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 0"
+              },
+              "cuts_left": {
+                ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 0 && newData.val() <= newData.parent().child('cuts_budget').val()"
+              },
+              "cuts_budget": {
+                ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 0"
+              },
+              "kept_ratio": {
+                ".validate": "newData.isNumber() && ((newData.parent().child('event').val() == 'cut_success' && newData.val() >= 0 && newData.val() <= 1) || (newData.parent().child('event').val() != 'cut_success' && newData.val() == -1))"
+              },
+              "reason": {
+                ".validate": "newData.isString() && newData.val().length <= 64"
+              },
+              "first_use": {
+                ".validate": "newData.isBoolean()"
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
