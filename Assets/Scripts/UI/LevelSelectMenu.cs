@@ -8,7 +8,7 @@ public class LevelSelectMenu : MonoBehaviour
     VisualElement root, overview, tutorial;
     Label title, errorLabel;
     Button backButton;
-    bool showingTutorial, loading;
+    bool loading;
 
     void OnEnable()
     {
@@ -83,15 +83,9 @@ public class LevelSelectMenu : MonoBehaviour
         root.EnableInClassList("compact", evt.newRect.width < 650);
     }
 
-    void Update()
-    {
-        if (showingTutorial && Input.GetKeyDown(KeyCode.Escape)) ShowOverview();
-    }
-
     public void ShowOverview()
     {
         if (loading) return;
-        showingTutorial = false;
         title.text = "Level Select";
         overview.style.display = DisplayStyle.Flex;
         tutorial.style.display = DisplayStyle.None;
@@ -107,7 +101,6 @@ public class LevelSelectMenu : MonoBehaviour
             LoadLesson(index, 0);
             return;
         }
-        showingTutorial = true;
         title.text = "Tutorial";
         overview.style.display = DisplayStyle.None;
         tutorial.style.display = DisplayStyle.Flex;

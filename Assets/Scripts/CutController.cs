@@ -84,7 +84,7 @@ public class CutController : MonoBehaviour
                 break;
 
             case State.Drawing:
-                if (Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.Escape))
+                if (Input.GetKeyDown(KeyCode.C))
                 {
                     ToggleCut();
                     break;
@@ -105,10 +105,6 @@ public class CutController : MonoBehaviour
                 else if (Input.GetKeyDown(KeyCode.C))
                 {
                     ToggleCut();
-                }
-                else if (Input.GetKeyDown(KeyCode.Escape))
-                {
-                    CancelCut();
                 }
                 else if (Input.GetMouseButtonDown(0) && !GameplayUiInput.IsPointerOverControl())
                 {

@@ -91,9 +91,6 @@ MonoBehaviour:
     <color=#FFD54A>Left click / 1
     / 2</color><pos=46%>Choose the piece to keep
 
-    <color=#FFD54A>Esc</color><pos=46%>Cancel
-    cut
-
     <color=#FFD54A>F</color><pos=46%>Switch piece
 
     <color=#FFD54A>Left

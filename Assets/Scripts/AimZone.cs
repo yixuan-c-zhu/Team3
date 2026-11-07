@@ -53,7 +53,7 @@ public class AimZone : MonoBehaviour
     [TextArea] public string thickMessage = "This slice is too thick.\n<size=70%>{0} and cut lower, along the orange line at your feet.</size>";
     [TextArea] public string thinMessage = "This slice is too thin.\n<size=70%>{0} and cut a little higher, along the orange line.</size>";
     [TextArea] public string narrowMessage = "This slice is too narrow to fill the outline.\n<size=70%>An earlier cut made your body narrower than this spot needs. Press R to restart.</size>";
-    public string recutAction = "Press Esc";
+    public string recutAction = "Press C to cancel";
     public string restartAction = "Press R to restart";
     public string stepBackNote = "<size=70%>X to step back.</size>";
 

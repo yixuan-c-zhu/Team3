@@ -521,6 +521,6 @@ MonoBehaviour:
 
     <size=70%>An
     earlier cut made your body narrower than this spot needs. Press R to restart.</size>'
-  recutAction: Press Esc
+  recutAction: Press C to cancel
   restartAction: Press R to restart
   stepBackNote: <size=70%>X to step back.</size>
