@@ -176,6 +176,39 @@ public class AimZone : MonoBehaviour
         }
     }
 
+    public string SliceProblem
+    {
+        get
+        {
+            if (pieceSpot == null || target == null || done)
+            {
+                return null;
+            }
+            CuttablePiece spotPiece = pieceSpot.GetPiece();
+            if (spotPiece == null)
+            {
+                return null;
+            }
+            Problem problem = GetProblem(spotPiece.GetComponent<Collider>().bounds.size, spotPiece.volume);
+            if (problem == Problem.None)
+            {
+                return null;
+            }
+            return GetProblemMessage(problem, restartAction).Split('\n')[0];
+        }
+    }
+
+    public void StepBack()
+    {
+        if (step != Step.Aiming)
+        {
+            return;
+        }
+        waitForExit = true;
+        StopAiming();
+        levelManager.ShowMessage(leaveMessage);
+    }
+
     void Awake()
     {
         GetComponent<BoxCollider>().isTrigger = true;
@@ -338,9 +371,7 @@ public class AimZone : MonoBehaviour
     {
         if (Input.GetKeyDown(stepBackKey))
         {
-            waitForExit = true;
-            StopAiming();
-            levelManager.ShowMessage(leaveMessage);
+            StepBack();
             return;
         }
 

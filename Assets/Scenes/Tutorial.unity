@@ -1723,6 +1723,77 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 257724526}
   m_CullTransparentMesh: 1
+--- !u!1 &263491710
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 263491711}
+  - component: {fileID: 263491712}
+  m_Layer: 0
+  m_Name: Bubble - Wrong slice
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &263491711
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 263491710}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 9, y: 10.8, z: 14}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 746567393}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &263491712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 263491710}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 245a4264f0e1f674d924ce5c5706576e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HintBubble
+  headline: '{problem}'
+  message: Press [R] to restart, or [X] to step back.
+  icons:
+  - sprite: {fileID: 21300000, guid: 12d4799f95e8c0346a81430e4704b151, type: 3}
+    motion: 1
+  numberIcons: 0
+  situation: 15
+  size: {x: 0, y: 0, z: 0}
+  view: 0
+  delay: 0.3
+  duration: 0
+  onlyOnce: 0
+  doneKeys: 
+  doneAfterCameraDrag: 0
+  showWhileCutting: 0
+  onlyWhileCutting: 0
+  onlyBeforeBuilt: 0
+  priority: 20
+  ceiling: {fileID: 0}
+  gapWidth: 1.4
+  gapAxis: {x: 0, y: 0, z: 1}
+  door: {fileID: 0}
+  aimZone: {fileID: 3746815956717837847}
+  anchor: 2
+  target: {fileID: 0}
+  screenPoint: {x: 0.5, y: 0.8}
+  pointAt: {fileID: 0}
 --- !u!1 &271347782
 GameObject:
   m_ObjectHideFlags: 0
@@ -4632,6 +4703,77 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 647493258}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &651443861
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 651443862}
+  - component: {fileID: 651443863}
+  m_Layer: 0
+  m_Name: Bubble - Wrong slice
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &651443862
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 651443861}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 29.21, y: 7.05, z: -1.96}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1798682369}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &651443863
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 651443861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 245a4264f0e1f674d924ce5c5706576e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HintBubble
+  headline: '{problem}'
+  message: Press [R] to restart, or [X] to step back.
+  icons:
+  - sprite: {fileID: 21300000, guid: 12d4799f95e8c0346a81430e4704b151, type: 3}
+    motion: 1
+  numberIcons: 0
+  situation: 15
+  size: {x: 0, y: 0, z: 0}
+  view: 0
+  delay: 0.3
+  duration: 0
+  onlyOnce: 0
+  doneKeys: 
+  doneAfterCameraDrag: 0
+  showWhileCutting: 0
+  onlyWhileCutting: 0
+  onlyBeforeBuilt: 0
+  priority: 20
+  ceiling: {fileID: 0}
+  gapWidth: 1.4
+  gapAxis: {x: 0, y: 0, z: 1}
+  door: {fileID: 0}
+  aimZone: {fileID: 1847414789}
+  anchor: 2
+  target: {fileID: 0}
+  screenPoint: {x: 0.5, y: 0.8}
+  pointAt: {fileID: 0}
 --- !u!1001 &701105789
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4960,6 +5102,7 @@ Transform:
   - {fileID: 1306477313}
   - {fileID: 811225990}
   - {fileID: 2042563307}
+  - {fileID: 263491711}
   - {fileID: 2102711294}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -10431,31 +10574,6 @@ MonoBehaviour:
   snipTime: 0.38
   shakeTime: 0.4
   shakeSize: 9
---- !u!114 &1518088449
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1518088445}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ddafc8fc09cf325439c67891c05d8baa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PieceEyes
-  eyeColor: {r: 0.09, g: 0.11, b: 0.16, a: 1}
-  shineColor: {r: 1, g: 1, b: 1, a: 1}
-  blinkTime: 0.16
-  sleepDelay: 0.25
-  hopTime: 0.16
-  fadeTime: 0.1
-  switchMargin: 0.12
-  flatPenalty: 0.5
-  raise: 0.12
-  fill: 0.6
-  maxScale: 1
-  minScale: 0.3
-  surfaceOffset: 0.015
 --- !u!114 &1518088447
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10504,6 +10622,31 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1518088449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1518088445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddafc8fc09cf325439c67891c05d8baa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PieceEyes
+  eyeColor: {r: 0.09, g: 0.11, b: 0.16, a: 1}
+  shineColor: {r: 1, g: 1, b: 1, a: 1}
+  blinkTime: 0.16
+  sleepDelay: 0.25
+  hopTime: 0.16
+  fadeTime: 0.1
+  switchMargin: 0.12
+  flatPenalty: 0.5
+  raise: 0.12
+  fill: 0.6
+  maxScale: 1
+  minScale: 0.3
+  surfaceOffset: 0.015
 --- !u!1 &1529512453
 GameObject:
   m_ObjectHideFlags: 0
@@ -12709,6 +12852,7 @@ Transform:
   - {fileID: 1821111419}
   - {fileID: 480320885}
   - {fileID: 841788273}
+  - {fileID: 651443862}
   - {fileID: 1027045064}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -14272,6 +14416,8 @@ MonoBehaviour:
   accent: {r: 1, g: 0.83, b: 0.22, a: 1}
   blue: {r: 0.3, g: 0.48, b: 1, a: 1}
   orange: {r: 1, g: 0.47, b: 0.2, a: 1}
+  showMoveKeys: 0
+  restartBeside: {fileID: 0}
 --- !u!114 &1954974462
 MonoBehaviour:
   m_ObjectHideFlags: 0

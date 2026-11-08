@@ -5,7 +5,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(CanvasRenderer))]
 public sealed class TutorialHudGraphic : MaskableGraphic
 {
-    public enum Shape { Panel, Diamond, Cut, View, Color, Switch, Restart }
+    public enum Shape { Panel, Diamond, Cut, View, Color, Switch, Restart, Mouse, Back }
     public Shape shape;
     public Color edge = Color.white;
     public Color blue = new Color(0.30f, 0.48f, 1f);
@@ -61,7 +61,44 @@ public sealed class TutorialHudGraphic : MaskableGraphic
                 Arc(mesh, 50, 52, 26, 36, -40, 270);
                 Arrow(mesh, 44, 5, 52, 16, 44, 27);
                 break;
+            case Shape.Mouse:
+                Mouse(mesh);
+                Arc(mesh, 50, 50, 44, 40, -40, 40);
+                Arrow(mesh, 94.4f, 75.6f, 83.7f, 75.7f, 86.2f, 61.5f);
+                Arc(mesh, 50, 50, 44, 40, 140, 220);
+                Arrow(mesh, 13.8f, 38.5f, 16.3f, 24.3f, 5.6f, 24.4f);
+                break;
+            case Shape.Back:
+                Arc(mesh, 58, 55, 22, 30, 90, -90);
+                Stroke(mesh, 58, 25, 22, 25);
+                Arrow(mesh, 32, 12, 22, 25, 32, 38);
+                Stroke(mesh, 58, 85, 36, 85);
+                break;
         }
+    }
+
+    void Mouse(VertexHelper mesh)
+    {
+        Vector2 topLeft = P(36, 13), bottomRight = P(64, 87);
+        Rect body = Rect.MinMaxRect(topLeft.x, bottomRight.y, bottomRight.x, topLeft.y);
+        float corner = body.width * 0.5f;
+        float split = body.yMax - corner - 3f;
+        float inset = 1.4f;
+        float left = body.center.x;
+        var button = new Vector2[9];
+        button[0] = new Vector2(left, split);
+        for (int i = 0; i < 7; i++)
+        {
+            float angle = Mathf.Lerp(90f, 0f, i / 6f) * Mathf.Deg2Rad;
+            Vector2 point = new Vector2(body.center.x, body.yMax - corner)
+                + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * (corner - inset);
+            button[1 + i] = new Vector2(Mathf.Max(point.x, left), point.y);
+        }
+        button[8] = new Vector2(body.xMax - inset, split);
+        Polygon(mesh, color, button);
+        RoundedPanel(mesh, body, corner, Color.clear, color, 2.8f);
+        Line(mesh, new Vector2(body.center.x, split), new Vector2(body.center.x, body.yMax), 2.8f, color);
+        Line(mesh, new Vector2(body.xMin, split), new Vector2(body.xMax, split), 2.8f, color);
     }
 
     void Cube(VertexHelper mesh, float x, float y, float scale)

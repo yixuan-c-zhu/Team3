@@ -6,7 +6,7 @@ using UnityEngine;
 /// (for example "Press [Tab] and have a look?" 2 seconds after falling into the pit). Put one where it's needed,
 /// pick its Situation, and HintBubbleView shows the most important bubble that is ready.
 /// Write keys in square brackets, like [Tab], and the bubble highlights them.
-/// In the text, {color} becomes the player's color and {other} the other color.
+/// In the text, {color} becomes the player's color, {other} the other color, and {problem} what is wrong with Aim Zone's slice.
 /// </summary>
 public class HintBubble : MonoBehaviour
 {
@@ -37,12 +37,13 @@ public class HintBubble : MonoBehaviour
         BridgeBuilt,
         /// <summary>In the area, Aim Zone's bridge is built, and the player is the same color as its glass.</summary>
         SameColorAsBridge,
-        /// <summary>On Aim Zone's pad in the aim view, but no slice that fits is on the spot (for example, stepped on the pad by accident).</summary>
+        /// <summary>On Aim Zone's pad in the aim view, but no slice is on the spot (for example, stepped on the pad by accident).</summary>
         AimingWithoutSlice,
         /// <summary>In the area, after a cut, while the player picks which piece to keep.</summary>
         ChoosingPiece,
         /// <summary>In the area, and the player has no cuts left.</summary>
-        OutOfCuts
+        OutOfCuts,
+        AimingWrongSlice
     }
 
     public enum ViewNeeded { Any, Only2D, Only3D }
@@ -317,7 +318,9 @@ public class HintBubble : MonoBehaviour
                 return aimZone != null && aimZone.IsBuilt && aimZone.PlacedGlass != null
                     && IsPlayerColor(aimZone.PlacedGlass.obstacleColor);
             case Situation.AimingWithoutSlice:
-                return aimZone != null && aimZone.IsAiming && !aimZone.HasGoodSlice;
+                return aimZone != null && aimZone.IsAiming && !aimZone.HasGoodSlice && aimZone.SliceProblem == null;
+            case Situation.AimingWrongSlice:
+                return aimZone != null && aimZone.IsAiming && aimZone.SliceProblem != null;
             case Situation.ChoosingPiece:
                 return true;
             case Situation.OutOfCuts:
@@ -329,7 +332,11 @@ public class HintBubble : MonoBehaviour
     /// <summary>True for situations that happen in the aim view, while the camera is taken over.</summary>
     public bool InAimView
     {
-        get { return situation == Situation.Aiming || situation == Situation.AimingWithoutSlice; }
+        get
+        {
+            return situation == Situation.Aiming || situation == Situation.AimingWithoutSlice
+                || situation == Situation.AimingWrongSlice;
+        }
     }
 
     /// <summary>True for bubbles that show while the player picks a piece after a cut (other bubbles hide then).</summary>
@@ -438,6 +445,10 @@ public class HintBubble : MonoBehaviour
         if (string.IsNullOrEmpty(text) || text.IndexOf('{') < 0)
         {
             return text;
+        }
+        if (text.Contains("{problem}"))
+        {
+            text = text.Replace("{problem}", aimZone != null ? aimZone.SliceProblem : "");
         }
         PieceColor playerColor = cutController != null && cutController.player != null
             ? cutController.player.GetComponent<PieceColor>()

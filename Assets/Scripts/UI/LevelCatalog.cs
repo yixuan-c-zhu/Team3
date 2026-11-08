@@ -88,13 +88,21 @@ public static class LevelCatalog
         return new SegmentInfo(fallback, fallback.ToLowerInvariant(), fallback, checkpoint + 1, segmentCount, "segment_" + (checkpoint + 1));
     }
 
-    // Each chapter ends at chapter select. Lessons that share a scene (the tutorial's rooms) move on after the last one.
+    // The tutorial and the last level end at chapter select; every other level leads into the next one.
+    // Lessons that share a scene (the tutorial's rooms) move on after the last one.
     public static string NextScene(string scene)
     {
-        foreach (var chapter in Chapters)
-            for (int i = chapter.Lessons.Length - 1; i >= 0; i--)
-                if (chapter.Lessons[i].Scene == scene)
-                    return i + 1 < chapter.Lessons.Length ? chapter.Lessons[i + 1].Scene : MenuScene;
+        for (int c = 0; c < Chapters.Length; c++)
+        {
+            var lessons = Chapters[c].Lessons;
+            for (int i = lessons.Length - 1; i >= 0; i--)
+            {
+                if (lessons[i].Scene != scene) continue;
+                if (i + 1 < lessons.Length) return lessons[i + 1].Scene;
+                bool lastChapter = c + 1 >= Chapters.Length;
+                return scene == TutorialScene || lastChapter ? MenuScene : Chapters[c + 1].Lessons[0].Scene;
+            }
+        }
         return MenuScene;
     }
     public static bool CanLoad(string scene) => Application.CanStreamedLevelBeLoaded(scene);

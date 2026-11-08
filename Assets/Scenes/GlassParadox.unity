@@ -2774,6 +2774,127 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &807338321
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 807338325}
+  - component: {fileID: 807338324}
+  - component: {fileID: 807338323}
+  - component: {fileID: 807338322}
+  m_Layer: 0
+  m_Name: Cut Feedback
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &807338322
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 807338321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddafc8fc09cf325439c67891c05d8baa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PieceEyes
+  eyeColor: {r: 0.09, g: 0.11, b: 0.16, a: 1}
+  shineColor: {r: 1, g: 1, b: 1, a: 1}
+  blinkTime: 0.16
+  sleepDelay: 0.25
+  hopTime: 0.16
+  fadeTime: 0.1
+  switchMargin: 0.12
+  flatPenalty: 0.5
+  raise: 0.12
+  fill: 0.6
+  maxScale: 1
+  minScale: 0.3
+  surfaceOffset: 0.015
+--- !u!114 &807338323
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 807338321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d321102a6ab8b1848ba43bb767eb153a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PieceChoiceView
+  clickIcon: {fileID: 21300000, guid: e5221b208f6861246879fe6e4d08bea5, type: 3}
+  keepText: Click to keep
+  leaveText: Stays behind
+  gold: {r: 1, g: 0.835, b: 0.29, a: 1}
+  rim: {r: 0.063, g: 0.082, b: 0.11, a: 0.9}
+  dashColor: {r: 1, g: 1, b: 1, a: 0.85}
+  tagFill: {r: 0.063, g: 0.082, b: 0.11, a: 1}
+  leaveTextColor: {r: 0.84, g: 0.87, b: 0.92, a: 1}
+  pieceGap: 0.4
+  splitTime: 0.18
+  fadeTime: 0.15
+  strokeWidth: 7
+  strokeBreath: 1.5
+  breathTime: 1.4
+  popSize: 12
+  popTime: 0.22
+  dashSpeed: 0.6
+  dimBrightness: 0.6
+  dimAlpha: 0.5
+  tagGap: 28
+  tagHeight: 54
+--- !u!114 &807338324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 807338321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e29826d0fbf2d441afa78b1a04d5cc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutCountView
+  readyColor: {r: 1, g: 0.835, b: 0.29, a: 1}
+  usedColor: {r: 0.56, g: 0.58, b: 0.61, a: 1}
+  panelColor: {r: 0.063, g: 0.082, b: 0.11, a: 0.85}
+  emptyColor: {r: 0.86, g: 0.22, b: 0.2, a: 0.9}
+  iconSize: 40
+  iconGap: 14
+  sidePadding: 20
+  panelHeight: 54
+  gapAbovePlayer: 12
+  gapWhileChoosing: 30
+  gapBelowBubble: 6
+  liftWhileCutting: 1
+  followSpeed: 20
+  fadeTime: 0.12
+  snipTime: 0.38
+  shakeTime: 0.4
+  shakeSize: 9
+--- !u!4 &807338325
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 807338321}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &811626633
 GameObject:
   m_ObjectHideFlags: 0
@@ -3424,6 +3545,7 @@ MonoBehaviour:
   camScript: {fileID: 1411356984}
   player: {fileID: 2031264533}
   fadeAlpha: 0.2
+  sideViewDepth: 4
 --- !u!114 &1041298950
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4368,6 +4490,7 @@ GameObject:
   - component: {fileID: 1359000477}
   - component: {fileID: 1359000476}
   - component: {fileID: 1359000475}
+  - component: {fileID: 1359000479}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -4393,7 +4516,6 @@ RectTransform:
   - {fileID: 1661751107}
   - {fileID: 75444091}
   - {fileID: 1294513116}
-  - {fileID: 1547699178}
   - {fileID: 1724910409}
   - {fileID: 670333780}
   m_Father: {fileID: 0}
@@ -4428,6 +4550,19 @@ MonoBehaviour:
   viewRight: {fileID: 1871959325}
   viewFree: {fileID: 1448099100}
   chooseKeys: {fileID: 1875465777}
+  colorText: {fileID: 0}
+  colorSwatch: {fileID: 0}
+  blueColor: {r: 0.1, g: 0.55, b: 1, a: 1}
+  orangeColor: {r: 1, g: 0.42, b: 0.05, a: 1}
+  hintPanel: {fileID: 0}
+  hintText: {fileID: 0}
+  stuckDelay: 12
+  hintDuration: 6
+  movementResetDistance: 0.75
+  hints:
+  - 'Hint: Press <b>Tab</b> to switch between the 2D and 3D views.'
+  - 'Hint: Press <b>Left Shift</b> to switch your color.'
+  - 'Hint: Try leaving a cut piece on the pressure plate.'
   restartTip: {fileID: 75444088}
   restartTipDelay: 45
   levelManager: {fileID: 1041298951}
@@ -4498,6 +4633,26 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1359000479
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359000473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90d31b49f35b4c85b382c4c8db034057, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialHudLayout
+  enableHighlights: 0
+  cardFill: {r: 0.1, g: 0.12, b: 0.14, a: 0.76}
+  cardEdge: {r: 0.8, g: 0.83, b: 0.85, a: 0.48}
+  accent: {r: 1, g: 0.83, b: 0.22, a: 1}
+  blue: {r: 0.3, g: 0.48, b: 1, a: 1}
+  orange: {r: 1, g: 0.47, b: 0.2, a: 1}
+  showMoveKeys: 1
+  restartBeside: {fileID: 1724910409}
 --- !u!1 &1377853000
 GameObject:
   m_ObjectHideFlags: 0
@@ -5703,164 +5858,6 @@ MonoBehaviour:
   obstacleColor: 1
   blueMaterial: {fileID: 2100000, guid: 9bea17a55962ddc408cac5496d1ca32e, type: 2}
   orangeMaterial: {fileID: 2100000, guid: b8ffb4e0522b9204a8f0ea9a6cf83e4e, type: 2}
---- !u!1001 &1547699177
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1359000474}
-    m_Modifications:
-    - target: {fileID: 3314147662082405521, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: camScript
-      value: 
-      objectReference: {fileID: 1411356984}
-    - target: {fileID: 3314147662082405521, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: colorManager
-      value: 
-      objectReference: {fileID: 1705211688}
-    - target: {fileID: 3314147662082405521, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: cutController
-      value: 
-      objectReference: {fileID: 1041298950}
-    - target: {fileID: 3369772037282629160, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_text
-      value: '<color=#FFD54A>A / D</color><pos=46%>Move (2D)
-
-        <color=#FFD54A>W
-        A S D</color><pos=46%>Move (3D)
-
-        <color=#FFD54A>Space</color><pos=46%>Jump
-
-        <color=#FFD54A>Tab</color><pos=46%>Switch
-        2D / 3D view
-
-        <color=#FFD54A>Q / E</color><pos=46%>Rotate camera
-
-        <color=#FFD54A>Right
-        mouse drag</color><pos=46%>Rotate camera (3D)
-
-        <color=#FFD54A>Mouse
-        wheel</color><pos=46%>Zoom (3D)
-
-        <color=#FFD54A>C</color><pos=46%>Enter
-        / exit cut mode
-
-        <color=#FFD54A>Left mouse drag</color><pos=46%>Draw
-        a cut line
-
-        <color=#FFD54A>Left click</color><pos=46%>Choose
-        the piece to keep
-
-        <color=#FFD54A>F</color><pos=46%>Switch
-        piece
-
-        <color=#FFD54A>Left Shift</color><pos=46%>Switch color
-
-        <color=#FFD54A>R</color><pos=46%>Restart
-        level
-
-        <color=#FFD54A>Lookout pad</color><pos=46%>A / D, W / S or
-        drag to aim, X to step back'
-      objectReference: {fileID: 0}
-    - target: {fileID: 5070912106611503203, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_TextStyleHashCode
-      value: -1183493901
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_Pivot.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_Pivot.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 180
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 60
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 30
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 30
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8314749494676325081, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-      propertyPath: m_Name
-      value: ControlsButton
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
---- !u!224 &1547699178 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 5769418372828967951, guid: bb6e627c086da3940a9955f4e62198a5, type: 3}
-  m_PrefabInstance: {fileID: 1547699177}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1616430298
 GameObject:
   m_ObjectHideFlags: 0
@@ -6222,15 +6219,17 @@ PrefabInstance:
       objectReference: {fileID: 1041298950}
     - target: {fileID: 267102593074576009, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
       propertyPath: 'hints.Array.data[0]'
-      value: 'Turn orange (<color=#FFD54A>Shift</color>) to enter the booth, then cut a <b>thin slice</b> off your feet.'
+      value: Turn orange (<color=#FFD54A>Shift</color>) to enter the booth, then
+        cut a <b>thin slice</b> off your feet.
       objectReference: {fileID: 0}
     - target: {fileID: 267102593074576009, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
       propertyPath: 'hints.Array.data[1]'
-      value: 'Aim from the pad behind the start. Cross the glass in the <b>other color</b>.'
+      value: Aim from the pad behind the start. Cross the glass in the <b>other color</b>.
       objectReference: {fileID: 0}
     - target: {fileID: 267102593074576009, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
       propertyPath: 'hints.Array.data[2]'
-      value: 'Get a <b>blue slice</b> into the cage (<color=#FFD54A>F</color> switches pieces), then aim as orange from the lookout.'
+      value: Get a <b>blue slice</b> into the cage (<color=#FFD54A>F</color> switches
+        pieces), then aim as orange from the lookout.
       objectReference: {fileID: 0}
     - target: {fileID: 742942134309030197, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
       propertyPath: m_TextStyleHashCode
@@ -6859,7 +6858,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 1 = blue, 2 = orange
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 79459efec17a4d00a321bdcc27bbc385, type: 2}
@@ -7797,6 +7796,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CuttablePiece
   boxSize: {x: 2, y: 2, z: 2}
   density: 1
+  shape:
+    savedFaces: []
   volume: 0
 --- !u!4 &2031264534
 Transform:
@@ -8456,3 +8457,4 @@ SceneRoots:
   - {fileID: 2031264534}
   - {fileID: 1041298952}
   - {fileID: 985283814}
+  - {fileID: 807338325}
