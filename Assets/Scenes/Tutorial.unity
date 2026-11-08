@@ -566,6 +566,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 1
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 20
   ceiling: {fileID: 0}
@@ -761,6 +762,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 10
   ceiling: {fileID: 0}
@@ -1917,6 +1919,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 1
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 10
   ceiling: {fileID: 0}
@@ -2580,6 +2583,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 1
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 10
   ceiling: {fileID: 400517100}
@@ -2891,6 +2895,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 10
   ceiling: {fileID: 0}
@@ -2962,6 +2967,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 20
   ceiling: {fileID: 0}
@@ -4160,12 +4166,13 @@ MonoBehaviour:
   situation: 0
   size: {x: 8.3, y: 3.6, z: 6}
   view: 1
-  delay: 2
+  delay: 0
   duration: 0
   onlyOnce: 0
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 10
   ceiling: {fileID: 0}
@@ -4953,6 +4960,7 @@ Transform:
   - {fileID: 1306477313}
   - {fileID: 811225990}
   - {fileID: 2042563307}
+  - {fileID: 2102711294}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &750215541
@@ -5423,6 +5431,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 1
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 10
   ceiling: {fileID: 0}
@@ -5491,6 +5500,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 1
   priority: 10
   ceiling: {fileID: 0}
@@ -5592,6 +5602,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 20
   ceiling: {fileID: 0}
@@ -6957,6 +6968,77 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1935447002}
   m_CullTransparentMesh: 1
+--- !u!1 &1027045063
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1027045064}
+  - component: {fileID: 1027045065}
+  m_Layer: 0
+  m_Name: Bubble - Slice needs 2D
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1027045064
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1027045063}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 36.992996, y: 4.15, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1798682369}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1027045065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1027045063}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 245a4264f0e1f674d924ce5c5706576e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HintBubble
+  headline: This slice needs 2D!
+  message: Press [Tab] to go back to 2D.
+  icons:
+  - sprite: {fileID: 21300000, guid: 61d819661c106ec41969ff0eacd4237e, type: 3}
+    motion: 1
+  numberIcons: 0
+  situation: 7
+  size: {x: 0, y: 0, z: 0}
+  view: 2
+  delay: 0
+  duration: 0
+  onlyOnce: 0
+  doneKeys: 
+  doneAfterCameraDrag: 0
+  showWhileCutting: 1
+  onlyWhileCutting: 1
+  onlyBeforeBuilt: 0
+  priority: 20
+  ceiling: {fileID: 0}
+  gapWidth: 1.4
+  gapAxis: {x: 0, y: 0, z: 1}
+  door: {fileID: 0}
+  aimZone: {fileID: 1847414789}
+  anchor: 0
+  target: {fileID: 0}
+  screenPoint: {x: 0.5, y: 0.8}
+  pointAt: {fileID: 0}
 --- !u!114 &1037442485
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9487,6 +9569,7 @@ MonoBehaviour:
   doneKeys: 66000000
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 20
   ceiling: {fileID: 0}
@@ -9914,6 +9997,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 30
   ceiling: {fileID: 0}
@@ -10096,6 +10180,7 @@ MonoBehaviour:
   doneKeys: 72000000
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 40
   ceiling: {fileID: 0}
@@ -10298,6 +10383,101 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 400, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1518088445
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1518088448}
+  - component: {fileID: 1518088447}
+  - component: {fileID: 1518088446}
+  m_Layer: 0
+  m_Name: Cut Feedback
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1518088446
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1518088445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e29826d0fbf2d441afa78b1a04d5cc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CutCountView
+  readyColor: {r: 1, g: 0.835, b: 0.29, a: 1}
+  usedColor: {r: 0.56, g: 0.58, b: 0.61, a: 1}
+  panelColor: {r: 0.063, g: 0.082, b: 0.11, a: 0.85}
+  emptyColor: {r: 0.86, g: 0.22, b: 0.2, a: 0.9}
+  iconSize: 40
+  iconGap: 14
+  sidePadding: 20
+  panelHeight: 54
+  gapAbovePlayer: 12
+  gapWhileChoosing: 30
+  gapBelowBubble: 6
+  liftWhileCutting: 1
+  followSpeed: 20
+  fadeTime: 0.12
+  snipTime: 0.38
+  shakeTime: 0.4
+  shakeSize: 9
+--- !u!114 &1518088447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1518088445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d321102a6ab8b1848ba43bb767eb153a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PieceChoiceView
+  clickIcon: {fileID: 21300000, guid: e5221b208f6861246879fe6e4d08bea5, type: 3}
+  keepText: Click to keep
+  leaveText: Stays behind
+  gold: {r: 1, g: 0.835, b: 0.29, a: 1}
+  rim: {r: 0.063, g: 0.082, b: 0.11, a: 0.9}
+  dashColor: {r: 1, g: 1, b: 1, a: 0.85}
+  tagFill: {r: 0.063, g: 0.082, b: 0.11, a: 1}
+  leaveTextColor: {r: 0.84, g: 0.87, b: 0.92, a: 1}
+  pieceGap: 0.4
+  splitTime: 0.18
+  fadeTime: 0.15
+  strokeWidth: 7
+  strokeBreath: 1.5
+  breathTime: 1.4
+  popSize: 12
+  popTime: 0.22
+  dashSpeed: 0.6
+  dimBrightness: 0.6
+  dimAlpha: 0.5
+  tagGap: 28
+  tagHeight: 54
+--- !u!4 &1518088448
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1518088445}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1529512453
 GameObject:
   m_ObjectHideFlags: 0
@@ -11310,6 +11490,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 30
   ceiling: {fileID: 0}
@@ -12367,6 +12548,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 10
   ceiling: {fileID: 0}
@@ -12501,6 +12683,7 @@ Transform:
   - {fileID: 1821111419}
   - {fileID: 480320885}
   - {fileID: 841788273}
+  - {fileID: 1027045064}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!222 &1804640153
@@ -13011,6 +13194,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 30
   ceiling: {fileID: 0}
@@ -14979,6 +15163,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 10
   ceiling: {fileID: 0}
@@ -15067,6 +15252,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 0
   priority: 20
   ceiling: {fileID: 0}
@@ -15641,6 +15827,7 @@ MonoBehaviour:
   doneKeys: 
   doneAfterCameraDrag: 0
   showWhileCutting: 0
+  onlyWhileCutting: 0
   onlyBeforeBuilt: 1
   priority: 10
   ceiling: {fileID: 0}
@@ -15891,6 +16078,77 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &2102711293
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2102711294}
+  - component: {fileID: 2102711295}
+  m_Layer: 0
+  m_Name: Bubble - Slice needs 2D
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2102711294
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2102711293}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 8.142853, y: 7.9, z: 8.571429}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 746567393}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2102711295
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2102711293}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 245a4264f0e1f674d924ce5c5706576e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HintBubble
+  headline: This slice needs 2D!
+  message: Press [Tab] to go back to 2D.
+  icons:
+  - sprite: {fileID: 21300000, guid: 61d819661c106ec41969ff0eacd4237e, type: 3}
+    motion: 1
+  numberIcons: 0
+  situation: 7
+  size: {x: 0, y: 0, z: 0}
+  view: 2
+  delay: 0
+  duration: 0
+  onlyOnce: 0
+  doneKeys: 
+  doneAfterCameraDrag: 0
+  showWhileCutting: 1
+  onlyWhileCutting: 1
+  onlyBeforeBuilt: 0
+  priority: 20
+  ceiling: {fileID: 0}
+  gapWidth: 1.4
+  gapAxis: {x: 0, y: 0, z: 1}
+  door: {fileID: 0}
+  aimZone: {fileID: 3746815956717837847}
+  anchor: 0
+  target: {fileID: 0}
+  screenPoint: {x: 0.5, y: 0.8}
+  pointAt: {fileID: 0}
 --- !u!1 &2108756454
 GameObject:
   m_ObjectHideFlags: 0
@@ -16220,3 +16478,4 @@ SceneRoots:
   - {fileID: 1565223702}
   - {fileID: 1798682369}
   - {fileID: 746567393}
+  - {fileID: 1518088448}

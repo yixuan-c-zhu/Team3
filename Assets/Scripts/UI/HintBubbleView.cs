@@ -187,6 +187,7 @@ public class HintBubbleView : MonoBehaviour
     {
         if (cutController.state == CutController.State.Choosing) return hint.WhileChoosing;
         if (cutController.state == CutController.State.Drawing) return hint.showWhileCutting;
+        if (hint.onlyWhileCutting) return false;
         if (Time.timeScale == 0f) return false;
         if (!camRig.canControl) return hint.InAimView;
         return true;
@@ -344,6 +345,7 @@ public class HintBubbleView : MonoBehaviour
             Vector3 screen = camRig.cam.WorldToScreenPoint(world);
             if (screen.z <= 0f) return false;
             goal = new Vector2(screen.x, screen.y) / canvas.scaleFactor + Vector2.up * gap;
+            if (shown.anchor == HintBubble.Anchor.Player) goal.y = Mathf.Max(goal.y, CutCountView.ClearHeight);
             float top = goal.y + tailHeight + bodySize.y;
             float highest = canvasSize.y - topMargin;
             if (top > highest) goal.y -= top - highest;

@@ -319,6 +319,15 @@ public class CutController : MonoBehaviour
     }
 
 
+    public int HoveredPiece { get { return hoveredIndex; } }
+
+    public Vector3 CutNormal { get { return cutNormal; } }
+
+    public GameObject GetChoicePiece(int index)
+    {
+        return state == State.Choosing ? previewObjs[index] : null;
+    }
+
     /// <summary>The bounds of both pieces while the player picks one after a cut. False at other times.</summary>
     public bool TryGetChoiceBounds(out Bounds bounds)
     {

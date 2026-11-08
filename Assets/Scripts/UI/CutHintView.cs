@@ -46,6 +46,11 @@ public class CutHintView : MonoBehaviour
     private Image leftButton;
     private float clock;
     private float dashOffset;
+    private bool cached;
+    private Vector3 cachedEye;
+    private Quaternion cachedTurn;
+    private Bounds cachedBody;
+    private Vector3[] cachedLine;
 
     public static void Ensure()
     {
@@ -104,7 +109,8 @@ public class CutHintView : MonoBehaviour
         start = Vector2.zero;
         end = Vector2.zero;
         if (cutController == null || camRig == null || cutController.player == null) return false;
-        if (cutController.state != CutController.State.Drawing || !camRig.is2D || camRig.IsTurning()) return false;
+        if (cutController.state != CutController.State.Drawing || camRig.IsTurning()) return false;
+        if (!camRig.is2D) return TryGetLine3D(out start, out end);
 
         Camera cam = camRig.cam;
         Vector3 forward = cam.transform.forward;
@@ -121,13 +127,77 @@ public class CutHintView : MonoBehaviour
             float half = CutHint.Extent(body, along) + overhang;
             Vector2 a = ToCanvas(cam.WorldToScreenPoint(center - along * half));
             Vector2 b = ToCanvas(cam.WorldToScreenPoint(center + along * half));
-            bool flat = Mathf.Abs(b.x - a.x) >= Mathf.Abs(b.y - a.y);
-            bool swap = flat ? a.x > b.x : a.y < b.y;
-            start = swap ? b : a;
-            end = swap ? a : b;
+            Order(a, b, out start, out end);
             return true;
         }
         return false;
+    }
+
+    bool TryGetLine3D(out Vector2 start, out Vector2 end)
+    {
+        start = Vector2.zero;
+        end = Vector2.zero;
+        Vector3[] line = FindLine3D();
+        if (line == null) return false;
+
+        Camera cam = camRig.cam;
+        Vector2 a = Vector2.zero;
+        Vector2 b = Vector2.zero;
+        Vector3 middle = Vector3.zero;
+        float longest = -1f;
+        for (int i = 0; i < line.Length; i++)
+        {
+            Vector2 p = ToCanvas(cam.WorldToScreenPoint(line[i]));
+            for (int j = i + 1; j < line.Length; j++)
+            {
+                Vector2 q = ToCanvas(cam.WorldToScreenPoint(line[j]));
+                float length = (q - p).sqrMagnitude;
+                if (length > longest)
+                {
+                    longest = length;
+                    a = p;
+                    b = q;
+                    middle = (line[i] + line[j]) * 0.5f;
+                }
+            }
+        }
+        if (longest <= 0f) return false;
+
+        Vector2 here = ToCanvas(cam.WorldToScreenPoint(middle));
+        Vector2 aside = ToCanvas(cam.WorldToScreenPoint(middle + cam.transform.right));
+        float extra = overhang * Vector2.Distance(here, aside);
+        Vector2 way = (b - a).normalized;
+        Order(a - way * extra, b + way * extra, out start, out end);
+        return true;
+    }
+
+    Vector3[] FindLine3D()
+    {
+        Transform view = camRig.cam.transform;
+        Bounds body = cutController.player.GetComponent<Collider>().bounds;
+        bool same = cached && view.position == cachedEye && view.rotation == cachedTurn
+            && body.center == cachedBody.center && body.size == cachedBody.size;
+        if (same) return cachedLine;
+
+        cached = true;
+        cachedEye = view.position;
+        cachedTurn = view.rotation;
+        cachedBody = body;
+        cachedLine = null;
+        ConvexShape shape = cutController.player.GetWorldShape();
+        foreach (CutHint hint in CutHint.all)
+        {
+            if (hint.TryGetCut3D(shape, body, view.position, view.right, cutController.minSize, out cachedLine)) break;
+        }
+        return cachedLine;
+    }
+
+    static void Order(Vector2 a, Vector2 b, out Vector2 start, out Vector2 end)
+    {
+        bool flat = Mathf.Abs(b.x - a.x) >= Mathf.Abs(b.y - a.y);
+        bool swap = flat ? a.x > b.x : a.y < b.y;
+        start = swap ? b : a;
+        end = swap ? a : b;
     }
 
     void Animate(Vector2 start, Vector2 end)
@@ -163,6 +233,7 @@ public class CutHintView : MonoBehaviour
     void Hide()
     {
         clock = 0f;
+        cached = false;
         dashes.enabled = false;
         ShowDemo(false);
     }

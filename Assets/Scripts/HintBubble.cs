@@ -90,6 +90,8 @@ public class HintBubble : MonoBehaviour
     public bool doneAfterCameraDrag;
     [Tooltip("Keep showing while the player is drawing a cut. Other bubbles hide so the cut indicator stands out.")]
     public bool showWhileCutting;
+    [Tooltip("Show only while the player is drawing a cut. Needs Show While Cutting.")]
+    public bool onlyWhileCutting;
     [Tooltip("Stop showing once Aim Zone's slice has become real.")]
     public bool onlyBeforeBuilt;
     [Tooltip("When two bubbles are ready at once, the higher one shows.")]
