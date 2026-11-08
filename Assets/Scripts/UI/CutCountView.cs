@@ -27,6 +27,7 @@ public class CutCountView : MonoBehaviour
     const float paintDensity = 3f;
     const float snipGrow = 0.4f;
     const float snipTurn = 16f;
+    const float stackSlack = 0.3f;
 
     static readonly Vector2 pivot = new Vector2(20f, 21f);
     static readonly Vector2 tipRight = new Vector2(30f, 39f);
@@ -141,21 +142,27 @@ public class CutCountView : MonoBehaviour
     {
         result = Vector2.zero;
         Bounds bounds;
-        if (!cut.TryGetChoiceBounds(out bounds))
+        Bounds reach;
+        if (cut.TryGetChoiceBounds(out bounds))
+        {
+            reach = bounds;
+        }
+        else
         {
             Collider body = cut.player.GetComponent<Collider>();
             if (body == null) return false;
             bounds = body.bounds;
+            reach = AddStacked(bounds);
         }
 
         Vector3 lift = cut.state == CutController.State.Drawing ? Vector3.up * liftWhileCutting : Vector3.zero;
         Camera cam = rig.cam;
-        Vector3 center = cam.WorldToScreenPoint(new Vector3(bounds.center.x, bounds.max.y, bounds.center.z) + lift);
+        Vector3 center = cam.WorldToScreenPoint(new Vector3(bounds.center.x, reach.max.y, bounds.center.z) + lift);
         if (center.z <= 0f) return false;
 
         float top = center.y;
-        Vector3 min = bounds.min;
-        Vector3 max = bounds.max;
+        Vector3 min = reach.min;
+        Vector3 max = reach.max;
         for (int i = 0; i < 4; i++)
         {
             Vector3 corner = new Vector3((i & 1) == 0 ? min.x : max.x, max.y, (i & 2) == 0 ? min.z : max.z);
@@ -166,6 +173,19 @@ public class CutCountView : MonoBehaviour
         float gap = cut.state == CutController.State.Choosing ? gapWhileChoosing : gapAbovePlayer;
         result = new Vector2(center.x / scale, top / scale + gap);
         return true;
+    }
+
+    Bounds AddStacked(Bounds bounds)
+    {
+        CuttablePiece rest = cut.LastLeftover;
+        if (rest == null) return bounds;
+        Collider body = rest.GetComponent<Collider>();
+        if (body == null || !body.enabled) return bounds;
+        Bounds above = body.bounds;
+        bool over = above.min.x < bounds.max.x && above.max.x > bounds.min.x && above.min.z < bounds.max.z && above.max.z > bounds.min.z;
+        bool resting = Mathf.Abs(above.min.y - bounds.max.y) < stackSlack;
+        if (over && resting) bounds.Encapsulate(above);
+        return bounds;
     }
 
     void Rebuild()

@@ -9419,7 +9419,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 1 = blue, 2 = orange
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 79459efec17a4d00a321bdcc27bbc385, type: 2}
@@ -10394,6 +10394,7 @@ GameObject:
   - component: {fileID: 1518088448}
   - component: {fileID: 1518088447}
   - component: {fileID: 1518088446}
+  - component: {fileID: 1518088449}
   m_Layer: 0
   m_Name: Cut Feedback
   m_TagString: Untagged
@@ -10430,6 +10431,31 @@ MonoBehaviour:
   snipTime: 0.38
   shakeTime: 0.4
   shakeSize: 9
+--- !u!114 &1518088449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1518088445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddafc8fc09cf325439c67891c05d8baa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PieceEyes
+  eyeColor: {r: 0.09, g: 0.11, b: 0.16, a: 1}
+  shineColor: {r: 1, g: 1, b: 1, a: 1}
+  blinkTime: 0.16
+  sleepDelay: 0.25
+  hopTime: 0.16
+  fadeTime: 0.1
+  switchMargin: 0.12
+  flatPenalty: 0.5
+  raise: 0.12
+  fill: 0.6
+  maxScale: 1
+  minScale: 0.3
+  surfaceOffset: 0.015
 --- !u!114 &1518088447
 MonoBehaviour:
   m_ObjectHideFlags: 0

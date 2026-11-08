@@ -56,11 +56,11 @@ public static class UiShapes
         });
     }
 
-    public static Sprite Paint(Vector2 size, float density, Vector4 border, System.Func<Vector2, Color> shade)
+    public static Sprite Paint(Vector2 size, float density, Vector4 border, System.Func<Vector2, Color> shade, bool mipmaps = false)
     {
         int width = Mathf.CeilToInt(size.x * density);
         int height = Mathf.CeilToInt(size.y * density);
-        Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, mipmaps);
         texture.wrapMode = TextureWrapMode.Clamp;
         texture.filterMode = FilterMode.Bilinear;
         Color[] pixels = new Color[width * height];

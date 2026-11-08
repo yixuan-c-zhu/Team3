@@ -522,6 +522,8 @@ public class CutController : MonoBehaviour
     /// <summary>True when F has a piece to switch into.</summary>
     public bool HasLeftover { get { return lastLeftover != null; } }
 
+    public CuttablePiece LastLeftover { get { return lastLeftover; } }
+
     // Called when a checkpoint removes the leftover pieces, so F has nothing left to switch into.
     public void ForgetLeftover()
     {
