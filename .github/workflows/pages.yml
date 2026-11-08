@@ -1,7 +1,8 @@
-# Publishes three WebGL builds to GitHub Pages as one site:
+# Publishes four WebGL builds to GitHub Pages as one site:
 #   main                                -> https://yixuan-c-zhu.github.io/Team3/
 #   feature/alpha-milestone-hosting     -> https://yixuan-c-zhu.github.io/Team3/alpha/
 #   feature/beta-progress-check-hosting -> https://yixuan-c-zhu.github.io/Team3/beta-progress-check2/
+#   beta/feature/beta-milestone-build   -> https://yixuan-c-zhu.github.io/Team3/beta/
 # Each branch serves the index.html, Build/ and TemplateData/ at its repo root.
 # A push to any of these branches rebuilds the whole site from all of them, using that
 # branch's copy of this file, so keep this file the same on every branch listed here.
@@ -16,6 +17,7 @@ on:
       - main
       - feature/alpha-milestone-hosting
       - feature/beta-progress-check-hosting
+      - beta/feature/beta-milestone-build
   workflow_dispatch:
 
 permissions:
@@ -70,6 +72,21 @@ jobs:
             TemplateData
           sparse-checkout-cone-mode: false
 
+      # Same as above: skipped (not failed) if the beta milestone branch is missing.
+      - name: Check out beta milestone
+        id: betamilestone
+        continue-on-error: true
+        uses: actions/checkout@v7
+        with:
+          ref: beta/feature/beta-milestone-build
+          path: betamilestone
+          lfs: true
+          sparse-checkout: |
+            index.html
+            Build
+            TemplateData
+          sparse-checkout-cone-mode: false
+
       - name: Assemble site
         run: |
           mkdir -p _site/alpha
@@ -78,6 +95,10 @@ jobs:
           if [ "${{ steps.beta.outcome }}" = "success" ]; then
             mkdir -p _site/beta-progress-check2
             cp -r beta/index.html beta/Build beta/TemplateData _site/beta-progress-check2/
+          fi
+          if [ "${{ steps.betamilestone.outcome }}" = "success" ]; then
+            mkdir -p _site/beta
+            cp -r betamilestone/index.html betamilestone/Build betamilestone/TemplateData _site/beta/
           fi
 
       - uses: actions/configure-pages@v6
