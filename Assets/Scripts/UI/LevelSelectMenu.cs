@@ -5,9 +5,8 @@ using UnityEngine.UIElements;
 public class LevelSelectMenu : MonoBehaviour
 {
     public Font menuFont;
-    VisualElement root, overview, tutorial;
-    Label title, errorLabel;
-    Button backButton;
+    VisualElement root;
+    Label errorLabel;
     bool loading;
 
     void OnEnable()
@@ -29,41 +28,26 @@ public class LevelSelectMenu : MonoBehaviour
 
         var header = new VisualElement();
         header.AddToClassList("panel-header");
-        title = new Label { name = "menu-title", pickingMode = PickingMode.Ignore };
+        var title = new Label("Level Select") { name = "menu-title", pickingMode = PickingMode.Ignore };
         title.AddToClassList("panel-title");
         header.Add(title);
-        backButton = new Button(ShowOverview) { name = "back-to-chapters", text = "←", tooltip = "Back" };
-        backButton.AddToClassList("back-button");
-        header.Add(backButton);
         panel.Add(header);
 
-        overview = new VisualElement { name = "chapter-overview" };
+        var overview = new VisualElement { name = "chapter-overview" };
         overview.AddToClassList("button-row");
-        // One button per chapter in LevelCatalog: Tutorial, then Level 1, Level 2, ...
+        // Every chapter starts at its first lesson, including the tutorial.
         for (int i = 0; i < LevelCatalog.Chapters.Length; i++)
         {
             int chapter = i;
             var button = MakeButton(i == 0 ? "Tutorial" : "Level " + i, "chapter-" + i, () => ShowChapter(chapter));
-            if (i > 0) button.SetEnabled(LevelCatalog.CanLoad(LevelCatalog.Chapters[i].Lessons[0].Scene));
+            button.SetEnabled(LevelCatalog.CanLoad(LevelCatalog.Chapters[i].Lessons[0].Scene));
             overview.Add(button);
         }
         panel.Add(overview);
 
-        tutorial = new VisualElement { name = "tutorial-lessons" };
-        tutorial.AddToClassList("button-row");
-        for (int i = 0; i < LevelCatalog.Chapters[0].Lessons.Length; i++)
-        {
-            int lesson = i;
-            var button = MakeButton((i + 1).ToString(), "lesson-" + i, () => PlayTutorial(lesson));
-            button.AddToClassList("number-button");
-            button.SetEnabled(LevelCatalog.CanLoad(LevelCatalog.Chapters[0].Lessons[i].Scene));
-            tutorial.Add(button);
-        }
-        panel.Add(tutorial);
         errorLabel = new Label { name = "menu-error" };
         errorLabel.AddToClassList("error-message");
         panel.Add(errorLabel);
-        ShowOverview();
     }
 
     static Button MakeButton(string text, string name, System.Action action)
@@ -83,34 +67,10 @@ public class LevelSelectMenu : MonoBehaviour
         root.EnableInClassList("compact", evt.newRect.width < 650);
     }
 
-    public void ShowOverview()
-    {
-        if (loading) return;
-        title.text = "Level Select";
-        overview.style.display = DisplayStyle.Flex;
-        tutorial.style.display = DisplayStyle.None;
-        backButton.style.visibility = Visibility.Hidden;
-        errorLabel.text = "";
-    }
-
     public void ShowChapter(int index)
     {
         if (loading || index < 0 || index >= LevelCatalog.Chapters.Length) return;
-        if (index > 0)
-        {
-            LoadLesson(index, 0);
-            return;
-        }
-        title.text = "Tutorial";
-        overview.style.display = DisplayStyle.None;
-        tutorial.style.display = DisplayStyle.Flex;
-        backButton.style.visibility = Visibility.Visible;
-        errorLabel.text = "";
-    }
-
-    public void PlayTutorial(int index)
-    {
-        if (index >= 0 && index < LevelCatalog.Chapters[0].Lessons.Length) LoadLesson(0, index);
+        LoadLesson(index, 0);
     }
 
     void LoadLesson(int chapter, int lesson)

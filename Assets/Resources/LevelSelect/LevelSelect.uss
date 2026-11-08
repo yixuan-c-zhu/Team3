@@ -50,20 +50,6 @@ Button {
 .menu-button:focus { border-width: 2px; border-color: rgb(93, 126, 83); }
 .menu-button:active { background-color: rgb(193, 212, 181); }
 .menu-button:disabled { opacity: 0.4; }
-.number-button { font-size: 28px; }
-.back-button {
-    position: absolute;
-    left: -4px;
-    top: 2px;
-    width: 44px;
-    height: 44px;
-    background-color: transparent;
-    border-width: 0;
-    border-radius: 7px;
-    font-size: 27px;
-}
-.back-button:hover, .back-button:focus { background-color: rgb(233, 239, 228); }
 .error-message { margin-top: 14px; font-size: 13px; color: rgb(164, 67, 48); -unity-text-align: middle-center; }
 .compact .menu-panel { padding-left: 22px; padding-right: 22px; }
 .compact .menu-button { font-size: 18px; margin-left: 4px; margin-right: 4px; }
-.compact .number-button { font-size: 26px; }
