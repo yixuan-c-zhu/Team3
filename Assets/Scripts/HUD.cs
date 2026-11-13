@@ -137,7 +137,8 @@ public class HUD : MonoBehaviour
             if (zone == null || !zone.isActiveAndEnabled || !zone.TryGetAlignmentPercent(out int percent)) continue;
             if (alignmentText == null) CreateAlignmentText();
             alignmentText.SetText("{0}%", percent);
-            alignmentText.color = zone.IsAiming ? Color.white : new Color(0.24f, 1f, 0.50f);
+            // Paper style: ink while aiming, cutting-mat green once lined up (white text vanished on the white paper floor).
+            alignmentText.color = zone.IsAiming ? new Color(0.133f, 0.157f, 0.227f) : new Color(0.184f, 0.478f, 0.333f);
             alignmentText.enabled = true;
             return;
         }
@@ -161,8 +162,8 @@ public class HUD : MonoBehaviour
         alignmentText.fontStyle = FontStyles.Bold;
         alignmentText.alignment = TextAlignmentOptions.Center;
         alignmentText.textWrappingMode = TextWrappingModes.NoWrap;
-        alignmentText.outlineColor = new Color(0.05f, 0.07f, 0.09f, 0.85f);
-        alignmentText.outlineWidth = 0.15f;
+        alignmentText.outlineColor = new Color(0.97f, 0.965f, 0.945f, 0.95f);
+        alignmentText.outlineWidth = 0.22f;
         alignmentText.raycastTarget = false;
     }
 

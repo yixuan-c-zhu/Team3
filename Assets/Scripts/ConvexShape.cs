@@ -10,30 +10,58 @@ public class ConvexShape : ISerializationCallbackReceiver
     private class SerializedFace
     {
         public Vector3[] vertices;
+        public bool cut;
     }
 
     [SerializeField, HideInInspector] private List<SerializedFace> savedFaces;
     [System.NonSerialized]
     public List<Vector3[]> faces;
+    // Parallel to faces: true for faces made by a cut. Paper/Piece draws them with section hatching.
+    // Null means no face was made by a cut.
+    [System.NonSerialized]
+    public List<bool> cutFaces;
     const float epsilon = 0.0001f;
+
+    static readonly Color32 cutFaceColor = new Color32(255, 0, 0, 255);
+    static readonly Color32 outerFaceColor = new Color32(0, 0, 0, 255);
 
     public void OnBeforeSerialize()
     {
         if (faces == null) return;
         savedFaces = new List<SerializedFace>(faces.Count);
-        foreach (var face in faces) savedFaces.Add(new SerializedFace { vertices = face });
+        for (int i = 0; i < faces.Count; i++)
+        {
+            savedFaces.Add(new SerializedFace { vertices = faces[i], cut = IsCutFace(i) });
+        }
     }
 
     public void OnAfterDeserialize()
     {
         faces = new List<Vector3[]>();
+        cutFaces = new List<bool>();
         if (savedFaces == null) return;
-        foreach (var face in savedFaces) faces.Add(face.vertices);
+        foreach (var face in savedFaces)
+        {
+            faces.Add(face.vertices);
+            cutFaces.Add(face.cut);
+        }
     }
 
     public ConvexShape(List<Vector3[]> faceList)
     {
         faces = faceList;
+    }
+
+    public ConvexShape(List<Vector3[]> faceList, List<bool> cutList)
+    {
+        faces = faceList;
+        cutFaces = cutList;
+    }
+
+    /// <summary>True if face <paramref name="index"/> was made by a cut.</summary>
+    public bool IsCutFace(int index)
+    {
+        return cutFaces != null && index < cutFaces.Count && cutFaces[index];
     }
 
     public static ConvexShape MakeBox(Vector3 size)
@@ -66,7 +94,7 @@ public class ConvexShape : ISerializationCallbackReceiver
             }
             newFaces.Add(newFace);
         }
-        return new ConvexShape(newFaces);
+        return new ConvexShape(newFaces, cutFaces != null ? new List<bool>(cutFaces) : null);
     }
 
     public ConvexShape MoveBy(Vector3 offset)
@@ -123,10 +151,14 @@ public class ConvexShape : ISerializationCallbackReceiver
         backShape = null;
         List<Vector3[]> frontFaces = new List<Vector3[]>();
         List<Vector3[]> backFaces = new List<Vector3[]>();
+        List<bool> frontCut = new List<bool>();
+        List<bool> backCut = new List<bool>();
         List<Vector3> cutPoints = new List<Vector3>();
 
-        foreach (Vector3[] face in faces)
+        for (int faceIndex = 0; faceIndex < faces.Count; faceIndex++)
         {
+            Vector3[] face = faces[faceIndex];
+            bool faceWasCut = IsCutFace(faceIndex);
             int count = face.Length;
             float[] dist = new float[count];
             bool onPlane = true;
@@ -170,8 +202,16 @@ public class ConvexShape : ISerializationCallbackReceiver
                     cutPoints.Add(hitPoint);
                 }
             }
-            if (frontPoints.Count >= 3) frontFaces.Add(frontPoints.ToArray());
-            if (backPoints.Count >= 3) backFaces.Add(backPoints.ToArray());
+            if (frontPoints.Count >= 3)
+            {
+                frontFaces.Add(frontPoints.ToArray());
+                frontCut.Add(faceWasCut);
+            }
+            if (backPoints.Count >= 3)
+            {
+                backFaces.Add(backPoints.ToArray());
+                backCut.Add(faceWasCut);
+            }
         }
 
         List<Vector3> points = new List<Vector3>();
@@ -225,10 +265,13 @@ public class ConvexShape : ISerializationCallbackReceiver
             }
         }
 
+        // The new cap face on each side is a cut face.
         frontFaces.Add(points.ToArray());
+        frontCut.Add(true);
         backFaces.Add(points.ToArray());
-        frontShape = new ConvexShape(frontFaces);
-        backShape = new ConvexShape(backFaces);
+        backCut.Add(true);
+        frontShape = new ConvexShape(frontFaces, frontCut);
+        backShape = new ConvexShape(backFaces, backCut);
         return true;
     }
 
@@ -237,11 +280,16 @@ public class ConvexShape : ISerializationCallbackReceiver
         List<Vector3> vertices = new List<Vector3>();
         List<Vector3> normals = new List<Vector3>();
         List<int> triangles = new List<int>();
+        // For the paper shaders: vertex colour (1,0,0) marks cut faces, UV0 is the position on the face
+        // in world units from the face's corner, UV1 is the face's size.
+        List<Color32> colors = new List<Color32>();
+        List<Vector2> faceUVs = new List<Vector2>();
+        List<Vector2> faceSizes = new List<Vector2>();
         Vector3 center = GetCenter();
 
-        foreach (Vector3[] f in faces)
+        for (int faceIndex = 0; faceIndex < faces.Count; faceIndex++)
         {
-            Vector3[] face = f;
+            Vector3[] face = faces[faceIndex];
             Vector3 normal = GetFaceNormal(face);
             Vector3 faceCenter = Vector3.zero;
             foreach (Vector3 p in face)
@@ -261,11 +309,26 @@ public class ConvexShape : ISerializationCallbackReceiver
                 normal = -normal;
             }
 
+            Vector3 axisU = Mathf.Abs(normal.y) > 0.9f ? Vector3.right : Vector3.Cross(Vector3.up, normal).normalized;
+            Vector3 axisV = Vector3.Cross(normal, axisU).normalized;
+            Vector2 min = new Vector2(float.MaxValue, float.MaxValue);
+            Vector2 max = new Vector2(float.MinValue, float.MinValue);
+            foreach (Vector3 p in face)
+            {
+                Vector2 uv = new Vector2(Vector3.Dot(p, axisU), Vector3.Dot(p, axisV));
+                min = Vector2.Min(min, uv);
+                max = Vector2.Max(max, uv);
+            }
+            Color32 faceColor = IsCutFace(faceIndex) ? cutFaceColor : outerFaceColor;
+
             int startIndex = vertices.Count;
             foreach (Vector3 p in face)
             {
                 vertices.Add(p);
                 normals.Add(normal);
+                colors.Add(faceColor);
+                faceUVs.Add(new Vector2(Vector3.Dot(p, axisU), Vector3.Dot(p, axisV)) - min);
+                faceSizes.Add(max - min);
             }
             for (int i = 1; i < face.Length - 1; i++)
             {
@@ -279,6 +342,9 @@ public class ConvexShape : ISerializationCallbackReceiver
         mesh.name = "CutPiece";
         mesh.SetVertices(vertices);
         mesh.SetNormals(normals);
+        mesh.SetColors(colors);
+        mesh.SetUVs(0, faceUVs);
+        mesh.SetUVs(1, faceSizes);
         mesh.SetTriangles(triangles, 0);
         mesh.RecalculateBounds();
         return mesh;
