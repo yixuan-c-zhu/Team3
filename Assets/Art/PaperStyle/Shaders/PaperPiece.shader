@@ -25,6 +25,16 @@ Shader "Paper/Piece"
         _GrainScale ("Grain tiling (per world unit)", Float) = 0.4
         _GrainStrength ("Grain strength", Range(0, 1)) = 0.12
 
+        [Header(Kraft)]
+        [ToggleUI] _Kraft ("Kraft paper", Float) = 0
+        [NoScaleOffset] _KraftTex ("Kraft (R tone, G light fibres, B dark fibres)", 2D) = "black" {}
+        _KraftScale ("Kraft tiling (per world unit)", Float) = 0.22
+        _KraftTone ("Tone", Range(0, 1)) = 0.32
+        _KraftLight ("Light fibres", Range(0, 1)) = 0.65
+        _KraftDark ("Dark fibres", Range(0, 1)) = 0.9
+        _KraftDye ("Kraft under the dye", Range(0, 1)) = 0.1
+        _KraftColor ("Kraft (cut faces)", Color) = (0.69, 0.553, 0.376, 1)
+
         [Header(Lighting)]
         _Ambient ("Ambient", Range(0, 1.5)) = 0.8
         _Diffuse ("Sun", Range(0, 1)) = 0.26
@@ -54,10 +64,19 @@ Shader "Paper/Piece"
             half _Ambient;
             half _Diffuse;
             half _ShadowStrength;
+            float _Kraft;
+            float _KraftScale;
+            half _KraftTone;
+            half _KraftLight;
+            half _KraftDark;
+            half _KraftDye;
+            half4 _KraftColor;
         CBUFFER_END
 
         TEXTURE2D(_GrainTex);
         SAMPLER(sampler_GrainTex);
+        TEXTURE2D(_KraftTex);
+        SAMPLER(sampler_KraftTex);
 
         void PaperFadeClip(half alpha, float4 positionCS)
         {
@@ -107,6 +126,7 @@ Shader "Paper/Piece"
                 float4 screenPos : TEXCOORD2;
                 float2 faceUV : TEXCOORD3;
                 float3 faceSizeCut : TEXCOORD4;   // xy = face size, z = 1 on cut faces
+                float3 originWS : TEXCOORD5;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -125,6 +145,7 @@ Shader "Paper/Piece"
                 o.faceUV = v.faceUV;
                 float cut = (v.color.r > 0.5h && v.color.g < 0.5h) ? 1.0 : 0.0;
                 o.faceSizeCut = float3(v.faceSize, cut);
+                o.originWS = TransformObjectToWorld(float3(0.0, 0.0, 0.0));
                 return o;
             }
 
@@ -175,7 +196,31 @@ Shader "Paper/Piece"
                 float stripeMask = 1.0 - Ink(stripe, 0.25);
                 float dotMask = Ink(dotDist, 0.2);
 
-                if (i.faceSizeCut.z > 0.5)
+                float3 local = i.positionWS - i.originWS;
+                float3 axisU = abs(n.y) > 0.9 ? float3(1.0, 0.0, 0.0) : normalize(cross(float3(0.0, 1.0, 0.0), n) + float3(1e-5, 0.0, 0.0));
+                float3 axisV = cross(n, axisU);
+                float2 shift = frac(sin(dot(round(n * 3.0), float3(12.9898, 78.233, 37.719))) * float2(43758.5453, 22578.1459));
+                half4 kraft = SAMPLE_TEXTURE2D(_KraftTex, sampler_KraftTex, float2(dot(local, axisU), dot(local, axisV)) * _KraftScale + shift);
+                half tone = (kraft.r - 0.5h) * 2.0h * _KraftTone;
+
+                if (_Kraft > 0.5)
+                {
+                    half3 dyed = lerp(body, _KraftColor.rgb, _KraftDye);
+                    if (i.faceSizeCut.z > 0.5)
+                    {
+                        half3 core = _KraftColor.rgb * (1.0h + tone);
+                        core = lerp(core, min(_KraftColor.rgb * 1.3h, 1.0h), saturate(kraft.g * _KraftLight));
+                        core = lerp(core, _KraftColor.rgb * 0.45h, saturate(kraft.b * _KraftDark));
+                        col = lerp(core, dyed, rim);
+                    }
+                    else
+                    {
+                        col = dyed * (1.0h + tone);
+                        col = lerp(col, lerp(dyed, half3(1.0h, 0.97h, 0.9h), 0.55h), saturate(kraft.g * _KraftLight));
+                        col = lerp(col, dyed * half3(0.42h, 0.38h, 0.36h), saturate(kraft.b * _KraftDark));
+                    }
+                }
+                else if (i.faceSizeCut.z > 0.5)
                 {
                     // Section lining on cut faces, with a thin rim of the body colour.
                     col = lerp(_CutColor.rgb, body, 0.08h);

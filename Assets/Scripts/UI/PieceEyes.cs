@@ -17,6 +17,9 @@ public class PieceEyes : MonoBehaviour
     public float maxScale = 1f;
     public float minScale = 0.3f;
     public float surfaceOffset = 0.015f;
+    public float lookReach = 0.7f;
+    public float lookRange = 1.5f;
+    public float lookSpeed = 10f;
 
     const float paintDensity = 2f;
     const float openAbove = 0.25f;
@@ -54,7 +57,8 @@ public class PieceEyes : MonoBehaviour
         public SpriteRenderer eyes;
         public SpriteRenderer shine;
         public SpriteRenderer lids;
-        public CuttablePiece piece;
+        public Object owner;
+        public Transform frame;
         public Renderer body;
         public ConvexShape shape;
         public readonly List<Face> faces = new List<Face>();
@@ -63,6 +67,9 @@ public class PieceEyes : MonoBehaviour
         public float hop = 1f;
         public float open = 1f;
         public float alpha;
+        public bool hasLook;
+        public Vector3 lookAt;
+        public Vector2 look;
     }
 
     private CutController cut;
@@ -70,13 +77,16 @@ public class PieceEyes : MonoBehaviour
     private GameObject host;
     private Pair you;
     private Pair rest;
+    private bool paper;
     private readonly List<Sprite> sprites = new List<Sprite>();
     private readonly List<Vector2> flat = new List<Vector2>();
+    private readonly Dictionary<GameObject, ConvexShape> previews = new Dictionary<GameObject, ConvexShape>();
 
     void Awake()
     {
         cut = FindFirstObjectByType<CutController>();
         rig = FindFirstObjectByType<CameraRig>();
+        paper = PaperFeel.IsOn;
         host = new GameObject("Piece Eyes");
         Sprite eyes = Keep(PaintEyes());
         Sprite shine = Keep(PaintShine());
@@ -119,26 +129,49 @@ public class PieceEyes : MonoBehaviour
     {
         Camera cam = rig != null ? rig.cam : null;
         float deltaTime = Time.unscaledDeltaTime;
-        Track(you, cut != null ? cut.player : null, 1f, cam, deltaTime);
-        Track(rest, cut != null ? cut.LastLeftover : null, 0f, cam, deltaTime);
+        GameObject hovered = paper ? HoveredPreview() : null;
+        if (hovered != null)
+        {
+            Track(you, hovered, hovered.transform, hovered.GetComponent<Renderer>(), PreviewShape(hovered), 1f, cam, deltaTime);
+        }
+        else
+        {
+            if (previews.Count > 0) previews.Clear();
+            CuttablePiece player = cut != null ? cut.player : null;
+            TrackPiece(you, player, 1f, cam, deltaTime);
+        }
+        TrackPiece(rest, cut != null ? cut.LastLeftover : null, 0f, cam, deltaTime);
     }
 
-    void Track(Pair pair, CuttablePiece piece, float target, Camera cam, float deltaTime)
+    void TrackPiece(Pair pair, CuttablePiece piece, float target, Camera cam, float deltaTime)
     {
-        if (!ReferenceEquals(piece, pair.piece))
+        if (piece == null)
         {
-            pair.piece = piece;
-            pair.body = piece != null ? piece.GetComponent<Renderer>() : null;
+            Track(pair, null, null, null, null, target, cam, deltaTime);
+            return;
+        }
+        Renderer body = ReferenceEquals(piece, pair.owner) ? pair.body : piece.GetComponent<Renderer>();
+        Track(pair, piece, piece.transform, body, piece.shape, target, cam, deltaTime);
+    }
+
+    void Track(Pair pair, Object owner, Transform frame, Renderer body, ConvexShape shape, float target, Camera cam, float deltaTime)
+    {
+        if (!ReferenceEquals(owner, pair.owner))
+        {
+            pair.owner = owner;
+            pair.frame = frame;
+            pair.body = body;
             pair.shape = null;
             pair.alpha = 0f;
+            pair.look = Vector2.zero;
             pair.open = target > 0f ? 1f : 1f + sleepDelay / blinkTime;
         }
 
         bool wasShown = pair.root.gameObject.activeSelf;
         int best = -1;
-        if (cam != null && pair.piece != null && pair.body != null && pair.body.enabled && pair.piece.gameObject.activeInHierarchy)
+        if (cam != null && owner != null && pair.frame != null && pair.body != null && pair.body.enabled && pair.frame.gameObject.activeInHierarchy)
         {
-            if (pair.piece.shape != pair.shape) ReadFaces(pair);
+            if (shape != pair.shape) ReadFaces(pair, shape);
             best = PickFace(pair, cam);
         }
         pair.open = Mathf.MoveTowards(pair.open, target, deltaTime / blinkTime);
@@ -168,13 +201,62 @@ public class PieceEyes : MonoBehaviour
         }
 
         pair.alpha = Mathf.MoveTowards(pair.alpha, BodyAlpha(pair.body), deltaTime / fadeTime);
-        Place(pair, cam, Mathf.Abs(1f - 2f * pair.hop));
+        pair.hasLook = paper && target > 0f && FindLook(pair, cam, out pair.lookAt);
+        Place(pair, cam, Mathf.Abs(1f - 2f * pair.hop), deltaTime);
         Show(pair);
     }
 
-    void ReadFaces(Pair pair)
+    GameObject HoveredPreview()
     {
-        pair.shape = pair.piece.shape;
+        if (cut == null || cut.state != CutController.State.Choosing) return null;
+        int index = cut.HoveredPiece;
+        if (index != 0 && index != 1) return null;
+        return cut.GetChoicePiece(index);
+    }
+
+    ConvexShape PreviewShape(GameObject preview)
+    {
+        ConvexShape shape;
+        if (previews.TryGetValue(preview, out shape)) return shape;
+        List<Vector3[]> faces = new List<Vector3[]>();
+        MeshFilter filter = preview.GetComponent<MeshFilter>();
+        Mesh mesh = filter != null ? filter.sharedMesh : null;
+        if (mesh != null)
+        {
+            Vector3[] vertices = mesh.vertices;
+            Vector3[] normals = mesh.normals;
+            List<Vector3> current = new List<Vector3>();
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                if (current.Count > 0 && normals[i] != normals[i - 1])
+                {
+                    if (current.Count >= 3) faces.Add(current.ToArray());
+                    current.Clear();
+                }
+                current.Add(vertices[i]);
+            }
+            if (current.Count >= 3) faces.Add(current.ToArray());
+        }
+        shape = new ConvexShape(faces);
+        previews[preview] = shape;
+        return shape;
+    }
+
+    bool FindLook(Pair pair, Camera cam, out Vector3 point)
+    {
+        point = Vector3.zero;
+        if (cut == null || cam == null || pair.body == null || cut.state == CutController.State.Normal) return false;
+        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+        Plane plane = new Plane(-cam.transform.forward, pair.body.bounds.center);
+        float distance;
+        if (!plane.Raycast(ray, out distance)) return false;
+        point = ray.GetPoint(distance);
+        return true;
+    }
+
+    void ReadFaces(Pair pair, ConvexShape shape)
+    {
+        pair.shape = shape;
         pair.faces.Clear();
         pair.face = -1;
         pair.hop = 1f;
@@ -206,7 +288,7 @@ public class PieceEyes : MonoBehaviour
 
     int PickFace(Pair pair, Camera cam)
     {
-        Transform body = pair.piece.transform;
+        Transform body = pair.frame;
         int best = -1;
         int fallback = -1;
         float bestScore = minFacing;
@@ -249,10 +331,10 @@ public class PieceEyes : MonoBehaviour
         return Vector3.Dot(normal, toCamera) * (1f - flatPenalty * Mathf.Abs(normal.y));
     }
 
-    void Place(Pair pair, Camera cam, float squash)
+    void Place(Pair pair, Camera cam, float squash, float deltaTime)
     {
         Face face = pair.faces[pair.face];
-        Transform body = pair.piece.transform;
+        Transform body = pair.frame;
         Vector3 normal = body.TransformDirection(face.normal).normalized;
         Vector3 center = body.TransformPoint(face.center);
         Vector3 up = Vector3.ProjectOnPlane(Vector3.up, normal);
@@ -284,6 +366,20 @@ public class PieceEyes : MonoBehaviour
             spot *= 0.7f;
         }
         scale = Mathf.Max(scale, minScale);
+
+        Vector2 wanted = Vector2.zero;
+        if (pair.hasLook)
+        {
+            Vector3 toward = pair.lookAt - (center + right * spot.x + up * spot.y);
+            Vector2 local = new Vector2(Vector3.Dot(toward, right), Vector3.Dot(toward, up));
+            float distance = local.magnitude;
+            if (distance > 0.001f) wanted = local / distance * Mathf.Clamp01(distance / lookRange);
+        }
+        pair.look = Vector2.Lerp(pair.look, wanted, 1f - Mathf.Exp(-lookSpeed * deltaTime));
+        Vector2 half = size * scale * 0.5f;
+        Vector2 shift = pair.look * size.y * scale * lookReach;
+        for (int i = 0; i < 4 && shift.sqrMagnitude > 1e-6f && !Fits(spot + shift, half); i++) shift *= 0.5f;
+        if (shift.sqrMagnitude > 1e-6f && Fits(spot + shift, half)) spot += shift;
 
         Vector3 position = center + right * spot.x + up * spot.y + normal * surfaceOffset;
         pair.root.SetPositionAndRotation(position, Quaternion.LookRotation(-normal, up));

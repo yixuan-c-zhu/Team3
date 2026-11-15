@@ -22,6 +22,8 @@ public class CutCountView : MonoBehaviour
     public float snipTime = 0.38f;
     public float shakeTime = 0.4f;
     public float shakeSize = 9f;
+    public float popTime = 0.42f;
+    public float popStagger = 0.14f;
 
     const float paintSize = 40f;
     const float paintDensity = 3f;
@@ -41,6 +43,7 @@ public class CutCountView : MonoBehaviour
         public Image image;
         public bool used;
         public float snip = 1f;
+        public float pop = 1f;
     }
 
     private CutController cut;
@@ -50,6 +53,7 @@ public class CutCountView : MonoBehaviour
     private RectTransform panel;
     private CanvasGroup group;
     private Image panelImage;
+    private bool paper;
     private Sprite scissors;
     private readonly List<Slot> slots = new List<Slot>();
 
@@ -76,6 +80,8 @@ public class CutCountView : MonoBehaviour
         cut = FindFirstObjectByType<CutController>();
         rig = FindFirstObjectByType<CameraRig>();
         level = FindFirstObjectByType<LevelManager>();
+        paper = PaperFeel.IsOn;
+        if (paper) UsePaperLook();
         Build();
         group.alpha = 0f;
     }
@@ -188,8 +194,17 @@ public class CutCountView : MonoBehaviour
         return bounds;
     }
 
+    void UsePaperLook()
+    {
+        readyColor = PaperFeel.Ink;
+        usedColor = new Color(0.6f, 0.62f, 0.67f, 0.6f);
+        panelColor = PaperFeel.Cardstock;
+        emptyColor = new Color(0.98f, 0.62f, 0.58f, 1f);
+    }
+
     void Rebuild()
     {
+        bool refill = paper && shownMax >= 0;
         shownMax = level.maxCuts;
         while (slots.Count < shownMax)
         {
@@ -212,6 +227,7 @@ public class CutCountView : MonoBehaviour
             slot.rect.anchoredPosition = new Vector2(sidePadding + iconSize * 0.5f + i * (iconSize + iconGap), 0f);
             slot.used = i < used;
             slot.snip = 1f;
+            slot.pop = refill && !slot.used ? -(i - used) * popStagger : 1f;
         }
         float width = sidePadding * 2f + shownMax * iconSize + (shownMax - 1) * iconGap;
         panel.sizeDelta = new Vector2(width, panelHeight);
@@ -220,6 +236,7 @@ public class CutCountView : MonoBehaviour
     void UpdateSlots(float deltaTime)
     {
         int used = level.maxCuts - level.cutsLeft;
+        int refilled = 0;
         for (int i = 0; i < shownMax; i++)
         {
             Slot slot = slots[i];
@@ -227,7 +244,16 @@ public class CutCountView : MonoBehaviour
             if (nowUsed != slot.used)
             {
                 slot.used = nowUsed;
-                slot.snip = 0f;
+                if (paper && !nowUsed)
+                {
+                    slot.snip = 1f;
+                    slot.pop = -refilled * popStagger;
+                    refilled++;
+                }
+                else
+                {
+                    slot.snip = 0f;
+                }
             }
 
             slot.snip = Mathf.Min(1f, slot.snip + deltaTime / snipTime);
@@ -235,8 +261,16 @@ public class CutCountView : MonoBehaviour
             Color from = slot.used ? readyColor : usedColor;
             Color to = slot.used ? usedColor : readyColor;
             slot.image.color = Color.Lerp(from, to, slot.snip);
-            slot.rect.localScale = Vector3.one * (1f + bump * snipGrow);
-            slot.rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(slot.snip * Mathf.PI * 3f) * bump * snipTurn);
+            float grow = 1f;
+            float wiggle = 0f;
+            if (slot.pop < 1f)
+            {
+                slot.pop = Mathf.Min(1f, slot.pop + deltaTime / popTime);
+                grow = slot.pop <= 0f ? 0f : PaperFeel.BackOut(slot.pop, 3f);
+                wiggle = slot.pop <= 0f ? 0f : Mathf.Sin(slot.pop * Mathf.PI * 2f) * (1f - slot.pop) * 25f;
+            }
+            slot.rect.localScale = Vector3.one * (1f + bump * snipGrow) * grow;
+            slot.rect.localRotation = Quaternion.Euler(0f, 0f, Mathf.Sin(slot.snip * Mathf.PI * 3f) * bump * snipTurn + wiggle);
         }
     }
 
@@ -245,17 +279,36 @@ public class CutCountView : MonoBehaviour
         canvas = UiShapes.MakeOverlay(gameObject, 3);
         scissors = MakeScissors();
 
-        panelImage = UiShapes.NewGraphic<Image>("Cuts Left", transform, new Vector2(0.5f, 0f));
-        panelImage.sprite = UiShapes.RoundBox(panelHeight * 0.5f, 0f);
-        panelImage.type = Image.Type.Sliced;
-        panelImage.color = panelColor;
-        panel = panelImage.rectTransform;
+        panel = UiShapes.NewRect("Cuts Left", transform, new Vector2(0.5f, 0f));
+        Sprite round = UiShapes.RoundBox(panelHeight * 0.5f, 0f);
+        if (paper)
+        {
+            Image shadow = Layer("Shadow", round, PaperFeel.Shadow);
+            shadow.rectTransform.offsetMin = PaperFeel.ShadowOffset;
+            shadow.rectTransform.offsetMax = PaperFeel.ShadowOffset;
+        }
+        panelImage = Layer("Fill", round, panelColor);
+        if (paper) Layer("Edge", UiShapes.RoundBox(panelHeight * 0.5f, 3f), PaperFeel.Ink);
         group = panel.gameObject.AddComponent<CanvasGroup>();
         group.blocksRaycasts = false;
         group.interactable = false;
     }
 
-    static Sprite MakeScissors()
+    Image Layer(string name, Sprite sprite, Color color)
+    {
+        Image image = UiShapes.NewGraphic<Image>(name, panel, new Vector2(0.5f, 0.5f));
+        image.sprite = sprite;
+        image.type = Image.Type.Sliced;
+        image.color = color;
+        RectTransform rect = image.rectTransform;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+        return image;
+    }
+
+    public static Sprite MakeScissors()
     {
         Vector2 size = Vector2.one * paintSize;
         return UiShapes.Paint(size, paintDensity, Vector4.zero, p =>

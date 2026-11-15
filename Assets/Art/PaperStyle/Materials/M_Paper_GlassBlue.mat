@@ -28,7 +28,7 @@ Material:
     - _BackFaceAlpha: 0.45
     - _EdgeWidth: 0.07
     - _GlintStrength: 0.55
-    - _Pattern: 1
+    - _Pattern: 0
     - _PatternAlpha: 0.45
     - _PatternScale: 0.32
     m_Colors:

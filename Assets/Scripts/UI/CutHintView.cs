@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+[DefaultExecutionOrder(1000)]
 public class CutHintView : MonoBehaviour
 {
     public Color fallbackLineColor = new Color(0.878f, 0.463f, 0.227f);

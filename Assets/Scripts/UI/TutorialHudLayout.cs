@@ -34,6 +34,15 @@ public sealed class TutorialHudLayout : MonoBehaviour
 
     static readonly Vector3[] corners = new Vector3[4];
 
+    Color textColor = Color.white;
+    Color iconColor = Color.white;
+    Color keyFill = new Color(0, 0, 0, 0.10f);
+    Color keyEdge = Color.white;
+    Color keyText = Color.white;
+    Color dividerColor = new Color(1, 1, 1, 0.34f);
+    Color shadowColor = Color.clear;
+    float cardBorder = 2f;
+
     HUD hud;
     CheckpointManager checkpoints;
     RectTransform root, footer, objective, restartArea;
@@ -80,10 +89,10 @@ public sealed class TutorialHudLayout : MonoBehaviour
             panel.color = value ? Color.Lerp(owner.cardFill, owner.orange, 0.24f) : owner.cardFill;
             panel.edge = value ? owner.orange : owner.cardEdge;
             panel.SetVerticesDirty();
-            keycap.color = value ? owner.orange : new Color(0, 0, 0, 0.10f);
-            keycap.edge = value ? owner.orange : Color.white;
+            keycap.color = value ? owner.orange : owner.keyFill;
+            keycap.edge = value ? owner.orange : owner.keyEdge;
             keycap.SetVerticesDirty();
-            keyText.color = value ? new Color(0.12f, 0.10f, 0.08f) : Color.white;
+            keyText.color = value ? new Color(0.12f, 0.10f, 0.08f) : owner.keyText;
         }
     }
 
@@ -93,6 +102,7 @@ public sealed class TutorialHudLayout : MonoBehaviour
         checkpoints = FindFirstObjectByType<CheckpointManager>();
         if (hud == null) return;
         font = hud.modeText != null ? hud.modeText.font : TMP_Settings.defaultFontAsset;
+        if (PaperFeel.IsOn) UsePaperLook();
 
         // Keep the existing counters and room tips intact; replace only their presentation.
         if (hud.statsText != null)
@@ -111,7 +121,8 @@ public sealed class TutorialHudLayout : MonoBehaviour
         root.offsetMin = root.offsetMax = Vector2.zero;
 
         objective = Rect("Room goal", root, new Vector2(0, 1), new Vector2(30, -72), new Vector2(350, 44));
-        Panel(objective, cardFill, Color.clear, 10, 0);
+        var goalPanel = Panel(objective, cardFill, shadowColor.a > 0f ? cardEdge : Color.clear, 10, shadowColor.a > 0f ? cardBorder : 0);
+        goalPanel.shadow = shadowColor;
         var marker = Rect("Checkpoint marker", objective, new Vector2(0, 0.5f), new Vector2(16, 0), new Vector2(26, 26));
         marker.pivot = new Vector2(0, 0.5f);
         Shape(marker, TutorialHudGraphic.Shape.Diamond, new Color(0.24f, 1f, 0.50f));
@@ -157,6 +168,22 @@ public sealed class TutorialHudLayout : MonoBehaviour
         if (cameraRig != null) cameraRig.ViewInput += viewCard.Flash;
         if (colors != null) colors.ColorInput += colorCard.Flash;
         UpdateGoal();
+    }
+
+    void UsePaperLook()
+    {
+        cardFill = PaperFeel.Cardstock;
+        cardEdge = PaperFeel.Ink;
+        blue = PaperFeel.Blue;
+        orange = PaperFeel.Orange;
+        textColor = PaperFeel.Ink;
+        iconColor = PaperFeel.Ink;
+        keyFill = PaperFeel.Gold;
+        keyEdge = PaperFeel.Ink;
+        keyText = PaperFeel.Ink;
+        dividerColor = new Color(PaperFeel.Ink.r, PaperFeel.Ink.g, PaperFeel.Ink.b, 0.25f);
+        shadowColor = PaperFeel.Shadow;
+        cardBorder = 3f;
     }
 
     void LateUpdate()
@@ -271,7 +298,8 @@ public sealed class TutorialHudLayout : MonoBehaviour
         float k = height / cardHeight;
         var card = Rect(action + " card", parent != null ? parent : footer, Vector2.zero, position, new Vector2(width, height));
         card.pivot = Vector2.zero;
-        var panel = Panel(card, cardFill, cardEdge, 18 * k, 2f);
+        var panel = Panel(card, cardFill, cardEdge, 18 * k, cardBorder);
+        panel.shadow = shadowColor;
         panel.raycastTarget = true;
         var button = card.gameObject.AddComponent<Button>();
         button.targetGraphic = panel;
@@ -281,11 +309,11 @@ public sealed class TutorialHudLayout : MonoBehaviour
         button.onClick.AddListener(onClick);
 
         var picture = Rect("Action icon", card, new Vector2(0, 1), new Vector2(20, -10) * k, new Vector2(106, 78) * k);
-        var graphic = Shape(picture, icon, Color.white);
+        var graphic = Shape(picture, icon, iconColor);
         graphic.blue = blue;
         graphic.orange = orange;
         var divider = Rect("Divider", card, new Vector2(0, 1), new Vector2(142, -24) * k, new Vector2(2, 50 * k));
-        divider.gameObject.AddComponent<Image>().color = new Color(1, 1, 1, 0.34f);
+        divider.gameObject.AddComponent<Image>().color = dividerColor;
         divider.GetComponent<Image>().raycastTarget = false;
 
         TutorialHudGraphic keycap = null;
@@ -308,8 +336,9 @@ public sealed class TutorialHudLayout : MonoBehaviour
     TutorialHudGraphic Keycap(RectTransform parent, string key, Vector2 position, Vector2 size, float fontSize = 25)
     {
         var rect = Rect(key + " key", parent, new Vector2(0, 1), position, size);
-        var panel = Panel(rect, new Color(0, 0, 0, 0.10f), Color.white, 10, 2f);
+        var panel = Panel(rect, keyFill, keyEdge, 10, 2f);
         var text = Label("Key", rect, Vector2.zero, size, key, fontSize);
+        text.color = keyText;
         text.fontStyle = FontStyles.Bold;
         text.alignment = TextAlignmentOptions.Midline;
         return panel;
@@ -321,7 +350,7 @@ public sealed class TutorialHudLayout : MonoBehaviour
         var text = rect.gameObject.AddComponent<TextMeshProUGUI>();
         text.font = font;
         text.fontSize = fontSize;
-        text.color = Color.white;
+        text.color = textColor;
         text.text = value;
         text.alignment = TextAlignmentOptions.MidlineLeft;
         text.textWrappingMode = TextWrappingModes.NoWrap;
