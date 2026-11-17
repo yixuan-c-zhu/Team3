@@ -20,13 +20,13 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientSkyColor: {r: 0.8, g: 0.8, b: 0.78, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 0
+  m_AmbientMode: 3
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -452,7 +452,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -701,7 +701,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1087,7 +1087,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f278e4304f79aa74a8db24cee9a20f52, type: 2}
+  - {fileID: 2100000, guid: bfa3cfef8c9fd65429b02e153f33c170, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1198,7 +1198,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 36aa9669f4175114388a891a01ffc922, type: 2}
+  - {fileID: 2100000, guid: 738bafc740ca3d54384d5e3bb18ac672, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1278,8 +1278,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorObstacle
   obstacleColor: 1
-  blueMaterial: {fileID: 2100000, guid: 9bea17a55962ddc408cac5496d1ca32e, type: 2}
-  orangeMaterial: {fileID: 2100000, guid: b8ffb4e0522b9204a8f0ea9a6cf83e4e, type: 2}
+  blueMaterial: {fileID: 2100000, guid: 7e8da22a19ef1de409ea625aa31ba875, type: 2}
+  orangeMaterial: {fileID: 2100000, guid: 0908fcd68018c5647acee0c355a3570c, type: 2}
 --- !u!23 &506611888
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1305,7 +1305,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b8ffb4e0522b9204a8f0ea9a6cf83e4e, type: 2}
+  - {fileID: 2100000, guid: 0908fcd68018c5647acee0c355a3570c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1417,7 +1417,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1529,7 +1529,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1641,7 +1641,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1751,6 +1751,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: blueGlass
+      value: 
+      objectReference: {fileID: 2100000, guid: 7e8da22a19ef1de409ea625aa31ba875, type: 2}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: aimMessage
       value: 'Line your slice up with the outline: {0}%
 
@@ -1760,6 +1764,45 @@ PrefabInstance:
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: doneMessage
       value: It's real. A floor inside the jelly.
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: orangeGlass
+      value: 
+      objectReference: {fileID: 2100000, guid: 0908fcd68018c5647acee0c355a3570c, type: 2}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: spotMessage
+      value: 'This ledge can hold a slice of you.
+
+        <size=70%>In 2D, press
+        C and cut along the dashed line at your feet.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: thinMessage
+      value: 'This slice is too thin.
+
+        <size=70%>{0} and cut a little higher,
+        along the dashed line.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: tiltMessage
+      value: 'Your cut is tilted.
+
+        <size=70%>{0}, switch to 2D and cut level,
+        along the dashed line.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: thickMessage
+      value: 'This slice is too thick.
+
+        <size=70%>{0} and cut lower, along
+        the dashed line at your feet.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: wrongWayMessage
+      value: 'This slice is standing up.
+
+        <size=70%>{0} and cut across your
+        body, along the dashed line at your feet.</size>'
       objectReference: {fileID: 0}
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: wrongSizeMessage
@@ -1808,6 +1851,18 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7910367132974833961, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 8e1436d09fc6ca7448fda88f6051c8aa, type: 2}
+    - target: {fileID: 8577549128859600084, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: m_Parameters.textureMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8577549128859600084, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 12fd71ec7a4cdb1409867ca5feff6e75, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1877,7 +1932,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f278e4304f79aa74a8db24cee9a20f52, type: 2}
+  - {fileID: 2100000, guid: bfa3cfef8c9fd65429b02e153f33c170, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2221,8 +2276,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorObstacle
   obstacleColor: 0
-  blueMaterial: {fileID: 2100000, guid: 9bea17a55962ddc408cac5496d1ca32e, type: 2}
-  orangeMaterial: {fileID: 2100000, guid: b8ffb4e0522b9204a8f0ea9a6cf83e4e, type: 2}
+  blueMaterial: {fileID: 2100000, guid: 7e8da22a19ef1de409ea625aa31ba875, type: 2}
+  orangeMaterial: {fileID: 2100000, guid: 0908fcd68018c5647acee0c355a3570c, type: 2}
 --- !u!23 &684586162
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2248,7 +2303,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9bea17a55962ddc408cac5496d1ca32e, type: 2}
+  - {fileID: 2100000, guid: 7e8da22a19ef1de409ea625aa31ba875, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2360,7 +2415,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f278e4304f79aa74a8db24cee9a20f52, type: 2}
+  - {fileID: 2100000, guid: bfa3cfef8c9fd65429b02e153f33c170, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2472,7 +2527,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2584,7 +2639,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2954,7 +3009,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3055,8 +3110,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorObstacle
   obstacleColor: 0
-  blueMaterial: {fileID: 2100000, guid: 9bea17a55962ddc408cac5496d1ca32e, type: 2}
-  orangeMaterial: {fileID: 2100000, guid: b8ffb4e0522b9204a8f0ea9a6cf83e4e, type: 2}
+  blueMaterial: {fileID: 2100000, guid: 7e8da22a19ef1de409ea625aa31ba875, type: 2}
+  orangeMaterial: {fileID: 2100000, guid: 0908fcd68018c5647acee0c355a3570c, type: 2}
 --- !u!23 &901184004
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3082,7 +3137,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9bea17a55962ddc408cac5496d1ca32e, type: 2}
+  - {fileID: 2100000, guid: 7e8da22a19ef1de409ea625aa31ba875, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3329,7 +3384,7 @@ Light:
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 1
-  m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
+  m_Color: {r: 1, g: 0.97, b: 0.92, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
@@ -3392,7 +3447,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 985283811}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
+  m_LocalRotation: {x: 0.40821794, y: 0.23456973, z: -0.10938166, w: 0.8754261}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3458,7 +3513,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3563,9 +3618,9 @@ MonoBehaviour:
   camScript: {fileID: 1411356984}
   levelManager: {fileID: 1041298951}
   lineRenderer: {fileID: 2126130750}
-  piece1Mat: {fileID: 2100000, guid: 673f60214b8b06d4087da363b6f7c2cc, type: 2}
-  piece2Mat: {fileID: 2100000, guid: 87404512654788046b4b9e8d6f123b31, type: 2}
-  leftoverMat: {fileID: 2100000, guid: 527896c268b1705428c40e5a561b8aef, type: 2}
+  piece1Mat: {fileID: 2100000, guid: b89dadae06fb1d1418835af297c36661, type: 2}
+  piece2Mat: {fileID: 2100000, guid: d7f52f70ee9810b4c82151c7d8ab4cb4, type: 2}
+  leftoverMat: {fileID: 2100000, guid: b89dadae06fb1d1418835af297c36661, type: 2}
   minSize: 0.25
   canRotateLeftover: 0
   canPushLeftover: 0
@@ -3674,7 +3729,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f278e4304f79aa74a8db24cee9a20f52, type: 2}
+  - {fileID: 2100000, guid: bfa3cfef8c9fd65429b02e153f33c170, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3912,8 +3967,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorObstacle
   obstacleColor: 1
-  blueMaterial: {fileID: 2100000, guid: 9bea17a55962ddc408cac5496d1ca32e, type: 2}
-  orangeMaterial: {fileID: 2100000, guid: b8ffb4e0522b9204a8f0ea9a6cf83e4e, type: 2}
+  blueMaterial: {fileID: 2100000, guid: 7e8da22a19ef1de409ea625aa31ba875, type: 2}
+  orangeMaterial: {fileID: 2100000, guid: 0908fcd68018c5647acee0c355a3570c, type: 2}
 --- !u!23 &1223290539
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3939,7 +3994,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b8ffb4e0522b9204a8f0ea9a6cf83e4e, type: 2}
+  - {fileID: 2100000, guid: 0908fcd68018c5647acee0c355a3570c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4051,7 +4106,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4161,6 +4216,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: blueGlass
+      value: 
+      objectReference: {fileID: 2100000, guid: 7e8da22a19ef1de409ea625aa31ba875, type: 2}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: aimMessage
       value: 'Line your slice up with the outline: {0}%
 
@@ -4170,6 +4229,45 @@ PrefabInstance:
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: doneMessage
       value: It's real. Go back and cross your bridge.
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: orangeGlass
+      value: 
+      objectReference: {fileID: 2100000, guid: 0908fcd68018c5647acee0c355a3570c, type: 2}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: spotMessage
+      value: 'This ledge can hold a slice of you.
+
+        <size=70%>In 2D, press
+        C and cut along the dashed line at your feet.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: thinMessage
+      value: 'This slice is too thin.
+
+        <size=70%>{0} and cut a little higher,
+        along the dashed line.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: tiltMessage
+      value: 'Your cut is tilted.
+
+        <size=70%>{0}, switch to 2D and cut level,
+        along the dashed line.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: thickMessage
+      value: 'This slice is too thick.
+
+        <size=70%>{0} and cut lower, along
+        the dashed line at your feet.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: wrongWayMessage
+      value: 'This slice is standing up.
+
+        <size=70%>{0} and cut across your
+        body, along the dashed line at your feet.</size>'
       objectReference: {fileID: 0}
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: wrongSizeMessage
@@ -4218,6 +4316,18 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7910367132974833961, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 8e1436d09fc6ca7448fda88f6051c8aa, type: 2}
+    - target: {fileID: 8577549128859600084, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: m_Parameters.textureMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8577549128859600084, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 12fd71ec7a4cdb1409867ca5feff6e75, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4424,7 +4534,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4986,7 +5096,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -5098,8 +5208,8 @@ Camera:
   m_GameObject: {fileID: 1411356983}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.8862745, g: 0.90588236, b: 0.87058824, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -5403,7 +5513,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -5593,6 +5703,52 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 900, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1503571575
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1503571577}
+  - component: {fileID: 1503571576}
+  m_Layer: 0
+  m_Name: Paper Style
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1503571576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1503571575}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ba27501cf2120a4a94b930fba357d5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PaperStyle
+  backdrop: {fileID: 2100000, guid: cf35b6bd5cfdc0c4ea7d052aea6ca639, type: 2}
+  ink: 1
+--- !u!4 &1503571577
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1503571575}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1508020929
 GameObject:
   m_ObjectHideFlags: 0
@@ -5790,7 +5946,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b8ffb4e0522b9204a8f0ea9a6cf83e4e, type: 2}
+  - {fileID: 2100000, guid: 0908fcd68018c5647acee0c355a3570c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -5856,8 +6012,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorObstacle
   obstacleColor: 1
-  blueMaterial: {fileID: 2100000, guid: 9bea17a55962ddc408cac5496d1ca32e, type: 2}
-  orangeMaterial: {fileID: 2100000, guid: b8ffb4e0522b9204a8f0ea9a6cf83e4e, type: 2}
+  blueMaterial: {fileID: 2100000, guid: 7e8da22a19ef1de409ea625aa31ba875, type: 2}
+  orangeMaterial: {fileID: 2100000, guid: 0908fcd68018c5647acee0c355a3570c, type: 2}
 --- !u!1 &1616430298
 GameObject:
   m_ObjectHideFlags: 0
@@ -6169,10 +6325,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 206a985476a04436db2104f5ddb6ea5e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PieceControlManager
-  blueMaterial: {fileID: 2100000, guid: a88599ae7dd3d45e18ea89b99c43ce4d, type: 2}
-  orangeMaterial: {fileID: 2100000, guid: 9d2457dbad1ce44c298786fd83abb2c3, type: 2}
-  blueSelectMaterial: {fileID: 2100000, guid: 07418141b84a2df47878547bf1ae0165, type: 2}
-  orangeSelectMaterial: {fileID: 2100000, guid: 1c470fa8dfc0a514c8e4e28a65fb5b05, type: 2}
+  blueMaterial: {fileID: 2100000, guid: b89dadae06fb1d1418835af297c36661, type: 2}
+  orangeMaterial: {fileID: 2100000, guid: d7f52f70ee9810b4c82151c7d8ab4cb4, type: 2}
+  blueSelectMaterial: {fileID: 2100000, guid: 7630ec199c8ac084bae414693d3cc2c7, type: 2}
+  orangeSelectMaterial: {fileID: 2100000, guid: 0b85fd3976de96945a576bcde502c8e7, type: 2}
   cutController: {fileID: 1041298950}
   cameraRig: {fileID: 1411356984}
   levelManager: {fileID: 1041298951}
@@ -6390,7 +6546,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -6502,7 +6658,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -6636,7 +6792,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 8f0e5acebb1a1e945993edebcac5d1eb, type: 2}
+  - {fileID: 2100000, guid: 85dfcf77a23b46f43a8961327f0f4a4a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7223,8 +7379,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorObstacle
   obstacleColor: 1
-  blueMaterial: {fileID: 2100000, guid: 9bea17a55962ddc408cac5496d1ca32e, type: 2}
-  orangeMaterial: {fileID: 2100000, guid: b8ffb4e0522b9204a8f0ea9a6cf83e4e, type: 2}
+  blueMaterial: {fileID: 2100000, guid: 7e8da22a19ef1de409ea625aa31ba875, type: 2}
+  orangeMaterial: {fileID: 2100000, guid: 0908fcd68018c5647acee0c355a3570c, type: 2}
 --- !u!23 &1994424709
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7250,7 +7406,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b8ffb4e0522b9204a8f0ea9a6cf83e4e, type: 2}
+  - {fileID: 2100000, guid: 0908fcd68018c5647acee0c355a3570c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7707,7 +7863,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04846a023aed13a4b94932b0745f157c, type: 2}
+  - {fileID: 2100000, guid: 85e7c0d55619d674dad1373e33626b82, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7906,7 +8062,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 547c8efe298489e43a3c92e1764ae915, type: 2}
+  - {fileID: 2100000, guid: b89dadae06fb1d1418835af297c36661, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -8118,7 +8274,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 687b26f157f83c745b1494896474b67e, type: 2}
+  - {fileID: 2100000, guid: 401e8fb45aa53d343be76c5651fa41e6, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -8275,7 +8431,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 36aa9669f4175114388a891a01ffc922, type: 2}
+  - {fileID: 2100000, guid: 738bafc740ca3d54384d5e3bb18ac672, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -8458,3 +8614,4 @@ SceneRoots:
   - {fileID: 1041298952}
   - {fileID: 985283814}
   - {fileID: 807338325}
+  - {fileID: 1503571577}
