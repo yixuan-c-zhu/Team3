@@ -208,10 +208,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: spotMessage
-      value: 'This gold spot can hold a big piece of you.
+      value: 'This cutting mat can hold a big piece of you.
 
-        <size=70%>In 2D,
-        press C and cut along the dashed line.</size>'
+        <size=70%>In
+        2D, press C and cut along the dashed line.</size>'
       objectReference: {fileID: 0}
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: thinMessage
@@ -243,7 +243,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: noPieceMessage
-      value: 'Nothing to line up yet. Leave a piece of yourself on the gold spot
+      value: 'Nothing to line up yet. Leave a piece of yourself on the cutting mat
         first.
 
         <size=70%>X to step back.</size>'
@@ -1074,52 +1074,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!1 &220569986
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 220569988}
-  - component: {fileID: 220569987}
-  m_Layer: 0
-  m_Name: Paper Style
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &220569987
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 220569986}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ba27501cf2120a4a94b930fba357d5f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PaperStyle
-  backdrop: {fileID: 2100000, guid: cf35b6bd5cfdc0c4ea7d052aea6ca639, type: 2}
-  ink: 1
---- !u!4 &220569988
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 220569986}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &271422447
 GameObject:
   m_ObjectHideFlags: 0
@@ -5917,7 +5871,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 267102593074576009, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
       propertyPath: 'hints.Array.data[2]'
-      value: Leave a <b>big piece</b> on the gold spot, then aim from the pad on
+      value: Leave a <b>big piece</b> on the cutting mat, then aim from the pad on
         the far right.
       objectReference: {fileID: 0}
     - target: {fileID: 742942134309030197, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
@@ -6142,6 +6096,52 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1754943246}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1791893050
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1791893052}
+  - component: {fileID: 1791893051}
+  m_Layer: 0
+  m_Name: Paper Style
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1791893051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1791893050}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ba27501cf2120a4a94b930fba357d5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PaperStyle
+  backdrop: {fileID: 2100000, guid: cf35b6bd5cfdc0c4ea7d052aea6ca639, type: 2}
+  ink: 1
+--- !u!4 &1791893052
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1791893050}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1848587967
 GameObject:
   m_ObjectHideFlags: 0
@@ -6588,6 +6588,9 @@ MonoBehaviour:
   maxScale: 1
   minScale: 0.3
   surfaceOffset: 0.015
+  lookReach: 0.7
+  lookRange: 1.5
+  lookSpeed: 10
 --- !u!114 &1877463400
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6650,6 +6653,8 @@ MonoBehaviour:
   snipTime: 0.38
   shakeTime: 0.4
   shakeSize: 9
+  popTime: 0.42
+  popStagger: 0.14
 --- !u!4 &1877463402
 Transform:
   m_ObjectHideFlags: 0
@@ -8555,4 +8560,4 @@ SceneRoots:
   - {fileID: 1220955952}
   - {fileID: 19583515}
   - {fileID: 1877463402}
-  - {fileID: 220569988}
+  - {fileID: 1791893052}

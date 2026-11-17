@@ -59,6 +59,7 @@ public class PieceChoiceView : MonoBehaviour
     private Tag leaveTag;
     private Sprite tagFillSprite;
     private Sprite tagEdgeSprite;
+    private bool paper;
 
     private bool running;
     private float clock;
@@ -76,6 +77,12 @@ public class PieceChoiceView : MonoBehaviour
     {
         cut = FindFirstObjectByType<CutController>();
         rig = FindFirstObjectByType<CameraRig>();
+        paper = PaperFeel.IsOn;
+        if (paper)
+        {
+            tagFill = PaperFeel.Cardstock;
+            leaveTextColor = new Color(PaperFeel.Ink.r, PaperFeel.Ink.g, PaperFeel.Ink.b, 0.8f);
+        }
         Build();
         root.gameObject.SetActive(false);
     }
@@ -257,7 +264,7 @@ public class PieceChoiceView : MonoBehaviour
         canvas = UiShapes.MakeOverlay(gameObject, 3);
         canvasRect = GetComponent<RectTransform>();
         tagFillSprite = UiShapes.RoundBox(tagCorner, 0f);
-        tagEdgeSprite = UiShapes.RoundBox(tagCorner, tagEdge);
+        tagEdgeSprite = UiShapes.RoundBox(tagCorner, paper ? 3f : tagEdge);
 
         root = UiShapes.NewRect("Piece Choice", transform, Vector2.zero);
         group = root.gameObject.AddComponent<CanvasGroup>();
@@ -269,7 +276,7 @@ public class PieceChoiceView : MonoBehaviour
         selectedLine = UiShapes.NewGraphic<PieceOutline>("Selected Piece", root, Vector2.zero);
 
         leaveTag = MakeTag("Leave Tag", leaveText, leaveFontSize, FontStyles.Normal, leaveTextColor, false, 0.92f);
-        keepTag = MakeTag("Keep Tag", keepText, keepFontSize, FontStyles.Bold, Color.white, true, 1f);
+        keepTag = MakeTag("Keep Tag", keepText, keepFontSize, FontStyles.Bold, paper ? PaperFeel.Ink : Color.white, true, 1f);
     }
 
     Tag MakeTag(string name, string text, float fontSize, FontStyles style, Color textColor, bool withIcon, float opacity)
@@ -277,16 +284,29 @@ public class PieceChoiceView : MonoBehaviour
         Tag tag = new Tag();
         tag.box = UiShapes.NewRect(name, root, new Vector2(0f, 0.5f));
 
+        if (paper)
+        {
+            Image shadow = UiShapes.NewGraphic<Image>("Shadow", tag.box, new Vector2(0.5f, 0.5f));
+            shadow.sprite = tagFillSprite;
+            shadow.type = Image.Type.Sliced;
+            shadow.color = PaperFeel.Shadow;
+            Stretch(shadow.rectTransform);
+            shadow.rectTransform.offsetMin = PaperFeel.ShadowOffset;
+            shadow.rectTransform.offsetMax = PaperFeel.ShadowOffset;
+        }
+
         tag.fill = UiShapes.NewGraphic<Image>("Fill", tag.box, new Vector2(0.5f, 0.5f));
         tag.fill.sprite = tagFillSprite;
         tag.fill.type = Image.Type.Sliced;
-        tag.fill.color = new Color(tagFill.r, tagFill.g, tagFill.b, opacity);
+        Color fillColor = paper && withIcon ? PaperFeel.Gold : tagFill;
+        tag.fill.color = new Color(fillColor.r, fillColor.g, fillColor.b, opacity);
         Stretch(tag.fill.rectTransform);
 
         tag.edge = UiShapes.NewGraphic<Image>("Edge", tag.box, new Vector2(0.5f, 0.5f));
         tag.edge.sprite = tagEdgeSprite;
         tag.edge.type = Image.Type.Sliced;
-        tag.edge.color = withIcon ? gold : new Color(leaveTextColor.r, leaveTextColor.g, leaveTextColor.b, 0.5f);
+        if (paper) tag.edge.color = withIcon ? PaperFeel.Ink : new Color(PaperFeel.Ink.r, PaperFeel.Ink.g, PaperFeel.Ink.b, 0.55f);
+        else tag.edge.color = withIcon ? gold : new Color(leaveTextColor.r, leaveTextColor.g, leaveTextColor.b, 0.5f);
         Stretch(tag.edge.rectTransform);
 
         float x = tagPadding;

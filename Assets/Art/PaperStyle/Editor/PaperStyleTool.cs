@@ -28,6 +28,7 @@ public static class PaperStyleTool
     const string Root = "Assets/Art/PaperStyle/";
     const string MaterialDir = Root + "Materials/";
     const string GrainPath = Root + "Textures/T_PaperGrain.png";
+    const string KraftPath = Root + "Textures/T_PaperKraft.png";
     const string BackupDir = "Backups/before-paper-style/";
     const string InkFeatureName = "Paper Ink";
     static readonly string[] RendererPaths = { "Assets/Settings/PC_Renderer.asset", "Assets/Settings/Mobile_Renderer.asset" };
@@ -74,6 +75,7 @@ public static class PaperStyleTool
     {
         new[] { "<color=#FFD54A>gold ledge</color>", "<color=#8FD9B0>cutting mat</color>" },
         new[] { "gold ledge", "cutting mat" },
+        new[] { "gold spot", "cutting mat" },
         new[] { "Look at that white pad!", "See that lookout pad?" },
         new[] { "white pad", "lookout pad" },
         new[] { "Teal things only show up in 3D.", "Dotted paths only show up in 3D." },
@@ -119,6 +121,7 @@ public static class PaperStyleTool
     public static void CreateMissingAssets()
     {
         Texture2D grain = EnsureGrainTexture();
+        EnsureKraftTexture();
         EnsureMaterials(grain);
         EnsureInkFeature(LoadMaterial("M_Paper_Composite"));
         AssetDatabase.SaveAssets();
@@ -365,8 +368,8 @@ public static class PaperStyleTool
         Make("M_Paper_BlueSelect", "Paper/Piece", grain, m => SetPiece(m, MechanicBlue, 1f, 0.14f, 0.25f, 0.4f));
         Make("M_Paper_OrangeSelect", "Paper/Piece", grain, m => SetPiece(m, MechanicOrange, 2f, 0.24f, 0.3f, 0.4f));
 
-        Make("M_Paper_GlassBlue", "Paper/Glass", null, m => SetGlass(m, MechanicBlue, 0.26f, 1f, Hex("#1E4FD6")));
-        Make("M_Paper_GlassOrange", "Paper/Glass", null, m => SetGlass(m, MechanicOrange, 0.28f, 2f, Hex("#E36A10")));
+        Make("M_Paper_GlassBlue", "Paper/Glass", null, m => SetGlass(m, MechanicBlue, 0.26f, 0f, Hex("#1E4FD6")));
+        Make("M_Paper_GlassOrange", "Paper/Glass", null, m => SetGlass(m, MechanicOrange, 0.28f, 0f, Hex("#E36A10")));
         Make("M_Paper_Checkpoint", "Paper/Glass", null, m =>
         {
             SetGlass(m, CuttingMat, 0.1f, 0f, CuttingMat);
@@ -421,6 +424,9 @@ public static class PaperStyleTool
         m.SetFloat("_Pattern", pattern);
         m.SetFloat("_PatternStrength", strength);
         m.SetFloat("_PatternScale", spacing);
+        m.SetFloat("_Kraft", 1f);
+        m.SetTexture("_KraftTex", AssetDatabase.LoadAssetAtPath<Texture2D>(KraftPath));
+        m.SetColor("_KraftColor", Kraft);
     }
 
     static void SetGlass(Material m, Color color, float alpha, float pattern, Color edge)
@@ -577,6 +583,171 @@ public static class PaperStyleTool
         importer.textureCompression = TextureImporterCompression.Uncompressed;
         importer.SaveAndReimport();
         return AssetDatabase.LoadAssetAtPath<Texture2D>(GrainPath);
+    }
+
+    static Texture2D EnsureKraftTexture()
+    {
+        Texture2D existing = AssetDatabase.LoadAssetAtPath<Texture2D>(KraftPath);
+        if (existing != null) return existing;
+
+        const int size = 512;
+        System.Random rng = new System.Random(1931);
+        float[] tone = new float[size * size];
+        AddValueNoise(tone, size, rng, new[] { 4, 8, 16 }, new[] { 0.5f, 0.3f, 0.2f }, false);
+        AddValueNoise(tone, size, rng, new[] { 64 }, new[] { 0.3f }, true);
+        for (int k = 0; k < tone.Length; k++) tone[k] += ((float)rng.NextDouble() - 0.5f) * 0.12f;
+
+        float[] light = new float[size * size];
+        float[] dark = new float[size * size];
+        int fibres = size * size / 38;
+        for (int f = 0; f < fibres; f++)
+        {
+            bool isLight = rng.NextDouble() < 0.6;
+            Vector2 start = new Vector2((float)rng.NextDouble() * size, (float)rng.NextDouble() * size);
+            float length = 3.5f + (float)rng.NextDouble() * 13.5f;
+            float angle = rng.NextDouble() < 0.7 ? ((float)rng.NextDouble() - 0.5f) * 1.1f : (float)rng.NextDouble() * Mathf.PI;
+            float bend = ((float)rng.NextDouble() - 0.5f) * length * 0.35f;
+            float width = 0.45f + (float)rng.NextDouble() * 0.8f;
+            float alpha = (isLight ? 0.1f : 0.06f) + (float)rng.NextDouble() * 0.2f;
+            Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            Vector2 end = start + direction * length;
+            Vector2 middle = (start + end) * 0.5f + new Vector2(-direction.y, direction.x) * bend;
+            AddFibre(isLight ? light : dark, size, start, middle, end, width, alpha);
+        }
+        AddSpecks(dark, size, rng, size * size / 650, 0.4f, 1.4f, 0.75f);
+        AddSpecks(light, size, rng, size * size / 1400, 0.4f, 1f, 0.6f);
+
+        double mean = 0;
+        foreach (float v in tone) mean += v;
+        mean /= tone.Length;
+        double variance = 0;
+        foreach (float v in tone) variance += (v - mean) * (v - mean);
+        float deviation = (float)System.Math.Sqrt(variance / tone.Length);
+
+        Color32[] pixels = new Color32[tone.Length];
+        for (int k = 0; k < tone.Length; k++)
+        {
+            float t = 0.5f + (tone[k] - (float)mean) / (5f * deviation);
+            pixels[k] = new Color32(ToByte(t), ToByte(light[k]), ToByte(dark[k]), 255);
+        }
+        Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false, true);
+        texture.SetPixels32(pixels);
+        texture.Apply();
+        Directory.CreateDirectory(Path.GetDirectoryName(KraftPath));
+        File.WriteAllBytes(KraftPath, texture.EncodeToPNG());
+        Object.DestroyImmediate(texture);
+
+        AssetDatabase.ImportAsset(KraftPath);
+        TextureImporter importer = (TextureImporter)AssetImporter.GetAtPath(KraftPath);
+        importer.textureType = TextureImporterType.Default;
+        importer.sRGBTexture = false;
+        importer.wrapMode = TextureWrapMode.Repeat;
+        importer.filterMode = FilterMode.Trilinear;
+        importer.anisoLevel = 4;
+        importer.mipmapEnabled = true;
+        importer.textureCompression = TextureImporterCompression.Uncompressed;
+        importer.SaveAndReimport();
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(KraftPath);
+    }
+
+    static byte ToByte(float value)
+    {
+        return (byte)Mathf.Clamp(Mathf.RoundToInt(value * 255f), 0, 255);
+    }
+
+    static void AddValueNoise(float[] value, int size, System.Random rng, int[] cells, float[] weights, bool ridged)
+    {
+        for (int octave = 0; octave < cells.Length; octave++)
+        {
+            int c = cells[octave];
+            float[] grid = new float[c * c];
+            for (int k = 0; k < grid.Length; k++) grid[k] = (float)rng.NextDouble();
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float fx = (float)x * c / size;
+                    float fy = (float)y * c / size;
+                    int x0 = (int)fx;
+                    int y0 = (int)fy;
+                    float tx = fx - x0;
+                    float ty = fy - y0;
+                    int x1 = (x0 + 1) % c;
+                    int y1 = (y0 + 1) % c;
+                    tx = tx * tx * (3f - 2f * tx);
+                    ty = ty * ty * (3f - 2f * ty);
+                    float a = Mathf.Lerp(grid[y0 * c + x0], grid[y0 * c + x1], tx);
+                    float b = Mathf.Lerp(grid[y1 * c + x0], grid[y1 * c + x1], tx);
+                    float n = Mathf.Lerp(a, b, ty);
+                    if (ridged) n = 1f - Mathf.Abs(2f * n - 1f);
+                    value[y * size + x] += n * weights[octave];
+                }
+            }
+        }
+    }
+
+    static void AddFibre(float[] buffer, int size, Vector2 start, Vector2 middle, Vector2 end, float width, float alpha)
+    {
+        const int segments = 6;
+        Vector2[] points = new Vector2[segments + 1];
+        for (int i = 0; i <= segments; i++)
+        {
+            float t = (float)i / segments;
+            float u = 1f - t;
+            points[i] = u * u * start + 2f * u * t * middle + t * t * end;
+        }
+        float reach = width * 0.5f + 1f;
+        Vector2 low = Vector2.Min(Vector2.Min(start, middle), end) - Vector2.one * reach;
+        Vector2 high = Vector2.Max(Vector2.Max(start, middle), end) + Vector2.one * reach;
+        for (int y = Mathf.FloorToInt(low.y); y <= Mathf.CeilToInt(high.y); y++)
+        {
+            for (int x = Mathf.FloorToInt(low.x); x <= Mathf.CeilToInt(high.x); x++)
+            {
+                Vector2 p = new Vector2(x + 0.5f, y + 0.5f);
+                float distance = float.MaxValue;
+                for (int i = 0; i < segments; i++)
+                {
+                    Vector2 a = points[i];
+                    Vector2 ab = points[i + 1] - a;
+                    float t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / Mathf.Max(1e-5f, ab.sqrMagnitude));
+                    distance = Mathf.Min(distance, Vector2.Distance(p, a + ab * t));
+                }
+                float cover = Mathf.Clamp01(width * 0.5f + 0.5f - distance);
+                if (cover <= 0f) continue;
+                int index = ((y % size + size) % size) * size + ((x % size + size) % size);
+                buffer[index] = 1f - (1f - buffer[index]) * (1f - alpha * cover);
+            }
+        }
+    }
+
+    static void AddSpecks(float[] buffer, int size, System.Random rng, int count, float minRadius, float maxRadius, float alpha)
+    {
+        for (int s = 0; s < count; s++)
+        {
+            Vector2 center = new Vector2((float)rng.NextDouble() * size, (float)rng.NextDouble() * size);
+            float rx = minRadius + (float)rng.NextDouble() * (maxRadius - minRadius);
+            float ry = rx * (0.55f + 0.45f * (float)rng.NextDouble());
+            float angle = (float)rng.NextDouble() * Mathf.PI;
+            float strength = alpha * (0.55f + 0.45f * (float)rng.NextDouble());
+            float cos = Mathf.Cos(angle);
+            float sin = Mathf.Sin(angle);
+            int reach = Mathf.CeilToInt(rx + 1f);
+            for (int y = -reach; y <= reach; y++)
+            {
+                for (int x = -reach; x <= reach; x++)
+                {
+                    int px = Mathf.FloorToInt(center.x) + x;
+                    int py = Mathf.FloorToInt(center.y) + y;
+                    Vector2 d = new Vector2(px + 0.5f, py + 0.5f) - center;
+                    Vector2 q = new Vector2(d.x * cos + d.y * sin, -d.x * sin + d.y * cos);
+                    float distance = (new Vector2(q.x / rx, q.y / ry).magnitude - 1f) * ry;
+                    float cover = Mathf.Clamp01(0.5f - distance);
+                    if (cover <= 0f) continue;
+                    int index = ((py % size + size) % size) * size + ((px % size + size) % size);
+                    buffer[index] = 1f - (1f - buffer[index]) * (1f - strength * cover);
+                }
+            }
+        }
     }
 
     static Color Hex(string hex)

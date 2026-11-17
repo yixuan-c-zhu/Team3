@@ -12,6 +12,8 @@ public sealed class TutorialHudGraphic : MaskableGraphic
     public Color orange = new Color(1f, 0.47f, 0.20f);
     public float radius = 14f;
     public float border = 2f;
+    public Color shadow = Color.clear;
+    public Vector2 shadowOffset = new Vector2(5f, -5f);
     const int CornerSteps = 8;
 
     protected override void OnPopulateMesh(VertexHelper mesh)
@@ -19,6 +21,12 @@ public sealed class TutorialHudGraphic : MaskableGraphic
         mesh.Clear();
         if (shape == Shape.Panel)
         {
+            if (shadow.a > 0f)
+            {
+                Rect drop = rectTransform.rect;
+                drop.position += shadowOffset;
+                RoundedPanel(mesh, drop, radius, shadow, Color.clear, 0f);
+            }
             RoundedPanel(mesh, rectTransform.rect, radius, color, edge, border);
             return;
         }

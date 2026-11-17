@@ -45,12 +45,16 @@ public class HintBubbleView : MonoBehaviour
     const float iconGap = 14f;
     const float iconTextGap = 18f;
     const float corner = 16f;
-    const float edgeWidth = 2.5f;
+    static float edgeWidth = 2.5f;
     const float tailWidth = 30f;
     const float tailHeight = 15f;
     const float shadowBlur = 14f;
     const float shadowDrop = 5f;
     const float badgeSize = 26f;
+    const float keycapAbove = 0.95f;
+    const float keycapBelow = 0.22f;
+    const float keycapCorner = 6f;
+    const float keycapLip = 3f;
     const float lineGap = 4f;
     const float margin = 16f;
     const float topMargin = 130f;
@@ -90,9 +94,15 @@ public class HintBubbleView : MonoBehaviour
     private TextMeshProUGUI messageText;
     private Image pointer;
     private Sprite badgeSprite;
+    private Sprite keycapSprite;
+    private readonly List<Image> keycaps = new List<Image>();
     private readonly List<Slot> slots = new List<Slot>();
     private readonly List<HintBubble.Icon> shownIcons = new List<HintBubble.Icon>();
 
+    private bool paper;
+    private Color keyColor;
+    private float shadowSpread = shadowBlur;
+    private Vector2 shadowShift = new Vector2(0f, -shadowDrop);
     private HintBubble shown;
     private string shownText;
     private Vector2 bodySize;
@@ -117,8 +127,25 @@ public class HintBubbleView : MonoBehaviour
         instance = this;
         cutController = FindFirstObjectByType<CutController>();
         camRig = FindFirstObjectByType<CameraRig>();
+        paper = PaperFeel.IsOn;
+        keyColor = accent;
+        if (paper) UsePaperLook();
+        edgeWidth = paper ? 3.5f : 2.5f;
         Build();
         HideAll();
+    }
+
+    void UsePaperLook()
+    {
+        fill = PaperFeel.Cardstock;
+        edge = PaperFeel.Ink;
+        headlineColor = PaperFeel.Ink;
+        messageColor = new Color(0.25f, 0.28f, 0.36f, 1f);
+        accent = PaperFeel.Gold;
+        shadowColor = PaperFeel.Shadow;
+        keyColor = PaperFeel.Cardstock;
+        shadowSpread = 0f;
+        shadowShift = new Vector2(6f, -6f);
     }
 
     void OnDestroy()
@@ -231,7 +258,7 @@ public class HintBubbleView : MonoBehaviour
         float between = shownIcons.Count > 0 && textWidth > 0f ? iconTextGap : 0f;
         bodySize = new Vector2(padX * 2f + iconsWidth + between + textWidth, padY * 2f + innerHeight);
         body.sizeDelta = bodySize;
-        shadow.rectTransform.sizeDelta = bodySize + Vector2.one * shadowBlur * 2f;
+        shadow.rectTransform.sizeDelta = bodySize + Vector2.one * shadowSpread * 2f;
 
         bool numbered = hint.numberIcons && shownIcons.Count > 1;
         float x = padX;
@@ -257,6 +284,66 @@ public class HintBubbleView : MonoBehaviour
         float textTop = padY + (innerHeight + textHeight) * 0.5f;
         PlaceText(headlineText, head, textX, textTop, headWidth, headHeight);
         PlaceText(messageText, more, textX, textTop - headHeight - spacing, moreWidth, moreHeight);
+        PlaceKeycaps();
+    }
+
+    void PlaceKeycaps()
+    {
+        int used = 0;
+        if (paper)
+        {
+            used = AddKeycaps(headlineText, used);
+            used = AddKeycaps(messageText, used);
+        }
+        for (int i = used; i < keycaps.Count; i++)
+        {
+            keycaps[i].gameObject.SetActive(false);
+        }
+    }
+
+    int AddKeycaps(TextMeshProUGUI label, int used)
+    {
+        if (!label.gameObject.activeSelf) return used;
+        label.ForceMeshUpdate();
+        TMP_TextInfo info = label.textInfo;
+        Vector2 origin = label.rectTransform.anchoredPosition;
+        for (int l = 0; l < info.linkCount; l++)
+        {
+            TMP_LinkInfo link = info.linkInfo[l];
+            int first = link.linkTextfirstCharacterIndex;
+            int end = Mathf.Min(first + link.linkTextLength, info.characterCount);
+            int start = first;
+            for (int i = first; i <= end; i++)
+            {
+                if (i < end && info.characterInfo[i].lineNumber == info.characterInfo[start].lineNumber) continue;
+                if (i > start)
+                {
+                    TMP_CharacterInfo a = info.characterInfo[start];
+                    TMP_CharacterInfo b = info.characterInfo[i - 1];
+                    float em = a.pointSize;
+                    Vector2 min = new Vector2(a.origin, a.baseLine - keycapBelow * em);
+                    Vector2 max = new Vector2(b.xAdvance, a.baseLine + keycapAbove * em);
+                    Image cap = GetKeycap(used++);
+                    cap.gameObject.SetActive(true);
+                    cap.rectTransform.anchoredPosition = origin + min;
+                    cap.rectTransform.sizeDelta = max - min;
+                }
+                start = i;
+            }
+        }
+        return used;
+    }
+
+    Image GetKeycap(int index)
+    {
+        while (keycaps.Count <= index)
+        {
+            if (keycapSprite == null) keycapSprite = MakeKeycapSprite();
+            Image cap = NewImage("Keycap", body, Vector2.zero, keycapSprite, Color.white, true);
+            cap.transform.SetSiblingIndex(headlineText.transform.GetSiblingIndex());
+            keycaps.Add(cap);
+        }
+        return keycaps[index];
     }
 
     // The narrowest width that still fits the text in as few lines as Max Text Width does, so the lines
@@ -325,7 +412,9 @@ public class HintBubbleView : MonoBehaviour
     string Keys(string value)
     {
         string hex = ColorUtility.ToHtmlStringRGB(accent);
-        return keyPattern.Replace(value, "<mark=#" + hex + "33><color=#" + hex + "><b>\u00A0$1\u00A0</b></color></mark>");
+        string text = ColorUtility.ToHtmlStringRGB(keyColor);
+        if (paper) return keyPattern.Replace(value, "<link=\"key\"><b><color=#" + text + ">\u00A0$1\u00A0</color></b></link>");
+        return keyPattern.Replace(value, "<mark=#" + hex + "33><color=#" + text + "><b>\u00A0$1\u00A0</b></color></mark>");
     }
 
     // Puts the tail's tip just above the anchor and keeps the whole bubble on screen.
@@ -383,7 +472,7 @@ public class HintBubbleView : MonoBehaviour
         float most = Mathf.Max(0f, half - corner - tailWidth * 0.5f);
         shift = Mathf.Clamp(shift, -most, most);
         body.anchoredPosition = new Vector2(shift, tailHeight);
-        shadow.rectTransform.anchoredPosition = new Vector2(shift, tailHeight - shadowBlur - shadowDrop);
+        shadow.rectTransform.anchoredPosition = new Vector2(shift + shadowShift.x, tailHeight - shadowSpread + shadowShift.y);
         tailFill.enabled = hasTail;
         tailEdge.enabled = hasTail;
         return true;
@@ -509,7 +598,7 @@ public class HintBubbleView : MonoBehaviour
         group.blocksRaycasts = false;
         group.interactable = false;
 
-        shadow = NewImage("Shadow", bubble, new Vector2(0.5f, 0f), MakeShadowSprite(), shadowColor, true);
+        shadow = NewImage("Shadow", bubble, new Vector2(0.5f, 0f), paper ? MakeRoundSprite(false) : MakeShadowSprite(), shadowColor, true);
 
         Image bodyFill = NewImage("Body", bubble, new Vector2(0.5f, 0f), MakeRoundSprite(false), fill, true);
         body = bodyFill.rectTransform;
@@ -553,7 +642,7 @@ public class HintBubbleView : MonoBehaviour
             Stretch(slot.number.rectTransform);
             slot.number.fontSize = 17f;
             slot.number.fontStyle = FontStyles.Bold;
-            slot.number.color = new Color(fill.r, fill.g, fill.b, 1f);
+            slot.number.color = paper ? PaperFeel.Ink : new Color(fill.r, fill.g, fill.b, 1f);
             slot.number.alignment = TextAlignmentOptions.Center;
             slot.number.textWrappingMode = TextWrappingModes.NoWrap;
 
@@ -674,6 +763,22 @@ public class HintBubbleView : MonoBehaviour
         });
     }
 
+    static Sprite MakeKeycapSprite()
+    {
+        float side = keycapCorner * 2f + keycapLip + 4f;
+        Vector2 size = new Vector2(side, side);
+        Vector2 center = size * 0.5f;
+        Color face = Color.Lerp(PaperFeel.Ink, Color.white, 0.07f);
+        Vector2 faceHalf = center - new Vector2(1.5f, (keycapLip + 1.5f) * 0.5f);
+        Vector2 faceCenter = center + Vector2.up * (keycapLip - 1.5f) * 0.5f;
+        return MakeSprite(size, Vector4.one * (keycapCorner + keycapLip), PaperFeel.Ink, p =>
+        {
+            if (RoundBoxDistance(p - center, center, keycapCorner) > 0f) return Color.clear;
+            if (RoundBoxDistance(p - faceCenter, faceHalf, keycapCorner - 1.5f) < 0f) return face;
+            return PaperFeel.Ink;
+        });
+    }
+
     static Sprite MakeCircleSprite()
     {
         Vector2 size = Vector2.one * badgeSize;
@@ -684,7 +789,7 @@ public class HintBubbleView : MonoBehaviour
 
     Sprite MakeArrowSprite()
     {
-        Color dark = new Color(fill.r, fill.g, fill.b, 1f);
+        Color dark = paper ? PaperFeel.Ink : new Color(fill.r, fill.g, fill.b, 1f);
         Color bright = accent;
         return MakeSprite(arrowSize, Vector4.zero, dark, p =>
         {
