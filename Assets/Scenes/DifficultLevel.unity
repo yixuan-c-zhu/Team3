@@ -5343,7 +5343,7 @@ MonoBehaviour:
   hintDuration: 6
   movementResetDistance: 0.75
   hints:
-  - 'Hint: Press <b>Tab</b> to switch between the 2D and 3D views.'
+  - 'Hint: <b>Drag</b> the mouse to switch between the 2D and 3D views.'
   - 'Hint: Press <b>Left Shift</b> to switch your color.'
   - 'Hint: Try leaving a cut piece on the pressure plate.'
   restartTip: {fileID: 75444088}
@@ -5434,7 +5434,7 @@ MonoBehaviour:
   accent: {r: 1, g: 0.83, b: 0.22, a: 1}
   blue: {r: 0.3, g: 0.48, b: 1, a: 1}
   orange: {r: 1, g: 0.47, b: 0.2, a: 1}
-  showMoveKeys: 1
+  showMoveKeys: 0
   restartBeside: {fileID: 1724910409}
 --- !u!1 &1377853000
 GameObject:
@@ -8102,7 +8102,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2004079692
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8239,7 +8239,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2014859051
 MonoBehaviour:
   m_ObjectHideFlags: 0

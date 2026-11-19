@@ -1768,7 +1768,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintBubble
   headline: '{problem}'
-  message: Press [R] to restart, or [X] to step back.
+  message: Press [R] to restart, or walk off the pad.
   icons:
   - sprite: {fileID: 21300000, guid: 12d4799f95e8c0346a81430e4704b151, type: 3}
     motion: 1
@@ -1976,9 +1976,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintBubble
   headline: Can't pass? No worries!
-  message: Hold right-click and move your mouse!
+  message: Drag to turn the camera!
   icons:
-  - sprite: {fileID: 21300000, guid: 8cb3f723006e19e4498fd786085c5d0d, type: 3}
+  - sprite: {fileID: 21300000, guid: d920ec2d0c014358947c733b53502c69, type: 3}
     motion: 3
   numberIcons: 0
   situation: 2
@@ -2954,8 +2954,8 @@ MonoBehaviour:
   headline: Good job!
   message: Let's check in 3D mode now!
   icons:
-  - sprite: {fileID: 21300000, guid: 61d819661c106ec41969ff0eacd4237e, type: 3}
-    motion: 1
+  - sprite: {fileID: 21300000, guid: e5221b208f6861246879fe6e4d08bea5, type: 3}
+    motion: 5
   numberIcons: 0
   situation: 8
   size: {x: 0, y: 0, z: 0}
@@ -4229,10 +4229,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintBubble
   headline: Oops! The road seems to end!
-  message: Press [Tab] and have a look?
+  message: Drag down and have a look?
   icons:
-  - sprite: {fileID: 21300000, guid: 61d819661c106ec41969ff0eacd4237e, type: 3}
-    motion: 1
+  - sprite: {fileID: 21300000, guid: e5221b208f6861246879fe6e4d08bea5, type: 3}
+    motion: 5
   numberIcons: 0
   situation: 0
   size: {x: 8.3, y: 3.6, z: 6}
@@ -4748,7 +4748,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintBubble
   headline: '{problem}'
-  message: Press [R] to restart, or [X] to step back.
+  message: Press [R] to restart, or walk off the pad.
   icons:
   - sprite: {fileID: 21300000, guid: 12d4799f95e8c0346a81430e4704b151, type: 3}
     motion: 1
@@ -5731,10 +5731,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintBubble
   headline: Oops! Stepped on the pad by accident?
-  message: Press [X] to step back out of this view.
-  icons:
-  - sprite: {fileID: 21300000, guid: ffcef45461e6c1249962182c72e747fe, type: 3}
-    motion: 1
+  message: Walk off the pad with [WASD].
+  icons: []
   numberIcons: 0
   situation: 12
   size: {x: 0, y: 0, z: 0}
@@ -7156,10 +7154,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintBubble
   headline: This slice needs 2D!
-  message: Press [Tab] to go back to 2D.
+  message: Press [C], then drag up to go back to 2D.
   icons:
-  - sprite: {fileID: 21300000, guid: 61d819661c106ec41969ff0eacd4237e, type: 3}
+  - sprite: {fileID: 21300000, guid: d0a924141aff92944b521106eda20c04, type: 3}
     motion: 1
+  - sprite: {fileID: 21300000, guid: e5221b208f6861246879fe6e4d08bea5, type: 3}
+    motion: 4
   numberIcons: 0
   situation: 7
   size: {x: 0, y: 0, z: 0}
@@ -10352,7 +10352,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1501236505
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12748,10 +12748,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 245a4264f0e1f674d924ce5c5706576e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintBubble
-  headline: Now line your slice up with the gap using your mouse!
+  headline: Drag to line your slice up with the gap!
   message: 
   icons:
-  - sprite: {fileID: 21300000, guid: 8cb3f723006e19e4498fd786085c5d0d, type: 3}
+  - sprite: {fileID: 21300000, guid: d920ec2d0c014358947c733b53502c69, type: 3}
     motion: 3
   numberIcons: 0
   situation: 9
@@ -15416,12 +15416,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintBubble
   headline: Can't pass? No worries!
-  message: Press [Q] or [E] to look from the side!
+  message: Drag sideways to look from the side!
   icons:
-  - sprite: {fileID: 21300000, guid: 4c976c65ccc5e4748b10d540318b66c1, type: 3}
-    motion: 1
-  - sprite: {fileID: 21300000, guid: 7db90223ad9f1934ab0c458040492496, type: 3}
-    motion: 1
+  - sprite: {fileID: 21300000, guid: e5221b208f6861246879fe6e4d08bea5, type: 3}
+    motion: 2
   numberIcons: 0
   situation: 2
   size: {x: 5.8, y: 4, z: 6}
@@ -15507,10 +15505,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintBubble
   headline: Oops! Stepped on the pad by accident?
-  message: Press [X] to step back out of this view.
-  icons:
-  - sprite: {fileID: 21300000, guid: ffcef45461e6c1249962182c72e747fe, type: 3}
-    motion: 1
+  message: Walk off the pad with [WASD].
+  icons: []
   numberIcons: 0
   situation: 12
   size: {x: 0, y: 0, z: 0}
@@ -16125,7 +16121,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2102228801
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16392,10 +16388,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintBubble
   headline: This slice needs 2D!
-  message: Press [Tab] to go back to 2D.
+  message: Press [C], then drag up to go back to 2D.
   icons:
-  - sprite: {fileID: 21300000, guid: 61d819661c106ec41969ff0eacd4237e, type: 3}
+  - sprite: {fileID: 21300000, guid: d0a924141aff92944b521106eda20c04, type: 3}
     motion: 1
+  - sprite: {fileID: 21300000, guid: e5221b208f6861246879fe6e4d08bea5, type: 3}
+    motion: 4
   numberIcons: 0
   situation: 7
   size: {x: 0, y: 0, z: 0}

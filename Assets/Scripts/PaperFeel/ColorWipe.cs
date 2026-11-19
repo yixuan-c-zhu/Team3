@@ -6,6 +6,9 @@ public class ColorWipe : MonoBehaviour
     public float wipeTime = 0.3f;
     public float settleTime = 0.18f;
     public float settleSquash = 0.05f;
+    public float jamTime = 0.42f;
+    public float jamDepth = 0.25f;
+    public float jamShiver = 0.03f;
 
     PieceControlManager colors;
     CutController cut;
@@ -18,6 +21,7 @@ public class ColorWipe : MonoBehaviour
     Material oldMaterial;
     Material newMaterial;
     float clock = -1f;
+    bool jammed;
     Mesh upper;
     Mesh lower;
 
@@ -25,13 +29,49 @@ public class ColorWipe : MonoBehaviour
     {
         colors = FindFirstObjectByType<PieceControlManager>();
         cut = FindFirstObjectByType<CutController>();
-        if (colors != null) colors.ColorInput += OnColorInput;
+        if (colors != null)
+        {
+            colors.ColorInput += OnColorInput;
+            colors.ColorRefused += OnColorRefused;
+        }
     }
 
     void OnDestroy()
     {
-        if (colors != null) colors.ColorInput -= OnColorInput;
+        if (colors != null)
+        {
+            colors.ColorInput -= OnColorInput;
+            colors.ColorRefused -= OnColorRefused;
+        }
         Finish();
+    }
+
+    void OnColorRefused(CuttablePiece target, ColorObstacle glass)
+    {
+        pressedFrame = -1;
+        Renderer rend = target.GetComponent<Renderer>();
+        PieceColor color = target.GetComponent<PieceColor>();
+        if (rend == null || color == null) return;
+        Material other = color.currentColor == PieceColor.PieceColorType.Blue ? colors.orangeMaterial : colors.blueMaterial;
+        if (other == null) return;
+        Begin(rend, rend.sharedMaterial, other);
+        jammed = true;
+    }
+
+    float JamCover(float t)
+    {
+        if (t < 0.35f)
+        {
+            float e = t / 0.35f;
+            return jamDepth * (1f - (1f - e) * (1f - e));
+        }
+        if (t < 0.6f)
+        {
+            float s = (t - 0.35f) / 0.25f;
+            return jamDepth + jamShiver * Mathf.Sin(s * Mathf.PI * 4f) * (1f - s);
+        }
+        float back = (t - 0.6f) / 0.4f;
+        return jamDepth * (1f - back * back);
     }
 
     void OnColorInput()
@@ -66,7 +106,7 @@ public class ColorWipe : MonoBehaviour
         }
 
         clock += Time.deltaTime;
-        if (clock >= wipeTime + settleTime)
+        if (clock >= (jammed ? jamTime : wipeTime + settleTime))
         {
             Finish();
             return;
@@ -75,7 +115,7 @@ public class ColorWipe : MonoBehaviour
         ConvexShape shape = piece.shape;
         Bounds bounds = shape.GetBounds();
         Matrix4x4 settle = body.localToWorldMatrix;
-        if (clock > wipeTime)
+        if (!jammed && clock > wipeTime)
         {
             float s = (clock - wipeTime) / settleTime;
             float squash = Mathf.Sin(s * Mathf.PI) * settleSquash;
@@ -84,7 +124,9 @@ public class ColorWipe : MonoBehaviour
         }
 
         body.forceRenderingOff = true;
-        float covered = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(clock / wipeTime));
+        float covered = jammed
+            ? Mathf.Clamp01(JamCover(clock / jamTime))
+            : Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(clock / wipeTime));
         float line = Mathf.Lerp(bounds.max.y, bounds.min.y, covered);
         ConvexShape first;
         ConvexShape second;
@@ -123,6 +165,7 @@ public class ColorWipe : MonoBehaviour
         oldMaterial = from;
         newMaterial = to;
         clock = 0f;
+        jammed = false;
     }
 
     void Release()

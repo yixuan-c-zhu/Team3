@@ -506,6 +506,14 @@ public class HintBubbleView : MonoBehaviour
                     offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * 5f;
                     break;
                 }
+                case HintBubble.Motion.DragUp:
+                case HintBubble.Motion.DragDown:
+                {
+                    float phase = Mathf.Repeat(time, 1.4f) / 1.4f;
+                    float pull = phase < 0.6f ? Mathf.SmoothStep(0f, 1f, phase / 0.6f) : 1f - Mathf.SmoothStep(0f, 1f, (phase - 0.6f) / 0.4f);
+                    offset.y = (shownIcons[i].motion == HintBubble.Motion.DragUp ? 1f : -1f) * 10f * pull;
+                    break;
+                }
             }
             slot.image.rectTransform.anchoredPosition = offset;
             slot.image.rectTransform.localScale = scale;

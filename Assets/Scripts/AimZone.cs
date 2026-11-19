@@ -16,7 +16,6 @@ public class AimZone : MonoBehaviour
     public bool alignTop = true;
 
     public float cameraFov = 60f;
-    public float keySpeed = 35f;
     public float mouseSpeed = 0.15f;
     public float matchNeeded = 0.8f;
 
@@ -29,19 +28,18 @@ public class AimZone : MonoBehaviour
     public Material blueGlass;
     public Material orangeGlass;
     public float warnDistance = 2f;
+    public float stopTime = 0.15f;
+    public float stopSpeed = 0.3f;
     [Tooltip("Show Spot Message while the player stands on the spot. Turn off when a HintBubble says it instead.")]
     public bool showSpotMessage = true;
     [Tooltip("Warn the player before they step on glass of their own color, and explain the glass rule once it is built. Turn off when a HintBubble teaches it instead.")]
     public bool showGlassHints = true;
-    [Tooltip("The key that steps back out of the aim view. The messages below name it, so change them too.")]
-    public KeyCode stepBackKey = KeyCode.X;
-
-    [TextArea] public string aimMessage = "Line up your piece with the outline: {0}%\n<size=70%>A / D and W / S or drag to aim. X to step back.</size>";
+    [TextArea] public string aimMessage = "Line up your piece with the outline: {0}%\n<size=70%>Drag to aim. Walk off the pad to step back.</size>";
     [TextArea] public string previewMessage = "<size=70%>Your slice is {0}, so it will turn into {0} glass.</size>";
     [TextArea] public string glassMessage = "<size=70%>It's {0} glass: {0} falls through it, {1} can stand on it.</size>";
     [TextArea] public string fallMessage = "You're {0}, so you'll fall through this {0} glass.\n<size=70%>Press {2} to turn {1} and stand on it.</size>";
-    [TextArea] public string noPieceMessage = "Nothing to line up yet. Leave a piece of yourself in the right spot first.\n<size=70%>X to step back.</size>";
-    [TextArea] public string wrongSizeMessage = "This piece is the wrong size to fill the outline.\n<size=70%>X to step back.</size>";
+    [TextArea] public string noPieceMessage = "Nothing to line up yet. Leave a piece of yourself in the right spot first.\n<size=70%>Walk off the pad to step back.</size>";
+    [TextArea] public string wrongSizeMessage = "This piece is the wrong size to fill the outline.\n<size=70%>Walk off the pad to step back.</size>";
     public string lockedMessage = "Lined up!";
     public string doneMessage = "It's real!";
     public string leaveMessage = "Step back onto the pad to aim again.";
@@ -55,7 +53,7 @@ public class AimZone : MonoBehaviour
     [TextArea] public string narrowMessage = "This slice is too narrow to fill the outline.\n<size=70%>An earlier cut made your body narrower than this spot needs. Press R to restart.</size>";
     public string recutAction = "Press C to cancel";
     public string restartAction = "Press R to restart";
-    public string stepBackNote = "<size=70%>X to step back.</size>";
+    public string stepBackNote = "<size=70%>Walk off the pad to step back.</size>";
 
     const float blendTime = 0.8f;
     const float lockTime = 0.45f;
@@ -88,6 +86,10 @@ public class AimZone : MonoBehaviour
     private Step step = Step.None;
     private bool done;
     private bool waitForExit;
+    private bool playerInside;
+    private float stillTimer;
+    private bool walkedOff;
+    private bool aimDragging;
     private bool startedIn2D;
     private float blend;
     private float timer;
@@ -226,6 +228,7 @@ public class AimZone : MonoBehaviour
     void OnDisable()
     {
         allZones.Remove(this);
+        EndAimDrag();
     }
 
     void Start()
@@ -248,22 +251,46 @@ public class AimZone : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (step != Step.None || done || waitForExit)
+        if (!IsPlayer(other))
         {
             return;
         }
-        if (IsPlayer(other))
-        {
-            StartAiming();
-        }
+        playerInside = true;
+        stillTimer = 0f;
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (IsPlayer(other))
+        if (!IsPlayer(other))
         {
-            waitForExit = false;
+            return;
         }
+        playerInside = false;
+        waitForExit = false;
+        if (step == Step.Aiming)
+        {
+            walkedOff = true;
+            StopAiming();
+        }
+    }
+
+    bool CanRestartAiming()
+    {
+        bool ready = step == Step.None && playerInside && !done && !waitForExit && Time.timeScale > 0f
+            && cutController.state == CutController.State.Normal;
+        stillTimer = ready && PlayerStopped() ? stillTimer + Time.deltaTime : 0f;
+        return ready && stillTimer >= stopTime;
+    }
+
+    bool PlayerStopped()
+    {
+        Rigidbody body = cutController.player.GetComponent<Rigidbody>();
+        if (body == null)
+        {
+            return true;
+        }
+        Vector3 velocity = body.linearVelocity;
+        return new Vector2(velocity.x, velocity.z).magnitude < stopSpeed && Mathf.Abs(velocity.y) < stopSpeed;
     }
 
     bool IsPlayer(Collider other)
@@ -280,6 +307,10 @@ public class AimZone : MonoBehaviour
     {
         UpdateSpotGuide();
         UpdateGlassWarning();
+        if (CanRestartAiming())
+        {
+            StartAiming();
+        }
         if (step == Step.None || Time.timeScale == 0f)
         {
             return;
@@ -330,9 +361,10 @@ public class AimZone : MonoBehaviour
         step = Step.Aiming;
         blend = 0f;
         assisting = false;
+        walkedOff = false;
+        aimDragging = false;
         ShowGlow(0f);
         LockControls();
-        cutController.playerScript.StopPlayer();
         startedIn2D = camRig.is2D;
         if (camRig.is2D)
         {
@@ -369,13 +401,7 @@ public class AimZone : MonoBehaviour
 
     void UpdateAiming(float deltaTime)
     {
-        if (Input.GetKeyDown(stepBackKey))
-        {
-            StepBack();
-            return;
-        }
-
-        bool steering = ReadAimInput(deltaTime);
+        bool steering = ReadAimInput();
         if (steering)
         {
             assisting = false;
@@ -483,36 +509,19 @@ public class AimZone : MonoBehaviour
         }
     }
 
-    bool ReadAimInput(float deltaTime)
+    bool ReadAimInput()
     {
-        float turn = 0f;
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.Q))
+        if (Input.GetMouseButtonDown(0) && !GameplayUiInput.IsPointerOverControl())
         {
-            turn = turn - 1f;
-        }
-        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.E))
-        {
-            turn = turn + 1f;
-        }
-
-        float lift = 0f;
-        if (Input.GetKey(KeyCode.W))
-        {
-            lift = lift + 1f;
-        }
-        if (Input.GetKey(KeyCode.S))
-        {
-            lift = lift - 1f;
-        }
-
-        sideAngle = sideAngle + turn * keySpeed * deltaTime;
-        upAngle = upAngle + lift * keySpeed * deltaTime;
-
-        if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
-        {
+            aimDragging = true;
             lastMousePos = Input.mousePosition;
+            Cursor.visible = false;
         }
-        if (Input.GetMouseButton(0) || Input.GetMouseButton(1))
+        if (aimDragging && !Input.GetMouseButton(0))
+        {
+            EndAimDrag();
+        }
+        if (aimDragging)
         {
             Vector3 mouseMove = Input.mousePosition - lastMousePos;
             sideAngle = sideAngle + mouseMove.x * mouseSpeed;
@@ -522,9 +531,16 @@ public class AimZone : MonoBehaviour
 
         sideAngle = Mathf.Clamp(sideAngle, goalSideAngle - sideRange, goalSideAngle + sideRange);
         upAngle = Mathf.Clamp(upAngle, minUpAngle, maxUpAngle);
+        return aimDragging;
+    }
 
-        bool dragging = Input.GetMouseButton(0) || Input.GetMouseButton(1);
-        return turn != 0f || lift != 0f || dragging;
+    void EndAimDrag()
+    {
+        if (aimDragging)
+        {
+            Cursor.visible = true;
+        }
+        aimDragging = false;
     }
 
     void SetUpOrbit(Bounds pieceBounds)
@@ -693,6 +709,7 @@ public class AimZone : MonoBehaviour
     void StopAiming()
     {
         step = Step.Leaving;
+        EndAimDrag();
         if (targetOutline != null)
         {
             targetOutline.enabled = false;
@@ -706,7 +723,9 @@ public class AimZone : MonoBehaviour
     void GiveBackControl()
     {
         step = Step.None;
+        walkedOff = false;
         cutController.playerScript.canMove = true;
+        cutController.playerScript.canJump = true;
         cutController.enabled = true;
         colorManager.enabled = true;
         camRig.canControl = true;
@@ -722,7 +741,9 @@ public class AimZone : MonoBehaviour
 
     void LockControls()
     {
-        cutController.playerScript.canMove = false;
+        bool walk = step == Step.Aiming || (step == Step.Leaving && walkedOff);
+        cutController.playerScript.canMove = walk;
+        cutController.playerScript.canJump = false;
         cutController.enabled = false;
         colorManager.enabled = false;
         camRig.canControl = false;

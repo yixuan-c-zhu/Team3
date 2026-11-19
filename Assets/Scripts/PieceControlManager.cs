@@ -87,6 +87,8 @@ public class PieceControlManager : MonoBehaviour
 
 
     public event System.Action ColorInput;
+    public event System.Action<CuttablePiece, ColorObstacle> ColorRefused;
+    public event System.Action ColorChanged;
 
     public void ChangeControlledPieceColor(string reason = "key_shift")
     {
@@ -99,10 +101,50 @@ public class PieceControlManager : MonoBehaviour
         PieceColor pieceColor =
             controlledPiece.GetComponent<PieceColor>();
 
+        ColorObstacle holding = FindHoldingGlass(controlledPiece, pieceColor.currentColor);
+        if (holding != null)
+        {
+            ColorRefused?.Invoke(controlledPiece, holding);
+            return;
+        }
+
         pieceColor.ToggleColor(
             blueMaterial,
             orangeMaterial);
         CutAnalytics.RecordMechanic(Mechanic.ColorShift, reason);
+        ColorChanged?.Invoke();
+    }
+
+    static ColorObstacle FindHoldingGlass(CuttablePiece piece, PieceColor.PieceColorType color)
+    {
+        Collider body = piece.GetComponent<Collider>();
+        if (body == null || !body.enabled)
+        {
+            return null;
+        }
+
+        foreach (ColorObstacle glass in FindObjectsByType<ColorObstacle>(FindObjectsSortMode.None))
+        {
+            if (glass.obstacleColor != color)
+            {
+                continue;
+            }
+            Collider glassCollider = glass.GetComponent<Collider>();
+            if (glassCollider == null || !glassCollider.enabled || !glassCollider.bounds.Intersects(body.bounds))
+            {
+                continue;
+            }
+            Vector3 direction;
+            float distance;
+            if (Physics.ComputePenetration(
+                body, body.transform.position, body.transform.rotation,
+                glassCollider, glassCollider.transform.position, glassCollider.transform.rotation,
+                out direction, out distance) && distance > 0.01f)
+            {
+                return glass;
+            }
+        }
+        return null;
     }
 
     void SetControlledPiece(CuttablePiece newPiece)

@@ -37,6 +37,9 @@ public class CutController : MonoBehaviour
     public State state = State.Normal;
     public event System.Action CutInput;
     public event System.Action PieceSwitchInput;
+    public event System.Action<Vector3, Vector3> CutMissed;
+    public event System.Action CutDone;
+    public event System.Action PieceSwitched;
 
     private Vector3 mouseStart;
     private bool isDragging;
@@ -45,6 +48,9 @@ public class CutController : MonoBehaviour
     private Renderer playerRend;
     private Collider playerCol;
     private CuttablePiece lastLeftover;
+    private readonly List<CuttablePiece> leftovers = new List<CuttablePiece>();
+    private readonly List<Vector2> hullPoints = new List<Vector2>();
+    private readonly List<Vector2> hull = new List<Vector2>();
 
     private Vector3 cutNormal;
     private float cutDist;
@@ -70,6 +76,7 @@ public class CutController : MonoBehaviour
 
     void Update()
     {
+        DropLostLeftovers();
         switch (state)
         {
             case State.Normal:
@@ -224,20 +231,21 @@ public class CutController : MonoBehaviour
         float planeDist = Vector3.Dot(normal, p1);
         analyticsAttempt.SubmitLine();
 
+        ConvexShape worldShape = player.GetWorldShape();
         ConvexShape front;
         ConvexShape back;
-        if (!player.GetWorldShape().Cut(normal, planeDist, out front, out back))
+        if (!CrossesWhole(cam, worldShape, start, end) || !worldShape.Cut(normal, planeDist, out front, out back))
         {
             CutAnalytics.RecordCut(analyticsAttempt.CompleteLine(), CutOutcome.Miss);
             levelManager.ShowMessage(missMsg.text);
-            lineRenderer.enabled = false;
+            MissLine(start, end);
             return;
         }
         if (front.GetVolume() < minSize || back.GetVolume() < minSize)
         {
             CutAnalytics.RecordCut(analyticsAttempt.CompleteLine(), CutOutcome.TooSmall);
             levelManager.ShowMessage(tooSmallMsg.text);
-            lineRenderer.enabled = false;
+            MissLine(start, end);
             return;
         }
 
@@ -284,6 +292,79 @@ public class CutController : MonoBehaviour
             advice = chooseMsg.text;
         }
         levelManager.ShowMessage(advice);
+    }
+
+    void MissLine(Vector3 start, Vector3 end)
+    {
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = false;
+        }
+        CutMissed?.Invoke(start, end);
+    }
+
+    bool CrossesWhole(Camera cam, ConvexShape shape, Vector3 start, Vector3 end)
+    {
+        hullPoints.Clear();
+        foreach (Vector3[] face in shape.faces)
+        {
+            foreach (Vector3 vertex in face)
+            {
+                Vector3 screen = cam.WorldToScreenPoint(vertex);
+                if (screen.z <= 0f) return true;
+                hullPoints.Add(new Vector2(screen.x, screen.y));
+            }
+        }
+        BuildHull();
+        if (hull.Count < 3) return false;
+
+        Vector2 a = start;
+        Vector2 direction = (Vector2)end - a;
+        float enter = float.MinValue;
+        float exit = float.MaxValue;
+        for (int i = 0; i < hull.Count; i++)
+        {
+            Vector2 p = hull[i];
+            Vector2 q = hull[(i + 1) % hull.Count];
+            Vector2 edge = q - p;
+            Vector2 inward = new Vector2(-edge.y, edge.x);
+            float distance = Vector2.Dot(a - p, inward);
+            float rate = Vector2.Dot(direction, inward);
+            if (Mathf.Abs(rate) < 1e-6f)
+            {
+                if (distance < 0f) return false;
+                continue;
+            }
+            float t = -distance / rate;
+            if (rate > 0f) enter = Mathf.Max(enter, t);
+            else exit = Mathf.Min(exit, t);
+        }
+        return enter < exit && enter > 0f && exit < 1f;
+    }
+
+    void BuildHull()
+    {
+        hull.Clear();
+        hullPoints.Sort((p, q) => p.x != q.x ? p.x.CompareTo(q.x) : p.y.CompareTo(q.y));
+        for (int pass = 0; pass < 2; pass++)
+        {
+            int start = hull.Count;
+            for (int k = 0; k < hullPoints.Count; k++)
+            {
+                Vector2 point = hullPoints[pass == 0 ? k : hullPoints.Count - 1 - k];
+                while (hull.Count >= start + 2 && Cross(hull[hull.Count - 2], hull[hull.Count - 1], point) <= 0f)
+                {
+                    hull.RemoveAt(hull.Count - 1);
+                }
+                hull.Add(point);
+            }
+            hull.RemoveAt(hull.Count - 1);
+        }
+    }
+
+    static float Cross(Vector2 o, Vector2 a, Vector2 b)
+    {
+        return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
     }
 
     Material GetPreviewMaterial(Material fallback)
@@ -404,6 +485,7 @@ public class CutController : MonoBehaviour
         float keptRatio = totalVolume > 0f ? keepShape.GetVolume() / totalVolume : 0f;
         CutAnalytics.RecordCut(analyticsAttempt.CompleteLine(), CutOutcome.Success, keptRatio);
         EndCut(niceCutMsg.text);
+        CutDone?.Invoke();
     }
 
     void CancelCut()
@@ -473,6 +555,54 @@ public class CutController : MonoBehaviour
         obj.AddComponent<Fadeable>();
 
         lastLeftover = piece;
+        leftovers.Add(piece);
+    }
+
+    void DropLostLeftovers()
+    {
+        float deathY = levelManager != null ? levelManager.deathY : -12f;
+        for (int i = leftovers.Count - 1; i >= 0; i--)
+        {
+            CuttablePiece piece = leftovers[i];
+            if (piece == null)
+            {
+                leftovers.RemoveAt(i);
+                continue;
+            }
+            if (piece.transform.position.y < deathY)
+            {
+                if (piece == lastLeftover) lastLeftover = null;
+                leftovers.RemoveAt(i);
+                Destroy(piece.gameObject);
+            }
+        }
+        if (lastLeftover != null && IsOverVoid(lastLeftover, deathY))
+        {
+            lastLeftover = null;
+        }
+    }
+
+    static bool IsOverVoid(CuttablePiece piece, float deathY)
+    {
+        Rigidbody body = piece.GetComponent<Rigidbody>();
+        Collider col = piece.GetComponent<Collider>();
+        if (body == null || col == null || body.isKinematic || !col.enabled) return false;
+
+        Bounds bounds = col.bounds;
+        float depth = bounds.min.y - deathY;
+        if (depth <= 0f) return true;
+
+        PieceColor color = piece.GetComponent<PieceColor>();
+        RaycastHit[] hits = Physics.BoxCastAll(bounds.center, bounds.extents * 0.9f, Vector3.down, Quaternion.identity,
+            bounds.extents.y + depth, ~0, QueryTriggerInteraction.Ignore);
+        foreach (RaycastHit hit in hits)
+        {
+            if (hit.collider == col) continue;
+            ColorObstacle glass = hit.collider.GetComponent<ColorObstacle>();
+            if (glass != null && color != null && glass.obstacleColor == color.currentColor) continue;
+            return false;
+        }
+        return true;
     }
 
     public void SwitchPiece(string reason = "key_f")
@@ -517,6 +647,7 @@ public class CutController : MonoBehaviour
             levelManager.ShowMessage(switchMsg.text);
         }
         CutAnalytics.RecordMechanic(Mechanic.SwitchPiece, reason);
+        PieceSwitched?.Invoke();
     }
 
     /// <summary>True when F has a piece to switch into.</summary>

@@ -65,6 +65,7 @@ public static class PaperFeel
         rig.AddComponent<PopUpPaths>();
         rig.AddComponent<GlassRipple>();
         rig.AddComponent<MechanismThreads>();
+        rig.AddComponent<MissStrip>();
     }
 
     public static Sprite PaintScrap(int seed, Color fill)

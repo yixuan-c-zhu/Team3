@@ -4330,7 +4330,7 @@ MonoBehaviour:
   hintDuration: 6
   movementResetDistance: 0.75
   hints:
-  - 'Hint: Press <b>Tab</b> to switch between the 2D and 3D views.'
+  - 'Hint: <b>Drag</b> the mouse to switch between the 2D and 3D views.'
   - 'Hint: Press <b>Left Shift</b> to switch your color.'
   - 'Hint: Try leaving a cut piece on the pressure plate.'
   restartTip: {fileID: 75444088}
@@ -4421,7 +4421,7 @@ MonoBehaviour:
   accent: {r: 1, g: 0.83, b: 0.22, a: 1}
   blue: {r: 0.3, g: 0.48, b: 1, a: 1}
   orange: {r: 1, g: 0.47, b: 0.2, a: 1}
-  showMoveKeys: 1
+  showMoveKeys: 0
   restartBeside: {fileID: 1724910409}
 --- !u!1 &1377853000
 GameObject:
@@ -5861,8 +5861,8 @@ PrefabInstance:
       objectReference: {fileID: 1041298950}
     - target: {fileID: 267102593074576009, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
       propertyPath: 'hints.Array.data[0]'
-      value: Wall in the way? Its <b>back half is blue glass</b>. Press <color=#FFD54A>Tab</color>
-        and walk behind it.
+      value: Wall in the way? Its <b>back half is blue glass</b>. <color=#FFD54A>Drag
+        down</color> for 3D and walk behind it.
       objectReference: {fileID: 0}
     - target: {fileID: 267102593074576009, guid: 93bb677b53b9f544eb0f796e0520c2e8, type: 3}
       propertyPath: 'hints.Array.data[1]'
@@ -7313,7 +7313,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2004079692
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7450,7 +7450,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2014859051
 MonoBehaviour:
   m_ObjectHideFlags: 0

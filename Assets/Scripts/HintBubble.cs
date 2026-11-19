@@ -51,7 +51,7 @@ public class HintBubble : MonoBehaviour
     public enum Anchor { Player, Target, Screen }
 
     /// <summary>How an icon moves. Press: a key being pressed. Drag: a mouse sliding sideways. Orbit: a mouse moving in a circle.</summary>
-    public enum Motion { None, Press, Drag, Orbit }
+    public enum Motion { None, Press, Drag, Orbit, DragUp, DragDown }
 
     [System.Serializable]
     public class Icon
@@ -364,7 +364,7 @@ public class HintBubble : MonoBehaviour
             return;
         }
         bool canDrag = camRig.canControl && !camRig.is2D && Time.timeScale > 0f;
-        bool held = canDrag && Input.GetMouseButton(1);
+        bool held = canDrag && Input.GetMouseButton(0) && camRig.IsDragging;
         if (held && rightHeld)
         {
             float pixels = (Input.mousePosition - lastMouse).magnitude;

@@ -9,11 +9,9 @@ public class CameraRig : MonoBehaviour
     public float size2D = 6.5f;
     public float distance2D = 40f;
 
-    public float distance3D = 15f;
-    public float minZoom = 7f;
-    public float maxZoom = 28f;
     public float angle3D = 25f;
-    public float rotateSpeed = 120f;
+    public float minPitch = 5f;
+    public float maxPitch = 75f;
     public float mouseSensitivity = 0.25f;
 
     public float followSpeed = 8f;
@@ -24,6 +22,18 @@ public class CameraRig : MonoBehaviour
     public float minWallDistance = 1f;
     public float wallReturnSpeed = 4f;
 
+    public float dragStart = 6f;
+    public float flattenPull = 140f;
+    public float liftPull = 110f;
+    public float turnPull = 170f;
+    public float previewFlat = 0.35f;
+    public float previewLift = 12f;
+    public float previewTurn = 18f;
+    public float followTime = 0.05f;
+    public float settleTime = 0.12f;
+    public float turnDip = 0.3f;
+    public float riseTime = 0.15f;
+
     public bool is2D = true;
     public bool canControl = true;
 
@@ -31,14 +41,40 @@ public class CameraRig : MonoBehaviour
     private float targetRotY;
     private float rotX;
     private Vector3 lookPos;
-    private Vector3 lastMousePos;
     private float normalFov;
     private float aimBlend;
     private Vector3 aimPosition;
     private Quaternion aimRotation;
     private float aimFov;
     private float shownDistance3D = -1f;
-    private float analyticsTurnDirection;
+
+    private float flat = 1f;
+    private float flatVelocity;
+    private float lift;
+    private float liftVelocity;
+    private float yawOffset;
+    private float yawVelocity;
+    private bool rising;
+    private float riseVelocity;
+
+    private bool wasControllable;
+    private bool dragging;
+    private bool dragMoved;
+    private bool gestureDone;
+    private int dragAxis;
+    private Vector2 dragTravel;
+    private Vector3 lastMousePos;
+    private float pull;
+    private float sidePull;
+
+    public event System.Action ViewInput;
+
+    public bool IsDragging { get { return dragMoved; } }
+
+    public float Distance3D
+    {
+        get { return size2D / Mathf.Tan(GetNormalFov() * 0.5f * Mathf.Deg2Rad); }
+    }
 
     public bool IsTurning()
     {
@@ -61,18 +97,30 @@ public class CameraRig : MonoBehaviour
 
     public Vector3 GetCamRight()
     {
-        return Quaternion.Euler(0f, rotY, 0f) * Vector3.right;
+        return Quaternion.Euler(0f, GetMoveYaw(), 0f) * Vector3.right;
     }
 
     public Vector3 GetCamForward()
     {
-        return Quaternion.Euler(0f, rotY, 0f) * Vector3.forward;
+        return Quaternion.Euler(0f, GetMoveYaw(), 0f) * Vector3.forward;
     }
 
     public int GetViewSide()
     {
         int side = ((Mathf.RoundToInt(targetRotY / 90f) % 4) + 4) % 4;
         return side;
+    }
+
+    float GetMoveYaw()
+    {
+        if (aimBlend <= 0f) return rotY;
+        return Mathf.LerpAngle(rotY, aimRotation.eulerAngles.y, aimBlend);
+    }
+
+    float GetNormalFov()
+    {
+        if (normalFov > 0f) return normalFov;
+        return cam != null ? cam.fieldOfView : 60f;
     }
 
     void Start()
@@ -83,6 +131,7 @@ public class CameraRig : MonoBehaviour
         }
         normalFov = cam.fieldOfView;
         rotX = angle3D;
+        flat = is2D ? 1f : 0f;
         if (player != null)
         {
             lookPos = player.position;
@@ -90,14 +139,16 @@ public class CameraRig : MonoBehaviour
         MoveCamera(0f);
     }
 
+    void OnDisable()
+    {
+        EndDrag();
+    }
+
     void LateUpdate()
     {
         float deltaTime = Time.unscaledDeltaTime;
-        if (canControl)
-        {
-            CheckInput(deltaTime);
-        }
-        else analyticsTurnDirection = 0f;
+        ReadDrag();
+        UpdateShape(deltaTime);
 
         rotY = Mathf.LerpAngle(rotY, targetRotY, 1f - Mathf.Exp(-turnSpeed * deltaTime));
         if (Mathf.Abs(Mathf.DeltaAngle(rotY, targetRotY)) < 0.05f)
@@ -112,87 +163,240 @@ public class CameraRig : MonoBehaviour
         MoveCamera(deltaTime);
     }
 
-    void CheckInput(float deltaTime)
+    void ReadDrag()
     {
-        if (Input.GetKeyDown(KeyCode.Tab))
+        if (!canControl || Time.timeScale <= 0f)
         {
-            SwitchViewFromInput();
+            EndDrag();
+            wasControllable = false;
+            return;
         }
 
-        if (is2D)
+        bool fresh = !wasControllable;
+        wasControllable = true;
+        if (!fresh && Input.GetMouseButtonDown(0) && !GameplayUiInput.IsPointerOverControl())
         {
-            if (Input.GetKeyDown(KeyCode.Q)) TurnFromInput(-1f, deltaTime);
-            if (Input.GetKeyDown(KeyCode.E)) TurnFromInput(1f, deltaTime);
+            dragging = true;
+            dragMoved = false;
+            gestureDone = false;
+            dragAxis = 0;
+            dragTravel = Vector2.zero;
+            pull = 0f;
+            sidePull = 0f;
+            lastMousePos = Input.mousePosition;
+        }
+        if (!dragging) return;
+        if (!Input.GetMouseButton(0))
+        {
+            EndDrag();
+            return;
+        }
+
+        Vector2 move = Input.mousePosition - lastMousePos;
+        lastMousePos = Input.mousePosition;
+        if (!dragMoved)
+        {
+            dragTravel += move;
+            if (dragTravel.magnitude * PixelScale() < dragStart) return;
+            dragMoved = true;
+            move = dragTravel;
+            dragTravel = Vector2.zero;
+            Cursor.visible = false;
+            CutAnalytics.RecordMechanic(Mechanic.Camera, "mouse_drag");
+        }
+        if (gestureDone) return;
+
+        if (is2D) Drag2D(move);
+        else Drag3D(move);
+    }
+
+    void EndDrag()
+    {
+        if (dragMoved)
+        {
+            Cursor.visible = true;
+        }
+        dragging = false;
+        dragMoved = false;
+        gestureDone = false;
+        pull = 0f;
+        sidePull = 0f;
+    }
+
+    void Drag3D(Vector2 move)
+    {
+        float scale = PixelScale();
+        rising = false;
+        targetRotY += move.x * mouseSensitivity;
+        rotY = targetRotY;
+
+        if (move.y > 0f)
+        {
+            float room = Mathf.Max(0f, rotX - minPitch) / mouseSensitivity;
+            float used = Mathf.Min(move.y, room);
+            rotX -= used * mouseSensitivity;
+            pull += (move.y - used) * scale;
         }
         else
         {
-            float turn = 0f;
-            if (Input.GetKey(KeyCode.E)) turn = turn + 1f;
-            if (Input.GetKey(KeyCode.Q)) turn = turn - 1f;
-            if (turn != 0f)
-            {
-                TurnFromInput(turn, deltaTime);
-            }
-            else analyticsTurnDirection = 0f;
-
-            if (Input.GetMouseButtonDown(1))
-            {
-                lastMousePos = Input.mousePosition;
-            }
-            if (Input.GetMouseButton(1))
-            {
-                Vector3 mouseMove = Input.mousePosition - lastMousePos;
-                targetRotY += mouseMove.x * mouseSensitivity;
-                rotY = targetRotY;
-                rotX = Mathf.Clamp(rotX - mouseMove.y * mouseSensitivity, 5f, 75f);
-                lastMousePos = Input.mousePosition;
-            }
-
-            distance3D = Mathf.Clamp(distance3D - Input.mouseScrollDelta.y, minZoom, maxZoom);
+            float back = Mathf.Min(-move.y * scale, pull);
+            pull -= back;
+            float rest = -move.y - back / scale;
+            rotX = Mathf.Min(maxPitch, rotX + rest * mouseSensitivity);
         }
+
+        if (pull >= flattenPull)
+        {
+            Flatten();
+        }
+    }
+
+    void Drag2D(Vector2 move)
+    {
+        Vector2 scaled = move * PixelScale();
+        if (dragAxis == 0)
+        {
+            dragTravel += scaled;
+            if (dragTravel.magnitude < dragStart * 2f) return;
+            dragAxis = Mathf.Abs(dragTravel.x) > Mathf.Abs(dragTravel.y) ? 1 : 2;
+            scaled = dragTravel;
+            dragTravel = Vector2.zero;
+        }
+
+        if (dragAxis == 2)
+        {
+            pull = Mathf.Max(0f, pull - scaled.y);
+            if (pull >= liftPull)
+            {
+                Lift();
+            }
+        }
+        else if (!IsTurning())
+        {
+            sidePull += scaled.x;
+            if (Mathf.Abs(sidePull) >= turnPull)
+            {
+                TurnPage(Mathf.Sign(sidePull));
+            }
+        }
+    }
+
+    void Flatten()
+    {
+        gestureDone = true;
+        pull = 0f;
+        rotX = minPitch;
+        is2D = true;
+        targetRotY = Mathf.Round(rotY / 90f) * 90f;
+        ViewInput?.Invoke();
+        CutAnalytics.RecordMechanic(Mechanic.ViewSwitch, "mouse_flatten");
+    }
+
+    void Lift()
+    {
+        gestureDone = true;
+        pull = 0f;
+        rotX = Mathf.Clamp(rotX + lift, minPitch, maxPitch);
+        lift = 0f;
+        liftVelocity = 0f;
+        rising = true;
+        riseVelocity = 0f;
+        is2D = false;
+        ViewInput?.Invoke();
+        CutAnalytics.RecordMechanic(Mechanic.ViewSwitch, "mouse_lift");
+    }
+
+    void TurnPage(float direction)
+    {
+        gestureDone = true;
+        sidePull = 0f;
+        rotY += yawOffset;
+        yawOffset = 0f;
+        yawVelocity = 0f;
+        targetRotY = Mathf.Round(targetRotY / 90f) * 90f + direction * 90f;
+        ViewInput?.Invoke();
+        CutAnalytics.RecordMechanic(Mechanic.Camera, "mouse_turn");
+    }
+
+    void UpdateShape(float deltaTime)
+    {
+        float goal = is2D ? 1f : 0f;
+        float liftGoal = 0f;
+        float yawGoal = 0f;
+        bool following = dragMoved && !gestureDone;
+        if (following && !is2D)
+        {
+            goal += previewFlat * Ease(pull / flattenPull);
+        }
+        else if (following && dragAxis == 2)
+        {
+            float amount = Ease(pull / liftPull);
+            goal -= previewFlat * amount;
+            liftGoal = previewLift * amount;
+        }
+        else if (following && dragAxis == 1)
+        {
+            float amount = Ease(Mathf.Abs(sidePull) / turnPull);
+            goal -= previewFlat * 0.5f * amount;
+            yawGoal = Mathf.Sign(sidePull) * previewTurn * amount;
+        }
+
+        float smooth = following ? followTime : settleTime;
+        flat = Mathf.Clamp01(Mathf.SmoothDamp(flat, goal, ref flatVelocity, smooth, Mathf.Infinity, deltaTime));
+        lift = Mathf.SmoothDamp(lift, liftGoal, ref liftVelocity, smooth, Mathf.Infinity, deltaTime);
+        yawOffset = Mathf.SmoothDamp(yawOffset, yawGoal, ref yawVelocity, smooth, Mathf.Infinity, deltaTime);
+        if (deltaTime > 0f && Mathf.Abs(flat - goal) < 0.0005f)
+        {
+            flat = goal;
+            flatVelocity = 0f;
+        }
+
+        if (rising)
+        {
+            rotX = Mathf.SmoothDamp(rotX, angle3D, ref riseVelocity, riseTime, Mathf.Infinity, deltaTime);
+            if (Mathf.Abs(rotX - angle3D) < 0.05f)
+            {
+                rotX = angle3D;
+                rising = false;
+            }
+        }
+    }
+
+    float ShownFlat()
+    {
+        float shown = flat;
+        if (is2D)
+        {
+            float turn = Mathf.Abs(Mathf.DeltaAngle(rotY, targetRotY));
+            if (turn > 0.05f)
+            {
+                float progress = 1f - Mathf.Clamp01(turn / 90f);
+                shown -= turnDip * Mathf.Sin(progress * Mathf.PI);
+            }
+        }
+        return Mathf.Clamp01(shown);
     }
 
     public void SwitchView()
     {
         is2D = !is2D;
-        analyticsTurnDirection = 0f;
+        rising = false;
         if (is2D)
         {
             targetRotY = Mathf.Round(rotY / 90f) * 90f;
         }
     }
 
-    public event System.Action ViewInput;
-
-    public void SwitchViewFromInput(string reason = "key_tab")
-    {
-        ViewInput?.Invoke();
-        if (!canControl) return;
-        SwitchView();
-        CutAnalytics.RecordMechanic(Mechanic.ViewSwitch, reason);
-    }
-
-    void TurnFromInput(float direction, float deltaTime)
-    {
-        if (direction == 0f) { analyticsTurnDirection = 0f; return; }
-        if (is2D || analyticsTurnDirection != direction)
-            CutAnalytics.RecordMechanic(Mechanic.Camera, direction < 0f ? "key_q" : "key_e");
-        analyticsTurnDirection = direction;
-        if (is2D) targetRotY += direction * 90f;
-        else
-        {
-            targetRotY += direction * rotateSpeed * deltaTime;
-            rotY = targetRotY;
-        }
-    }
-
-    /// <summary>Switches to the 2D view looking from the front (or another 90-degree side), without a turn animation.</summary>
     public void SetFrontView2D(float angle = 0f)
     {
         is2D = true;
-        analyticsTurnDirection = 0f;
+        rising = false;
         targetRotY = Mathf.Round(angle / 90f) * 90f;
         rotY = targetRotY;
+        flat = 1f;
+        flatVelocity = 0f;
+        lift = 0f;
+        yawOffset = 0f;
     }
 
     public void SetAim(float blend, Vector3 position, Quaternion rotation, float fov)
@@ -213,42 +417,78 @@ public class CameraRig : MonoBehaviour
     void MoveCamera(float deltaTime)
     {
         Vector3 center = lookPos + Vector3.up * offsetY;
+        float shownFlat = ShownFlat();
+        float pitch = Mathf.Lerp(rotX + lift, 0f, shownFlat);
+        Quaternion camRot = Quaternion.Euler(pitch, rotY + yawOffset, 0f);
 
-        float camAngle = rotX;
-        if (is2D) camAngle = 0f;
-        Quaternion camRot = Quaternion.Euler(camAngle, rotY, 0f);
-
-        float distance = distance2D;
-        if (is2D)
+        float distance3D = distance2D;
+        if (shownFlat < 1f)
         {
-            shownDistance3D = -1f;
+            distance3D = GetShownDistance3D(center, camRot, deltaTime);
         }
         else
         {
-            distance = GetShownDistance3D(center, camRot, deltaTime);
+            shownDistance3D = -1f;
         }
 
-        Vector3 camPos = center - camRot * Vector3.forward * distance;
-        cam.orthographic = is2D;
-        cam.orthographicSize = size2D;
-        cam.fieldOfView = normalFov;
+        float baseTan = Mathf.Tan(GetNormalFov() * 0.5f * Mathf.Deg2Rad);
+        float distance = Mathf.Lerp(distance3D, distance2D, shownFlat);
+        float frame = Mathf.Lerp(baseTan * distance3D, size2D, shownFlat);
+        float fov = 2f * Mathf.Atan(frame / distance) * Mathf.Rad2Deg;
+        float ortho = shownFlat * shownFlat;
 
+        Vector3 camPos = center - camRot * Vector3.forward * distance;
         if (aimBlend > 0f)
         {
             camPos = Vector3.Lerp(camPos, aimPosition, aimBlend);
             camRot = Quaternion.Slerp(camRot, aimRotation, aimBlend);
-            cam.orthographic = false;
-            cam.fieldOfView = Mathf.Lerp(normalFov, aimFov, aimBlend);
+            fov = Mathf.Lerp(fov, aimFov, aimBlend);
+            ortho *= 1f - aimBlend;
         }
 
         cam.transform.SetPositionAndRotation(camPos, camRot);
+        cam.orthographicSize = size2D;
+        if (shownFlat >= 1f && aimBlend <= 0f)
+        {
+            cam.ResetProjectionMatrix();
+            cam.orthographic = true;
+            cam.fieldOfView = GetNormalFov();
+        }
+        else if (ortho <= 0.0001f)
+        {
+            cam.ResetProjectionMatrix();
+            cam.orthographic = false;
+            cam.fieldOfView = shownFlat <= 0f && aimBlend <= 0f ? GetNormalFov() : fov;
+        }
+        else
+        {
+            cam.orthographic = false;
+            cam.fieldOfView = fov;
+            cam.projectionMatrix = BlendProjection(fov, frame, ortho);
+        }
+    }
+
+    Matrix4x4 BlendProjection(float fov, float frame, float ortho)
+    {
+        float aspect = cam.aspect;
+        float near = cam.nearClipPlane;
+        float far = cam.farClipPlane;
+        Matrix4x4 perspective = Matrix4x4.Perspective(fov, aspect, near, far);
+        Matrix4x4 flatView = Matrix4x4.Ortho(-frame * aspect, frame * aspect, -frame, frame, near, far);
+        Matrix4x4 blended = new Matrix4x4();
+        for (int i = 0; i < 16; i++)
+        {
+            blended[i] = Mathf.Lerp(perspective[i], flatView[i], ortho);
+        }
+        return blended;
     }
 
     float GetShownDistance3D(Vector3 center, Quaternion camRot, float deltaTime)
     {
+        float wanted = Distance3D;
         Vector3 back = camRot * Vector3.back;
-        float clearDistance = distance3D;
-        foreach (RaycastHit hit in Physics.SphereCastAll(center, wallRadius, back, distance3D, ~0, QueryTriggerInteraction.Ignore))
+        float clearDistance = wanted;
+        foreach (RaycastHit hit in Physics.SphereCastAll(center, wallRadius, back, wanted, ~0, QueryTriggerInteraction.Ignore))
         {
             if (hit.distance > 0f && BlocksView(hit.collider))
             {
@@ -271,6 +511,17 @@ public class CameraRig : MonoBehaviour
     bool BlocksView(Collider other)
     {
         return other.attachedRigidbody == null && other.GetComponent<ColorObstacle>() == null;
+    }
+
+    static float PixelScale()
+    {
+        return 1080f / Mathf.Max(1, Screen.height);
+    }
+
+    static float Ease(float amount)
+    {
+        amount = Mathf.Clamp01(amount);
+        return amount * (2f - amount);
     }
 
     static Vector3 RoundDir(Vector3 dir)

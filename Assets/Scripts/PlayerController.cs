@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
     public float jumpForce = 8.5f;
 
     public bool canMove = true;
+    public bool canJump = true;
 
     public float stepHeight = 0.15f;
     public float stepLift = 0.05f;
@@ -29,7 +30,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (canMove && Input.GetKeyDown(KeyCode.Space))
+        if (canMove && canJump && Input.GetKeyDown(KeyCode.Space))
         {
             jumpPressed = true;
         }

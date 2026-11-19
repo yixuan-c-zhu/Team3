@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -31,6 +32,14 @@ public sealed class TutorialHudLayout : MonoBehaviour
     const float compactHeight = 56f;
     const float compactWidth = 232f;
     const float compactGap = 12f;
+    const float slotWidth = 415f;
+    const float slotGap = 18f;
+    const float rowStep = 114f;
+    const float flyTime = 0.55f;
+    const float flyArc = 120f;
+    const float flyStartScale = 0.35f;
+    const float glowTime = 0.45f;
+    const string learnedPrefix = "CrossSection.Learned.";
 
     static readonly Vector3[] corners = new Vector3[4];
 
@@ -55,8 +64,12 @@ public sealed class TutorialHudLayout : MonoBehaviour
     PieceControlManager colors;
     CardFeedback cutCard, viewCard, colorCard, switchCard;
     GameObject moveKeys;
-    GameObject[] playCards, aimCards;
+    GameObject[] aimCards;
     AimZone aimingZone;
+    CardFeedback[] skillCards;
+    readonly List<CardFeedback> shownCards = new List<CardFeedback>();
+    float cardsBase;
+    Canvas hudCanvas;
 
     sealed class CardFeedback
     {
@@ -64,8 +77,21 @@ public sealed class TutorialHudLayout : MonoBehaviour
         public GameObject card;
         public TutorialHudGraphic panel, keycap;
         public TMP_Text keyText;
+        public string skill;
+        public bool learned;
+        public Vector2 slot;
+        public Vector2 flyFrom;
+        public float flyClock = -1f;
+        public float glow;
         float until;
         bool lit;
+
+        public void ShowGlow(float amount)
+        {
+            panel.color = Color.Lerp(owner.cardFill, Color.Lerp(owner.cardFill, owner.accent, 0.35f), amount);
+            panel.edge = Color.Lerp(owner.cardEdge, owner.accent, amount);
+            panel.SetVerticesDirty();
+        }
 
         public void Flash()
         {
@@ -92,13 +118,14 @@ public sealed class TutorialHudLayout : MonoBehaviour
             keycap.color = value ? owner.orange : owner.keyFill;
             keycap.edge = value ? owner.orange : owner.keyEdge;
             keycap.SetVerticesDirty();
-            keyText.color = value ? new Color(0.12f, 0.10f, 0.08f) : owner.keyText;
+            if (keyText != null) keyText.color = value ? new Color(0.12f, 0.10f, 0.08f) : owner.keyText;
         }
     }
 
     void OnEnable()
     {
         hud = GetComponent<HUD>();
+        hudCanvas = GetComponentInParent<Canvas>();
         checkpoints = FindFirstObjectByType<CheckpointManager>();
         if (hud == null) return;
         font = hud.modeText != null ? hud.modeText.font : TMP_Settings.defaultFontAsset;
@@ -134,14 +161,15 @@ public sealed class TutorialHudLayout : MonoBehaviour
         cut = FindFirstObjectByType<CutController>();
         cameraRig = FindFirstObjectByType<CameraRig>();
         colors = FindFirstObjectByType<PieceControlManager>();
-        cutCard = Card("Cut", "C", TutorialHudGraphic.Shape.Cut, new Vector2(0, 114 + keysRow), 402,
+        cutCard = Card("Cut", "C", TutorialHudGraphic.Shape.Cut, Vector2.zero, slotWidth,
             () => { if (cut != null) { GameplayUiInput.ReportControl(KeyCode.C); cut.ToggleCut("ui_cut"); } });
-        viewCard = Card("Change view", "Tab", TutorialHudGraphic.Shape.View, new Vector2(420, 114 + keysRow), 428,
-            () => { if (cameraRig != null) { GameplayUiInput.ReportControl(KeyCode.Tab); cameraRig.SwitchViewFromInput("ui_view"); } });
-        colorCard = Card("Change color", "Shift", TutorialHudGraphic.Shape.Color, new Vector2(0, keysRow), 402,
+        viewCard = Card("Change view", "", TutorialHudGraphic.Shape.View, Vector2.zero, slotWidth,
+            () => { }, null, cardHeight, true);
+        colorCard = Card("Change color", "Shift", TutorialHudGraphic.Shape.Color, Vector2.zero, slotWidth,
             () => { if (colors != null) { GameplayUiInput.ReportControl(colors.colorKey); colors.ChangeControlledPieceColor("ui_color"); } });
-        switchCard = Card("Switch piece", "F", TutorialHudGraphic.Shape.Switch, new Vector2(420, keysRow), 428,
+        switchCard = Card("Switch piece", "F", TutorialHudGraphic.Shape.Switch, Vector2.zero, slotWidth,
             () => { if (cut != null) { GameplayUiInput.ReportControl(cut.switchKey); cut.SwitchPiece("ui_piece"); } });
+        SetUpSkills(keysRow);
         if (showMoveKeys) MoveKeys();
         AimCards();
         var levelManager = FindFirstObjectByType<LevelManager>();
@@ -167,6 +195,14 @@ public sealed class TutorialHudLayout : MonoBehaviour
         }
         if (cameraRig != null) cameraRig.ViewInput += viewCard.Flash;
         if (colors != null) colors.ColorInput += colorCard.Flash;
+        if (cut != null)
+        {
+            cut.CutDone += LearnCut;
+            cut.PieceSwitched += LearnSwitch;
+        }
+        if (cameraRig != null) cameraRig.ViewInput += LearnView;
+        if (colors != null) colors.ColorChanged += LearnColor;
+        objective.gameObject.SetActive(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == LevelCatalog.TutorialScene);
         UpdateGoal();
     }
 
@@ -193,6 +229,7 @@ public sealed class TutorialHudLayout : MonoBehaviour
         viewCard.Tick();
         colorCard.Tick();
         switchCard.Tick();
+        AnimateCards(Time.unscaledDeltaTime);
         UpdateGoal();
         if (aimCards != null) ShowAimCards(FindAimingZone());
         // The parent canvas scales with width. Limit the footer on short, ultrawide windows too.
@@ -227,12 +264,11 @@ public sealed class TutorialHudLayout : MonoBehaviour
     {
         var zone = FindFirstObjectByType<AimZone>();
         if (zone == null) return;
-        playCards = new[] { cutCard.card, viewCard.card, colorCard.card, switchCard.card };
         aimCards = new[]
         {
-            Card("Hold right-click to aim", "", TutorialHudGraphic.Shape.Mouse, new Vector2(0, 114), 428, () => { }).card,
-            Card("Step back", zone.stepBackKey.ToString(), TutorialHudGraphic.Shape.Back, Vector2.zero, 428,
-                () => { if (aimingZone != null) { GameplayUiInput.ReportControl(aimingZone.stepBackKey); aimingZone.StepBack(); } }).card
+            Card("Drag to aim", "", TutorialHudGraphic.Shape.Drag, new Vector2(0, 114), 428, () => { }).card,
+            Card("Step back", "WASD", TutorialHudGraphic.Shape.Back, Vector2.zero, 428,
+                () => { if (aimingZone != null) aimingZone.StepBack(); }).card
         };
         foreach (var card in aimCards) card.SetActive(false);
     }
@@ -250,8 +286,112 @@ public sealed class TutorialHudLayout : MonoBehaviour
         bool aiming = zone != null;
         if (aimCards[0].activeSelf == aiming) return;
         foreach (var card in aimCards) card.SetActive(aiming);
-        foreach (var card in playCards) card.SetActive(!aiming);
+        foreach (var card in shownCards) card.card.SetActive(!aiming);
         if (moveKeys != null) moveKeys.SetActive(!aiming);
+    }
+
+    void SetUpSkills(float keysRow)
+    {
+        cardsBase = keysRow;
+        skillCards = new[] { cutCard, viewCard, colorCard, switchCard };
+        string[] names = { "Cut", "View", "Color", "Switch" };
+        bool gradual = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == LevelCatalog.TutorialScene;
+        var order = new List<KeyValuePair<int, CardFeedback>>();
+        for (int i = 0; i < skillCards.Length; i++)
+        {
+            CardFeedback card = skillCards[i];
+            card.skill = names[i];
+            ((RectTransform)card.card.transform).pivot = new Vector2(0.5f, 0.5f);
+            card.card.SetActive(false);
+            int learnedAt = gradual ? PlayerPrefs.GetInt(learnedPrefix + card.skill, 0) : i + 1;
+            card.learned = learnedAt > 0;
+            if (card.learned) order.Add(new KeyValuePair<int, CardFeedback>(learnedAt, card));
+        }
+        order.Sort((a, b) => a.Key.CompareTo(b.Key));
+        shownCards.Clear();
+        foreach (var pair in order)
+        {
+            ShowInSlot(pair.Value);
+            Place(pair.Value, pair.Value.slot, 1f);
+        }
+    }
+
+    void ShowInSlot(CardFeedback card)
+    {
+        int index = shownCards.Count;
+        Vector2 corner = new Vector2((index % 2) * (slotWidth + slotGap), cardsBase + (index / 2) * rowStep);
+        card.slot = corner + new Vector2(slotWidth, cardHeight) * 0.5f;
+        shownCards.Add(card);
+        card.card.SetActive(aimingZone == null);
+    }
+
+    static void Place(CardFeedback card, Vector2 center, float scale)
+    {
+        var rect = (RectTransform)card.card.transform;
+        rect.anchoredPosition = center;
+        rect.localScale = Vector3.one * scale;
+    }
+
+    void LearnCut() { Learn(cutCard); }
+    void LearnView() { Learn(viewCard); }
+    void LearnColor() { Learn(colorCard); }
+    void LearnSwitch() { Learn(switchCard); }
+
+    void Learn(CardFeedback card)
+    {
+        if (card == null || card.learned || skillCards == null) return;
+        card.learned = true;
+        PlayerPrefs.SetInt(learnedPrefix + card.skill, shownCards.Count + 1);
+        PlayerPrefs.Save();
+        ShowInSlot(card);
+        card.flyFrom = PlayerOnFooter(card.slot);
+        card.flyClock = 0f;
+        Place(card, card.flyFrom, flyStartScale);
+    }
+
+    Vector2 PlayerOnFooter(Vector2 fallback)
+    {
+        if (cut == null || cut.player == null || cameraRig == null || cameraRig.cam == null) return fallback;
+        var body = cut.player.GetComponent<Renderer>();
+        Vector3 world = body != null ? body.bounds.center : cut.player.transform.position;
+        Vector3 screen = cameraRig.cam.WorldToScreenPoint(world);
+        if (screen.z <= 0f) return fallback;
+        Camera uiCamera = hudCanvas != null && hudCanvas.renderMode != RenderMode.ScreenSpaceOverlay ? hudCanvas.worldCamera : null;
+        Vector2 local;
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(footer, screen, uiCamera, out local)) return fallback;
+        return local;
+    }
+
+    void AnimateCards(float deltaTime)
+    {
+        foreach (var card in shownCards)
+        {
+            if (card.flyClock >= 0f)
+            {
+                card.flyClock += deltaTime;
+                float t = Mathf.Clamp01(card.flyClock / flyTime);
+                float move = 1f - Mathf.Pow(1f - t, 3f);
+                Vector2 position = Vector2.Lerp(card.flyFrom, card.slot, move) + Vector2.up * flyArc * Mathf.Sin(t * Mathf.PI);
+                Place(card, position, Mathf.LerpUnclamped(flyStartScale, 1f, BackOut(t)));
+                if (t >= 1f)
+                {
+                    card.flyClock = -1f;
+                    card.glow = 1f;
+                    Place(card, card.slot, 1f);
+                }
+            }
+            if (card.flyClock < 0f && card.glow > 0f)
+            {
+                card.glow = Mathf.Max(0f, card.glow - deltaTime / glowTime);
+                card.ShowGlow(card.glow);
+            }
+        }
+    }
+
+    static float BackOut(float t)
+    {
+        float back = t - 1f;
+        return 1f + 2.70158f * back * back * back + 1.70158f * back * back;
     }
 
     void MoveKeys()
@@ -280,6 +420,15 @@ public sealed class TutorialHudLayout : MonoBehaviour
         }
         if (cameraRig != null && viewCard != null) cameraRig.ViewInput -= viewCard.Flash;
         if (colors != null && colorCard != null) colors.ColorInput -= colorCard.Flash;
+        if (cut != null)
+        {
+            cut.CutDone -= LearnCut;
+            cut.PieceSwitched -= LearnSwitch;
+        }
+        if (cameraRig != null) cameraRig.ViewInput -= LearnView;
+        if (colors != null) colors.ColorChanged -= LearnColor;
+        shownCards.Clear();
+        skillCards = null;
         if (hud != null)
         {
             if (hud.statsText != null) hud.statsText.enabled = statsEnabled;
@@ -287,13 +436,13 @@ public sealed class TutorialHudLayout : MonoBehaviour
         if (checkpoints != null && checkpoints.tipText != null) checkpoints.tipText.enabled = tipsEnabled;
         if (root != null) Destroy(root.gameObject);
         shownRoom = -1;
-        playCards = aimCards = null;
+        aimCards = null;
         moveKeys = null;
         aimingZone = null;
     }
 
     CardFeedback Card(string action, string key, TutorialHudGraphic.Shape icon, Vector2 position, float width,
-        UnityEngine.Events.UnityAction onClick, RectTransform parent = null, float height = cardHeight)
+        UnityEngine.Events.UnityAction onClick, RectTransform parent = null, float height = cardHeight, bool mouseKey = false)
     {
         float k = height / cardHeight;
         var card = Rect(action + " card", parent != null ? parent : footer, Vector2.zero, position, new Vector2(width, height));
@@ -318,9 +467,17 @@ public sealed class TutorialHudLayout : MonoBehaviour
 
         TutorialHudGraphic keycap = null;
         float textLeft = 160 * k;
-        if (!string.IsNullOrEmpty(key))
+        if (mouseKey)
         {
-            float keyWidth = (key == "Shift" ? 78 : key == "Tab" ? 68 : 50) * k;
+            float keyWidth = 46 * k;
+            keycap = Keycap(card, "", new Vector2(160, -29) * k, new Vector2(keyWidth, 40 * k), 25 * k);
+            var mouse = Rect("Mouse", keycap.rectTransform, new Vector2(0, 1), new Vector2(-12, 0) * k, new Vector2(70, 40) * k);
+            Shape(mouse, TutorialHudGraphic.Shape.MouseLeft, keyText);
+            textLeft += keyWidth + 14;
+        }
+        else if (!string.IsNullOrEmpty(key))
+        {
+            float keyWidth = (key == "Shift" ? 78 : key == "Tab" ? 68 : key == "WASD" ? 86 : 50) * k;
             keycap = Keycap(card, key, new Vector2(160, -29) * k, new Vector2(keyWidth, 40 * k), 25 * k);
             textLeft += keyWidth + 14;
         }
