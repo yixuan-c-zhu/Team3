@@ -142,6 +142,12 @@ public class CheckpointManager : MonoBehaviour
             return;
         }
 
+        // The pennants of this exit and of any exits the player skipped turn green; only this one celebrates.
+        for (int i = CurrentRoom; i <= index; i++)
+        {
+            rooms[i].exit.MarkReached(i == index);
+        }
+
         // Capture the old room's time and remaining cuts BEFORE the checkpoint refills them:
         // checkpoint_reached, or level_complete at the last room's exit.
         // Skipped rooms are not assigned fabricated start/checkpoint events.

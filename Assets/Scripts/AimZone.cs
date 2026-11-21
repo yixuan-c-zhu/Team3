@@ -14,6 +14,10 @@ public class AimZone : MonoBehaviour
     public float sizeTolerance = 0.4f;
     public float maxUnevenness = 1.2f;
     public bool alignTop = true;
+    [Tooltip("Any cut shape can become the thing: the outline shows the player's own piece grown across to the Target, and lining it up turns that piece into it. Piece Size then only sets how wide the piece must be along the Target's long side (at least half). Off: the piece has to match Piece Size (the Tutorial).")]
+    public bool anyShape = false;
+    [Tooltip("Any Shape with Align Top: refuse a piece whose grown top would end more than Max Unevenness below the Target's top at the far end (the end away from the spot), where the player could not climb out.")]
+    public bool refuseDeadEnds = false;
 
     public float cameraFov = 60f;
     public float mouseSpeed = 0.15f;
@@ -51,6 +55,8 @@ public class AimZone : MonoBehaviour
     [TextArea] public string thickMessage = "This slice is too thick.\n<size=70%>{0} and cut lower, along the orange line at your feet.</size>";
     [TextArea] public string thinMessage = "This slice is too thin.\n<size=70%>{0} and cut a little higher, along the orange line.</size>";
     [TextArea] public string narrowMessage = "This slice is too narrow to fill the outline.\n<size=70%>An earlier cut made your body narrower than this spot needs. Press R to restart.</size>";
+    [TextArea] public string deadEndMessage = "This ramp ends too low to climb out.\n<size=70%>{0} and cut level, or make the cut higher on the far side.</size>";
+    [TextArea] public string shortMessage = "This piece is too narrow to reach across.\n<size=70%>{0} and leave a wider piece here.</size>";
     public string recutAction = "Press C to cancel";
     public string restartAction = "Press R to restart";
     public string stepBackNote = "<size=70%>Walk off the pad to step back.</size>";
@@ -74,9 +80,11 @@ public class AimZone : MonoBehaviour
     const float guideWidth = 0.05f;
     const float guideMargin = 0.04f;
     const float guideLift = 0.02f;
+    const float minSpanShare = 0.5f;
+    const float minGrowChange = 0.1f;
 
     enum Step { None, Aiming, LockingOn, Growing, Showing, Leaving }
-    enum Problem { None, WrongWay, Tilted, Thick, Thin, Narrow, WrongSize }
+    enum Problem { None, WrongWay, Tilted, Thick, Thin, Narrow, WrongSize, Short, DeadEnd }
 
     private CameraRig camRig;
     private CutController cutController;
@@ -131,6 +139,12 @@ public class AimZone : MonoBehaviour
     private ColorObstacle placedGlass;
     private string shownFallMessage;
 
+    // Any Shape: the piece as it sits on the spot, the same piece grown to where it will end up,
+    // and one outline loop per face of the grown piece.
+    private ConvexShape pieceShape;
+    private ConvexShape goalShape;
+    private readonly List<LineRenderer> shapeLines = new List<LineRenderer>();
+
     /// <summary>True while the player is lining the slice up from the pad.</summary>
     public bool IsAiming { get { return step == Step.Aiming; } }
 
@@ -151,7 +165,7 @@ public class AimZone : MonoBehaviour
         }
         if (step != Step.Aiming || piece == null || target == null) return false;
         Collider body = piece.GetComponent<Collider>();
-        if (body == null || GetProblem(body.bounds.size, piece.volume) != Problem.None) return false;
+        if (body == null || GetProblem(piece) != Problem.None) return false;
 
         percent = Mathf.RoundToInt(Mathf.Clamp01(GetMatch()) * 100f);
         return true;
@@ -174,7 +188,7 @@ public class AimZone : MonoBehaviour
             {
                 return false;
             }
-            return GetProblem(spotPiece.GetComponent<Collider>().bounds.size, spotPiece.volume) == Problem.None;
+            return GetProblem(spotPiece) == Problem.None;
         }
     }
 
@@ -191,7 +205,7 @@ public class AimZone : MonoBehaviour
             {
                 return null;
             }
-            Problem problem = GetProblem(spotPiece.GetComponent<Collider>().bounds.size, spotPiece.volume);
+            Problem problem = GetProblem(spotPiece);
             if (problem == Problem.None)
             {
                 return null;
@@ -372,9 +386,17 @@ public class AimZone : MonoBehaviour
         }
 
         piece = pieceSpot.GetPiece();
-        if (piece != null && HasRightSize(piece))
+        goalShape = null;
+        bool usable = piece != null && (anyShape
+            ? GetProblem(piece) == Problem.None
+            : HasRightSize(piece));
+        if (usable)
         {
             SetUpOrbit(piece.GetComponent<Collider>().bounds);
+            if (anyShape)
+            {
+                MakeGoalShape();
+            }
         }
         else
         {
@@ -393,10 +415,7 @@ public class AimZone : MonoBehaviour
         upAngle = Mathf.Clamp(goalUpAngle + startUpOffset, minUpAngle, maxUpAngle);
         PlaceOrbitCamera();
 
-        if (targetOutline != null)
-        {
-            targetOutline.enabled = true;
-        }
+        ShowOutline();
     }
 
     void UpdateAiming(float deltaTime)
@@ -417,7 +436,7 @@ public class AimZone : MonoBehaviour
             levelManager.ShowMessage(noPieceMessage);
             return;
         }
-        Problem problem = GetProblem(piece.GetComponent<Collider>().bounds.size, piece.volume);
+        Problem problem = GetProblem(piece);
         if (problem != Problem.None)
         {
             string message = GetProblemMessage(problem, restartAction);
@@ -493,7 +512,7 @@ public class AimZone : MonoBehaviour
         float glow = Mathf.Clamp01(match / matchNeeded);
         glow = glow * glow;
         outlineMat.color = Color.Lerp(outlineColor, glowColor, glow);
-        targetOutline.widthMultiplier = outlineWidth * Mathf.Lerp(1f, glowWidthScale, glow);
+        SetOutlineWidth(outlineWidth * Mathf.Lerp(1f, glowWidthScale, glow));
     }
 
     void ShowFlash(float flash)
@@ -501,7 +520,7 @@ public class AimZone : MonoBehaviour
         if (outlineMat != null)
         {
             outlineMat.color = Color.Lerp(glowColor, Color.white, flash);
-            targetOutline.widthMultiplier = outlineWidth * Mathf.Lerp(glowWidthScale, flashWidthScale, flash);
+            SetOutlineWidth(outlineWidth * Mathf.Lerp(glowWidthScale, flashWidthScale, flash));
         }
         if (pieceRenderer != null)
         {
@@ -637,10 +656,7 @@ public class AimZone : MonoBehaviour
         Destroy(piece);
         piece = null;
 
-        if (targetOutline != null)
-        {
-            targetOutline.enabled = false;
-        }
+        HideOutline();
     }
 
     void MakeGlass(GameObject placed, PieceColor.PieceColorType color)
@@ -710,10 +726,7 @@ public class AimZone : MonoBehaviour
     {
         step = Step.Leaving;
         EndAimDrag();
-        if (targetOutline != null)
-        {
-            targetOutline.enabled = false;
-        }
+        HideOutline();
         if (!startedIn2D)
         {
             camRig.TurnTo(cameraRot.eulerAngles.y);
@@ -812,7 +825,7 @@ public class AimZone : MonoBehaviour
             {
                 continue;
             }
-            if (GetProblem(bounds.size, shapes[i].GetVolume()) == Problem.None)
+            if (GetProblem(bounds.size, shapes[i].GetVolume(), shapes[i]) == Problem.None)
             {
                 return string.Format(fitsMessage, shapes.Length - i);
             }
@@ -827,12 +840,22 @@ public class AimZone : MonoBehaviour
             return null;
         }
         Vector3 sliceSize = shapes[slice].GetBounds().size;
-        Problem problem = GetProblem(sliceSize, shapes[slice].GetVolume());
+        Problem problem = GetProblem(sliceSize, shapes[slice].GetVolume(), shapes[slice]);
         return GetProblemMessage(problem, recutAction);
     }
 
-    Problem GetProblem(Vector3 size, float volume)
+    Problem GetProblem(CuttablePiece checkPiece)
     {
+        Vector3 size = checkPiece.GetComponent<Collider>().bounds.size;
+        return GetProblem(size, checkPiece.volume, anyShape ? checkPiece.GetWorldShape() : null);
+    }
+
+    Problem GetProblem(Vector3 size, float volume, ConvexShape worldShape = null)
+    {
+        if (anyShape)
+        {
+            return GetAnyShapeProblem(size, worldShape);
+        }
         int thinSide = GetThinSide(pieceSize);
         int sliceThinSide = GetThinSide(size);
         if (sliceThinSide != thinSide && size[sliceThinSide] + sizeTolerance < size[thinSide])
@@ -884,6 +907,10 @@ public class AimZone : MonoBehaviour
                 return string.Format(thinMessage, action);
             case Problem.Narrow:
                 return string.Format(narrowMessage, action);
+            case Problem.Short:
+                return string.Format(shortMessage, action);
+            case Problem.DeadEnd:
+                return string.Format(deadEndMessage, action);
             default:
                 return wrongSizeMessage;
         }
@@ -915,19 +942,159 @@ public class AimZone : MonoBehaviour
     float GetScale(Vector3 size)
     {
         Vector3 targetSize = GetTargetBounds().size;
-        int longSide = 0;
-        if (targetSize.y > targetSize[longSide])
-        {
-            longSide = 1;
-        }
-        if (targetSize.z > targetSize[longSide])
-        {
-            longSide = 2;
-        }
+        int longSide = GetLongSide(targetSize);
         return targetSize[longSide] / size[longSide];
     }
 
-    Vector3 GetAimSpot(Bounds pieceBounds)
+    // Any Shape: whatever was cut is fine, as long as growing it along the Target's long side
+    // makes sense. A very narrow piece would grow huge in every other direction.
+    Problem GetAnyShapeProblem(Vector3 size, ConvexShape worldShape)
+    {
+        int span = GetLongSide(GetTargetBounds().size);
+        if (size[span] < pieceSize[span] * minSpanShare)
+        {
+            return Problem.Short;
+        }
+        if (Mathf.Abs(GetScale(size) - 1f) < minGrowChange)
+        {
+            return Problem.WrongSize;
+        }
+        if (refuseDeadEnds && alignTop && worldShape != null && pieceSpot != null
+            && GetFarEndDrop(worldShape) > maxUnevenness)
+        {
+            return Problem.DeadEnd;
+        }
+        return Problem.None;
+    }
+
+    // Any Shape: how far below the Target's top the grown piece's top ends, at the end away from the spot.
+    // The highest point is always level with the Target's top, so the only thing that can trap the player
+    // is a far end too low to climb out of.
+    float GetFarEndDrop(ConvexShape worldShape)
+    {
+        Bounds bounds = worldShape.GetBounds();
+        Bounds targetBounds = GetTargetBounds();
+        int span = GetLongSide(targetBounds.size);
+        float scale = GetScale(bounds.size);
+        Vector3 spot = GetAimSpot(bounds);
+        bool farIsHigh = targetBounds.center[span] >= pieceSpot.GetFloorCenter()[span];
+
+        float farEnd = farIsHigh ? float.MinValue : float.MaxValue;
+        foreach (Vector3 point in GetPoints(worldShape))
+        {
+            float along = (spot + (point - spot) * scale)[span];
+            farEnd = farIsHigh ? Mathf.Max(farEnd, along) : Mathf.Min(farEnd, along);
+        }
+
+        float endWidth = 0.05f * targetBounds.size[span];
+        float top = float.MinValue;
+        foreach (Vector3 point in GetPoints(worldShape))
+        {
+            Vector3 grown = spot + (point - spot) * scale;
+            if (Mathf.Abs(grown[span] - farEnd) <= endWidth)
+            {
+                top = Mathf.Max(top, grown.y);
+            }
+        }
+        return targetBounds.max.y - top;
+    }
+
+    static int GetLongSide(Vector3 size)
+    {
+        int longSide = 0;
+        if (size.y > size[longSide])
+        {
+            longSide = 1;
+        }
+        if (size.z > size[longSide])
+        {
+            longSide = 2;
+        }
+        return longSide;
+    }
+
+    static IEnumerable<Vector3> GetPoints(ConvexShape shape)
+    {
+        foreach (Vector3[] face in shape.faces)
+        {
+            foreach (Vector3 point in face)
+            {
+                yield return point;
+            }
+        }
+    }
+
+    // Any Shape: the player's piece, grown about the aim spot to where it will end up.
+    void MakeGoalShape()
+    {
+        pieceShape = piece.GetWorldShape();
+        Bounds bounds = pieceShape.GetBounds();
+        float scale = GetScale(bounds.size);
+        Vector3 spot = GetAimSpot(bounds);
+        Matrix4x4 grow = Matrix4x4.Translate(spot) * Matrix4x4.Scale(Vector3.one * scale) * Matrix4x4.Translate(-spot);
+        goalShape = pieceShape.ApplyMatrix(grow);
+        if (targetOutline == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < goalShape.faces.Count; i++)
+        {
+            if (i >= shapeLines.Count)
+            {
+                LineRenderer line = Instantiate(targetOutline, targetOutline.transform.parent);
+                line.name = "ShapeOutline";
+                line.loop = true;
+                line.useWorldSpace = true;
+                if (outlineMat != null)
+                {
+                    line.sharedMaterial = outlineMat;
+                }
+                line.enabled = false;
+                shapeLines.Add(line);
+            }
+            shapeLines[i].positionCount = goalShape.faces[i].Length;
+            shapeLines[i].SetPositions(goalShape.faces[i]);
+        }
+    }
+
+    void ShowOutline()
+    {
+        if (targetOutline == null)
+        {
+            return;
+        }
+        bool ownShape = goalShape != null;
+        targetOutline.enabled = !ownShape;
+        for (int i = 0; i < shapeLines.Count; i++)
+        {
+            shapeLines[i].enabled = ownShape && i < goalShape.faces.Count;
+        }
+    }
+
+    void HideOutline()
+    {
+        if (targetOutline != null)
+        {
+            targetOutline.enabled = false;
+        }
+        foreach (LineRenderer line in shapeLines)
+        {
+            line.enabled = false;
+        }
+    }
+
+    void SetOutlineWidth(float width)
+    {
+        targetOutline.widthMultiplier = width;
+        foreach (LineRenderer line in shapeLines)
+        {
+            line.widthMultiplier = width;
+        }
+    }
+
+    
+Vector3 GetAimSpot(Bounds pieceBounds)
     {
         float scale = GetScale(pieceBounds.size);
         Vector3 pieceAnchor = GetAnchor(pieceBounds);
@@ -961,8 +1128,19 @@ public class AimZone : MonoBehaviour
     {
         Rect pieceRect;
         Rect targetRect;
-        bool pieceInFront = GetScreenRect(piece.GetComponent<Collider>().bounds, out pieceRect);
-        bool targetInFront = GetScreenRect(GetTargetBounds(), out targetRect);
+        bool pieceInFront;
+        bool targetInFront;
+        if (goalShape != null)
+        {
+            // Any Shape: compare the piece with its own grown copy, using their real corners.
+            pieceInFront = GetScreenRect(GetPoints(pieceShape), out pieceRect);
+            targetInFront = GetScreenRect(GetPoints(goalShape), out targetRect);
+        }
+        else
+        {
+            pieceInFront = GetScreenRect(GetCorners(piece.GetComponent<Collider>().bounds), out pieceRect);
+            targetInFront = GetScreenRect(GetCorners(GetTargetBounds()), out targetRect);
+        }
         if (!pieceInFront || !targetInFront)
         {
             return 0f;
@@ -982,11 +1160,11 @@ public class AimZone : MonoBehaviour
         return overlapArea / totalArea;
     }
 
-    bool GetScreenRect(Bounds bounds, out Rect rect)
+    bool GetScreenRect(IEnumerable<Vector3> points, out Rect rect)
     {
         Vector2 low = new Vector2(float.MaxValue, float.MaxValue);
         Vector2 high = new Vector2(float.MinValue, float.MinValue);
-        foreach (Vector3 corner in GetCorners(bounds))
+        foreach (Vector3 corner in points)
         {
             Vector3 point = camRig.cam.WorldToViewportPoint(corner);
             if (point.z <= 0f)

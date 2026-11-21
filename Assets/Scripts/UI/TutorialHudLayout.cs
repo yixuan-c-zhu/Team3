@@ -25,6 +25,12 @@ public sealed class TutorialHudLayout : MonoBehaviour
     [Tooltip("Put a small restart button left of this button instead of the restart card.")]
     public RectTransform restartBeside;
 
+    [Header("Hint card")]
+    [Tooltip("Fold the control cards into a small Hint card in the bottom-left corner. Clicking it opens and closes them. Off by default, so the Tutorial keeps its open cards.")]
+    public bool collapsible = false;
+    [Tooltip("Text on the Hint card.")]
+    public string hintLabel = "Hint";
+
     const float cardHeight = 98f;
     const float footerHeight = 212f;
     const float moveKeyHeight = 38f;
@@ -39,7 +45,12 @@ public sealed class TutorialHudLayout : MonoBehaviour
     const float flyArc = 120f;
     const float flyStartScale = 0.35f;
     const float glowTime = 0.45f;
-    const string learnedPrefix = "CrossSection.Learned.";
+    const float hintWidth = 184f;
+    const float hintHeight = 64f;
+    const float hintGap = 16f;
+    const float hintOpenTime = 0.18f;
+    const float hintSlide = 24f;
+    const float hintGlowTime = 0.9f;
 
     static readonly Vector3[] corners = new Vector3[4];
 
@@ -70,6 +81,37 @@ public sealed class TutorialHudLayout : MonoBehaviour
     readonly List<CardFeedback> shownCards = new List<CardFeedback>();
     float cardsBase;
     Canvas hudCanvas;
+    RectTransform cards, hintCard, hintArrow;
+    TutorialHudGraphic hintPanel;
+    CanvasGroup cardsGroup;
+    GameObject hintDot;
+    float openAmount, hintGlow;
+    // Kept for the whole play session, so restarts and new levels keep the player's choice.
+    static bool hintsOpen;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetHints()
+    {
+        hintsOpen = false;
+        learned.Clear();
+    }
+
+    // Skills learned in this run of the Tutorial, with the order they were learned in. Kept in memory, so R
+    // (which reloads the scene) keeps them, but starting the Tutorial again or closing the game hands the
+    // cards out one by one again.
+    static readonly Dictionary<string, int> learned = new Dictionary<string, int>();
+
+    /// <summary>Forget the learned cards. LevelCatalog calls it whenever the Tutorial is started.</summary>
+    public static void ForgetLearned() => learned.Clear();
+
+    static int LearnedAt(string skill)
+    {
+        int at;
+        return learned.TryGetValue(skill, out at) ? at : 0;
+    }
+
+    bool IntoHint => collapsible && !hintsOpen;
+    float CardsLift => collapsible ? hintHeight + hintGap : 0f;
 
     sealed class CardFeedback
     {
@@ -156,8 +198,13 @@ public sealed class TutorialHudLayout : MonoBehaviour
         objectiveText = Label("Goal", objective, new Vector2(55, 0), new Vector2(320, 44), "", 27);
 
         float keysRow = showMoveKeys ? moveKeyHeight + moveKeyGap : 0f;
-        footer = Rect("Controls", root, Vector2.zero, new Vector2(44, 30), new Vector2(848, footerHeight + keysRow));
+        footer = Rect("Controls", root, Vector2.zero, new Vector2(44, 30), new Vector2(848, footerHeight + keysRow + CardsLift));
         footer.pivot = Vector2.zero;
+        // The cards sit in their own group above the Hint card, so the Hint card can fold them away.
+        cards = Rect("Cards", footer, Vector2.zero, new Vector2(0, CardsLift), new Vector2(848, footerHeight + keysRow));
+        cards.pivot = Vector2.zero;
+        cardsGroup = cards.gameObject.AddComponent<CanvasGroup>();
+        if (collapsible) HintCard();
         cut = FindFirstObjectByType<CutController>();
         cameraRig = FindFirstObjectByType<CameraRig>();
         colors = FindFirstObjectByType<PieceControlManager>();
@@ -203,6 +250,8 @@ public sealed class TutorialHudLayout : MonoBehaviour
         if (cameraRig != null) cameraRig.ViewInput += LearnView;
         if (colors != null) colors.ColorChanged += LearnColor;
         objective.gameObject.SetActive(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == LevelCatalog.TutorialScene);
+        openAmount = IntoHint ? 0f : 1f;
+        AnimateHints(0f);
         UpdateGoal();
     }
 
@@ -232,6 +281,7 @@ public sealed class TutorialHudLayout : MonoBehaviour
         AnimateCards(Time.unscaledDeltaTime);
         UpdateGoal();
         if (aimCards != null) ShowAimCards(FindAimingZone());
+        AnimateHints(Time.unscaledDeltaTime);
         // The parent canvas scales with width. Limit the footer on short, ultrawide windows too.
         float scale = Mathf.Min(0.9f, root.rect.height * 0.24f / footerHeight);
         footer.localScale = Vector3.one * scale;
@@ -249,6 +299,83 @@ public sealed class TutorialHudLayout : MonoBehaviour
         restartArea.localScale = Vector3.one * (unit / root.lossyScale.y);
         restartArea.position = corners[0] + left * compactGap * unit;
     }
+
+    void HintCard()
+    {
+        hintCard = Rect("Hint card", footer, Vector2.zero, Vector2.zero, new Vector2(hintWidth, hintHeight));
+        hintCard.pivot = new Vector2(0.5f, 0.5f);
+        hintPanel = Panel(hintCard, cardFill, cardEdge, 16, cardBorder);
+        hintPanel.shadow = shadowColor;
+        hintPanel.raycastTarget = true;
+        var button = hintCard.gameObject.AddComponent<Button>();
+        button.targetGraphic = hintPanel;
+        button.transition = Selectable.Transition.None;
+        // Like the other cards, a click must not take Space (jump) or keyboard navigation.
+        button.navigation = new Navigation { mode = Navigation.Mode.None };
+        button.onClick.AddListener(ToggleHints);
+
+        var bulb = Rect("Bulb icon", hintCard, new Vector2(0, 0.5f), new Vector2(14, 22), new Vector2(44, 44));
+        Shape(bulb, TutorialHudGraphic.Shape.Bulb, iconColor);
+        var label = Label("Label", hintCard, new Vector2(66, 0), new Vector2(hintWidth - 110, hintHeight), hintLabel, 26);
+        label.fontStyle = FontStyles.Bold;
+        // Grow the card for a longer label.
+        float width = Mathf.Max(hintWidth, 66 + label.preferredWidth + 62);
+        hintCard.sizeDelta = new Vector2(width, hintHeight);
+        hintCard.anchoredPosition = hintCard.sizeDelta * 0.5f;
+        label.rectTransform.sizeDelta = new Vector2(width - 110, hintHeight);
+        hintArrow = Rect("Arrow", hintCard, new Vector2(1, 0.5f), new Vector2(-30, 0), new Vector2(24, 24));
+        hintArrow.pivot = new Vector2(0.5f, 0.5f);
+        Shape(hintArrow, TutorialHudGraphic.Shape.Chevron, iconColor);
+
+        // A dot on the corner: a new card went in since the player last opened the hints.
+        var dot = Rect("New dot", hintCard, Vector2.one, new Vector2(-6, -6), new Vector2(18, 18));
+        dot.pivot = new Vector2(0.5f, 0.5f);
+        Panel(dot, accent, cardEdge, 9, 2f);
+        hintDot = dot.gameObject;
+        hintDot.SetActive(false);
+    }
+
+    void ToggleHints()
+    {
+        hintsOpen = !hintsOpen;
+        if (hintsOpen && hintDot != null) hintDot.SetActive(false);
+    }
+
+    void AnimateHints(float deltaTime)
+    {
+        if (!collapsible || hintCard == null) return;
+        // No cards to show yet (the Tutorial hands them out one by one), so no Hint card either.
+        bool any = shownCards.Count > 0 || moveKeys != null || aimingZone != null;
+        if (hintCard.gameObject.activeSelf != any) hintCard.gameObject.SetActive(any);
+
+        float target = hintsOpen ? 1f : 0f;
+        if (openAmount != target || deltaTime == 0f)
+        {
+            openAmount = Mathf.MoveTowards(openAmount, target, deltaTime / hintOpenTime);
+            float eased = 1f - (1f - openAmount) * (1f - openAmount);
+            cardsGroup.alpha = eased;
+            cardsGroup.interactable = cardsGroup.blocksRaycasts = hintsOpen;
+            cards.anchoredPosition = new Vector2(0, CardsLift - hintSlide * (1f - eased));
+            cards.localScale = Vector3.one * Mathf.Lerp(0.94f, 1f, eased);
+            if (cards.gameObject.activeSelf != openAmount > 0f) cards.gameObject.SetActive(openAmount > 0f);
+            hintArrow.localEulerAngles = new Vector3(0, 0, 180f * eased);
+        }
+
+        // A card just flew in: the Hint card bumps and glows for a moment.
+        if (hintGlow > 0f || hintCard.localScale.x != 1f)
+        {
+            hintGlow = Mathf.Max(0f, hintGlow - deltaTime / hintGlowTime);
+            hintPanel.color = Color.Lerp(cardFill, Color.Lerp(cardFill, accent, 0.35f), hintGlow);
+            hintPanel.edge = Color.Lerp(cardEdge, accent, hintGlow);
+            hintPanel.SetVerticesDirty();
+            hintCard.localScale = Vector3.one * (1f + 0.14f * hintGlow * hintGlow);
+        }
+    }
+
+    Vector2 SlotOnFooter(CardFeedback card) => card.slot + new Vector2(0, CardsLift);
+
+    Vector2 HintCenter() => hintCard.anchoredPosition;
+
 
     void UpdateGoal()
     {
@@ -303,7 +430,7 @@ public sealed class TutorialHudLayout : MonoBehaviour
             card.skill = names[i];
             ((RectTransform)card.card.transform).pivot = new Vector2(0.5f, 0.5f);
             card.card.SetActive(false);
-            int learnedAt = gradual ? PlayerPrefs.GetInt(learnedPrefix + card.skill, 0) : i + 1;
+            int learnedAt = gradual ? LearnedAt(card.skill) : i + 1;
             card.learned = learnedAt > 0;
             if (card.learned) order.Add(new KeyValuePair<int, CardFeedback>(learnedAt, card));
         }
@@ -341,10 +468,11 @@ public sealed class TutorialHudLayout : MonoBehaviour
     {
         if (card == null || card.learned || skillCards == null) return;
         card.learned = true;
-        PlayerPrefs.SetInt(learnedPrefix + card.skill, shownCards.Count + 1);
-        PlayerPrefs.Save();
+        learned[card.skill] = shownCards.Count + 1;
         ShowInSlot(card);
-        card.flyFrom = PlayerOnFooter(card.slot);
+        // Fly in the footer's space, so the card shows even while the Hint card has the others folded away.
+        card.card.transform.SetParent(footer, false);
+        card.flyFrom = PlayerOnFooter(SlotOnFooter(card));
         card.flyClock = 0f;
         Place(card, card.flyFrom, flyStartScale);
     }
@@ -371,13 +499,25 @@ public sealed class TutorialHudLayout : MonoBehaviour
                 card.flyClock += deltaTime;
                 float t = Mathf.Clamp01(card.flyClock / flyTime);
                 float move = 1f - Mathf.Pow(1f - t, 3f);
-                Vector2 position = Vector2.Lerp(card.flyFrom, card.slot, move) + Vector2.up * flyArc * Mathf.Sin(t * Mathf.PI);
-                Place(card, position, Mathf.LerpUnclamped(flyStartScale, 1f, BackOut(t)));
+                // While the cards are folded away, a new card flies into the Hint card instead of its slot.
+                bool intoHint = IntoHint;
+                Vector2 target = intoHint ? HintCenter() : SlotOnFooter(card);
+                Vector2 position = Vector2.Lerp(card.flyFrom, target, move) + Vector2.up * flyArc * Mathf.Sin(t * Mathf.PI);
+                float scale = intoHint
+                    ? Mathf.Lerp(flyStartScale, 0.12f, t) + 0.3f * Mathf.Sin(t * Mathf.PI)
+                    : Mathf.LerpUnclamped(flyStartScale, 1f, BackOut(t));
+                Place(card, position, scale);
                 if (t >= 1f)
                 {
                     card.flyClock = -1f;
-                    card.glow = 1f;
+                    card.card.transform.SetParent(cards, false);
                     Place(card, card.slot, 1f);
+                    if (intoHint)
+                    {
+                        hintGlow = 1f;
+                        if (hintDot != null) hintDot.SetActive(true);
+                    }
+                    else card.glow = 1f;
                 }
             }
             if (card.flyClock < 0f && card.glow > 0f)
@@ -396,7 +536,7 @@ public sealed class TutorialHudLayout : MonoBehaviour
 
     void MoveKeys()
     {
-        var row = Rect("Move keys", footer, Vector2.zero, Vector2.zero, new Vector2(848, moveKeyHeight));
+        var row = Rect("Move keys", cards, Vector2.zero, Vector2.zero, new Vector2(848, moveKeyHeight));
         row.pivot = Vector2.zero;
         moveKeys = row.gameObject;
         float x = KeyHint(row, "WASD", "Move", 0f);
@@ -438,6 +578,8 @@ public sealed class TutorialHudLayout : MonoBehaviour
         shownRoom = -1;
         aimCards = null;
         moveKeys = null;
+        cards = hintCard = hintArrow = null;
+        hintDot = null;
         aimingZone = null;
     }
 
@@ -445,7 +587,7 @@ public sealed class TutorialHudLayout : MonoBehaviour
         UnityEngine.Events.UnityAction onClick, RectTransform parent = null, float height = cardHeight, bool mouseKey = false)
     {
         float k = height / cardHeight;
-        var card = Rect(action + " card", parent != null ? parent : footer, Vector2.zero, position, new Vector2(width, height));
+        var card = Rect(action + " card", parent != null ? parent : cards, Vector2.zero, position, new Vector2(width, height));
         card.pivot = Vector2.zero;
         var panel = Panel(card, cardFill, cardEdge, 18 * k, cardBorder);
         panel.shadow = shadowColor;

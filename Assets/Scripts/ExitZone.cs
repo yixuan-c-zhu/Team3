@@ -13,6 +13,10 @@ public class ExitZone : MonoBehaviour
 
     private Vector3 labelPos;
 
+    // In paper-style scenes a paper pennant marks this exit instead of the glass box and the floating label.
+    [System.NonSerialized]
+    public CheckpointPennant pennant;
+
     void Reset()
     {
         GetComponent<Collider>().isTrigger = true;
@@ -22,11 +26,23 @@ public class ExitZone : MonoBehaviour
     {
         Bounds bounds = GetComponent<Collider>().bounds;
         labelPos = new Vector3(bounds.center.x, bounds.max.y + labelHeight, bounds.center.z);
+        if (PaperFeel.IsOn) pennant = CheckpointPennant.Attach(this);
+    }
+
+    /// <summary>Tells this exit's pennant that the player got here. Celebrate flips it over with paper scraps.</summary>
+    public void MarkReached(bool celebrate)
+    {
+        if (pennant != null) pennant.Reach(celebrate);
     }
 
     void LateUpdate()
     {
         if (exitText == null || Camera.main == null) return;
+        if (pennant != null)
+        {
+            exitText.enabled = false;
+            return;
+        }
         if (!showLabel)
         {
             exitText.enabled = false;
@@ -57,6 +73,7 @@ public class ExitZone : MonoBehaviour
             }
             else
             {
+                MarkReached(true);
                 levelManager.CompleteLevel();
             }
         }

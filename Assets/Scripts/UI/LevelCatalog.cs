@@ -119,6 +119,8 @@ public static class LevelCatalog
             return;
         }
         SetStartCheckpoint(scene, checkpoint);
+        // Starting the Tutorial (not restarting a room with R) hands the control cards out one by one again.
+        if (scene == TutorialScene) TutorialHudLayout.ForgetLearned();
         HelpPanel.CloseAll();
         Time.timeScale = 1f;
         SceneManager.LoadScene(scene);

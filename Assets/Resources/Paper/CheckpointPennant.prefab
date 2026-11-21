@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2415322304191565659
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1720498581392943595}
+  - component: {fileID: 1903117124194959025}
+  m_Layer: 0
+  m_Name: CheckpointPennant
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1720498581392943595
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2415322304191565659}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1903117124194959025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2415322304191565659}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 727b80f4262fa17448052ea784b8cbb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CheckpointPennant
+  cardstock: {fileID: 2100000, guid: 4aa1e37e7c0d3e341b71bb58989562e3, type: 2}
+  ink: {fileID: 2100000, guid: 3ff48d3061ad35e48a1b466f4abf72cd, type: 2}
+  green: {fileID: 2100000, guid: 76971800822ec2645a1d27f7c794c9e7, type: 2}
+  baseTile: {fileID: 2100000, guid: 4aa1e37e7c0d3e341b71bb58989562e3, type: 2}
+  poleHeight: 3.9
+  poleWidth: 0.12
+  flagLength: 1.9
+  flagHeight: 1.25
+  stripeWidth: 0.34
+  poleInset: 0.3
+  checkerSize: 0.42
+  baseRim: 0.08
+  swayAngle: 15
+  swaySpeed: 1.7
+  flipTime: 0.6
+  scraps: 12

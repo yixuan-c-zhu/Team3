@@ -5,7 +5,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(CanvasRenderer))]
 public sealed class TutorialHudGraphic : MaskableGraphic
 {
-    public enum Shape { Panel, Diamond, Cut, View, Color, Switch, Restart, Mouse, Back, Drag, MouseLeft }
+    public enum Shape { Panel, Diamond, Cut, View, Color, Switch, Restart, Mouse, Back, Drag, MouseLeft, Bulb, Chevron }
     public Shape shape;
     public Color edge = Color.white;
     public Color blue = new Color(0.30f, 0.48f, 1f);
@@ -80,7 +80,28 @@ public sealed class TutorialHudGraphic : MaskableGraphic
             case Shape.MouseLeft:
                 Mouse(mesh, true);
                 break;
-            case Shape.Back:
+            case Shape.Bulb:
+                // A light bulb with short rays, for the Hint card.
+                Arc(mesh, 50, 44, 22, 22, 130, 410);
+                Stroke(mesh, 35.9f, 60.9f, 40, 72);
+                Stroke(mesh, 64.1f, 60.9f, 60, 72);
+                Stroke(mesh, 40, 72, 60, 72);
+                Stroke(mesh, 42, 81, 58, 81);
+                Stroke(mesh, 46, 90, 54, 90);
+                for (int i = 0; i < 5; i++)
+                {
+                    float angle = (180f + i * 45f) * Mathf.Deg2Rad;
+                    Stroke(mesh, 50 + Mathf.Cos(angle) * 30, 44 + Mathf.Sin(angle) * 30,
+                        50 + Mathf.Cos(angle) * 38, 44 + Mathf.Sin(angle) * 38);
+                }
+                break;
+            case Shape.Chevron:
+                // Points up; turned upside down when the cards are open.
+                Stroke(mesh, 16, 68, 50, 32, 3.2f);
+                Stroke(mesh, 50, 32, 84, 68, 3.2f);
+                break;
+            
+case Shape.Back:
                 Arc(mesh, 58, 55, 22, 30, 90, -90);
                 Stroke(mesh, 58, 25, 22, 25);
                 Arrow(mesh, 32, 12, 22, 25, 32, 38);

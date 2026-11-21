@@ -3932,6 +3932,7 @@ MonoBehaviour:
   speed: 6
   jumpForce: 8.5
   canMove: 1
+  canJump: 1
   stepHeight: 0.15
   stepLift: 0.05
 --- !u!114 &579504286
@@ -6582,11 +6583,9 @@ MonoBehaviour:
   player: {fileID: 579504291}
   size2D: 6.5
   distance2D: 40
-  distance3D: 15
-  minZoom: 7
-  maxZoom: 28
   angle3D: 25
-  rotateSpeed: 120
+  minPitch: 5
+  maxPitch: 75
   mouseSensitivity: 0.25
   followSpeed: 8
   turnSpeed: 10
@@ -6594,6 +6593,17 @@ MonoBehaviour:
   wallRadius: 0.35
   minWallDistance: 1
   wallReturnSpeed: 4
+  dragStart: 6
+  flattenPull: 140
+  liftPull: 110
+  turnPull: 170
+  previewFlat: 0.35
+  previewLift: 12
+  previewTurn: 18
+  followTime: 0.05
+  settleTime: 0.12
+  turnDip: 0.3
+  riseTime: 0.15
   is2D: 1
   canControl: 1
 --- !u!1 &973492666
@@ -10574,6 +10584,8 @@ MonoBehaviour:
   snipTime: 0.38
   shakeTime: 0.4
   shakeSize: 9
+  popTime: 0.42
+  popStagger: 0.14
 --- !u!114 &1518088447
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10647,6 +10659,9 @@ MonoBehaviour:
   maxScale: 1
   minScale: 0.3
   surfaceOffset: 0.015
+  lookReach: 0.7
+  lookRange: 1.5
+  lookSpeed: 10
 --- !u!1 &1529512453
 GameObject:
   m_ObjectHideFlags: 0
@@ -14515,6 +14530,8 @@ MonoBehaviour:
   orange: {r: 1, g: 0.47, b: 0.2, a: 1}
   showMoveKeys: 0
   restartBeside: {fileID: 0}
+  collapsible: 0
+  hintLabel: Hint
 --- !u!114 &1954974462
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16677,6 +16694,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: anyShape
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: blueGlass
       value: 
       objectReference: {fileID: 2100000, guid: 7e8da22a19ef1de409ea625aa31ba875, type: 2}
@@ -16722,6 +16743,10 @@ PrefabInstance:
 
         <size=70%>{0} and cut lower, along
         the dashed line at your feet.</size>'
+      objectReference: {fileID: 0}
+    - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
+      propertyPath: refuseDeadEnds
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1153271972403373860, guid: 6e54a77ed572a8b45aa34d785c660ad3, type: 3}
       propertyPath: showGlassHints
