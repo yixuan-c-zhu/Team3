@@ -1,9 +1,10 @@
-# Publishes five WebGL builds to GitHub Pages as one site:
+# Publishes six WebGL builds to GitHub Pages as one site:
 #   main                                -> https://yixuan-c-zhu.github.io/Team3/
 #   feature/alpha-milestone-hosting     -> https://yixuan-c-zhu.github.io/Team3/alpha/
 #   feature/beta-progress-check-hosting -> https://yixuan-c-zhu.github.io/Team3/beta-progress-check2/
 #   beta/feature/beta-milestone-build   -> https://yixuan-c-zhu.github.io/Team3/beta/
 #   gold-progress-check-1/feature/new-level -> https://yixuan-c-zhu.github.io/Team3/gold-progress-check-1/
+#   gold-progress-check-2/feature/host      -> https://yixuan-c-zhu.github.io/Team3/gold-progress-check-2/
 # Each branch serves the index.html, Build/ and TemplateData/ at its repo root.
 # A push to any of these branches rebuilds the whole site from all of them, using that
 # branch's copy of this file, so keep this file the same on every branch listed here.
@@ -20,6 +21,7 @@ on:
       - feature/beta-progress-check-hosting
       - beta/feature/beta-milestone-build
       - gold-progress-check-1/feature/new-level
+      - gold-progress-check-2/feature/host
   workflow_dispatch:
 
 permissions:
@@ -104,6 +106,20 @@ jobs:
             TemplateData
           sparse-checkout-cone-mode: false
 
+      - name: Check out gold progress check 2
+        id: gold2
+        continue-on-error: true
+        uses: actions/checkout@v7
+        with:
+          ref: gold-progress-check-2/feature/host
+          path: gold2
+          lfs: true
+          sparse-checkout: |
+            index.html
+            Build
+            TemplateData
+          sparse-checkout-cone-mode: false
+
       - name: Assemble site
         run: |
           mkdir -p _site/alpha
@@ -120,6 +136,10 @@ jobs:
           if [ "${{ steps.gold.outcome }}" = "success" ]; then
             mkdir -p _site/gold-progress-check-1
             cp -r gold/index.html gold/Build gold/TemplateData _site/gold-progress-check-1/
+          fi
+          if [ "${{ steps.gold2.outcome }}" = "success" ]; then
+            mkdir -p _site/gold-progress-check-2
+            cp -r gold2/index.html gold2/Build gold2/TemplateData _site/gold-progress-check-2/
           fi
 
       - uses: actions/configure-pages@v6
